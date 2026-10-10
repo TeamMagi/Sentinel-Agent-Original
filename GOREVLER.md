@@ -46,7 +46,7 @@ iş-mantığı). Bu karar şimdilik ertelendi.
 > dürüst konumlandırma*, sonra *yeni kol*. Önce A+D amiral olacak; yeni kol/mimari en sona.
 
 ### P0 — Kanıt konsolidasyonu (yeni özellikten ÖNCE)
-- [~] **A ve D kollarındaki kayıtlı her tip için eval twin** (`_vuln`/`_hardened`/near-miss + `_one`)
+- [x] **A ve D kollarındaki kayıtlı her tip için eval twin** (`_vuln`/`_hardened`/near-miss + `_one`)
       → amiral kollarda tam kapsam. **(Kol A + Kol D TAM — eval 18→39 vaka, 14 kanıtlı tip)**
   - Kol A twin'li: `idor`, `bola`, `bfla`, `path_traversal` (önceden) ✓
   - [x] `unauthorized_access` — `UnauthorizedAccessTwin` (GET, yönetim-path, anon attacker)

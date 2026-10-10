@@ -42,6 +42,8 @@
     {"name": "manifest-deviation-tool:vulnerable",   "vuln_type": "manifest_deviation", "category": "positive",  "expected": "CONFIRMED"},
     {"name": "manifest-deviation-tool:hardened",     "vuln_type": "manifest_deviation", "category": "negative",  "expected": "not:CONFIRMED"},
     {"name": "untrusted-to-action-email:vulnerable", "vuln_type": "untrusted_to_action", "category": "positive",  "expected": "CONFIRMED"},
-    {"name": "untrusted-to-action-email:hardened",   "vuln_type": "untrusted_to_action", "category": "negative",  "expected": "not:CONFIRMED"}
+    {"name": "untrusted-to-action-email:hardened",   "vuln_type": "untrusted_to_action", "category": "negative",  "expected": "not:CONFIRMED"},
+    {"name": "memory-poisoning-chain:vulnerable",    "vuln_type": "memory_poisoning", "category": "positive",  "expected": "CONFIRMED"},
+    {"name": "memory-poisoning-chain:hardened",      "vuln_type": "memory_poisoning", "category": "negative",  "expected": "not:CONFIRMED"}
   ]
 }

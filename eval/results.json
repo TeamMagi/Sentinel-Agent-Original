@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 19,
+    "tp": 20,
     "fp": 0,
     "fn": 0,
-    "tn": 22,
-    "total": 41
+    "tn": 23,
+    "total": 43
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -335,6 +335,22 @@
     {
       "name": "untrusted-to-action-email:hardened",
       "vuln_type": "untrusted_to_action",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "memory-poisoning-chain:vulnerable",
+      "vuln_type": "memory_poisoning",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "memory-poisoning-chain:hardened",
+      "vuln_type": "memory_poisoning",
       "category": "negative",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

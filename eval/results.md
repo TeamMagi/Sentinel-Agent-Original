@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 41 · **TP/FP/FN/TN:** 19/0/0/22
+**Vaka:** 43 · **TP/FP/FN/TN:** 20/0/0/23
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -50,3 +50,5 @@
 | manifest-deviation-tool:hardened | manifest_deviation | negative | not:CONFIRMED | REJECTED | ✅ |
 | untrusted-to-action-email:vulnerable | untrusted_to_action | positive | CONFIRMED | CONFIRMED | ✅ |
 | untrusted-to-action-email:hardened | untrusted_to_action | negative | not:CONFIRMED | REJECTED | ✅ |
+| memory-poisoning-chain:vulnerable | memory_poisoning | positive | CONFIRMED | CONFIRMED | ✅ |
+| memory-poisoning-chain:hardened | memory_poisoning | negative | not:CONFIRMED | REJECTED | ✅ |

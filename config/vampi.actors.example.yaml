@@ -1,0 +1,25 @@
+# VAmPI benchmark aktörleri — kopyala: cp config/vampi.actors.example.yaml config/vampi.actors.yaml
+# GERÇEK parola buraya YAZILMAZ (örnekte REDACTED). VAmPI seed'i (GET /createdb) name1/pass1,
+# name2/pass2 ve admin/pass1 kullanıcılarını kurar; her kullanıcıya bir kitap + "secret" verir.
+#
+# ÖNEMLİ (bkz. benchmarks/vampi.result.md): kitap başlıkları her /createdb'de RASTGELE üretilir.
+# own_object_ids.books, seed'den SONRA GET /books/v1 ile okunan GÜNCEL başlık olmalı — yoksa
+# IDOR pozitif kontrolü "Book not found" alır. users anahtarı = kullanıcının username'i.
+actors:
+  - name: name1
+    role: user
+    auth:
+      type: token
+      login_url: "http://localhost:5000/users/v1/login"
+      credentials: { username: "name1", password: "REDACTED" }
+      token_location: { kind: "bearer", from: "json:auth_token" }
+    own_object_ids: { books: "<name1-güncel-kitap-başlığı>", users: "name1" }
+
+  - name: name2
+    role: user
+    auth:
+      type: token
+      login_url: "http://localhost:5000/users/v1/login"
+      credentials: { username: "name2", password: "REDACTED" }
+      token_location: { kind: "bearer", from: "json:auth_token" }
+    own_object_ids: { books: "<name2-güncel-kitap-başlığı>", users: "name2" }

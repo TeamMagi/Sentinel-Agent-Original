@@ -1,0 +1,24 @@
+# crAPI benchmark scope — kopyala: cp config/crapi.scope.example.yaml config/crapi.scope.yaml
+# Hedef: OWASP crAPI (main). Yer-gerçeği: benchmarks/crapi.expected.yaml
+# NOT: crAPI docker-compose'u genelde 8888 portunda web/API gateway sunar; kendi kurulumuna göre
+# base_url'i ayarla.
+target:
+  base_url: "http://localhost:8888"
+
+scope:
+  allowed_hosts: ["localhost", "127.0.0.1", "crapi"]
+  allowed_ports: [8888]
+  allowed_path_prefixes: ["/identity/", "/workshop/", "/community/"]
+  denied_path_patterns: ["*/reset*"]
+  allowed_methods: ["GET", "HEAD", "POST"]   # SSRF/NoSQLi vakaları POST yüzeyinde
+  destructive_tests: false
+  external_network: false                    # SSRF testi iç/loopback hedefe yönlendirir (güvenli)
+
+budget:
+  max_total_requests: 2000
+  max_rps_per_host: 5
+  max_wall_clock_sec: 900
+  max_payload_bytes: 1048576
+
+privacy:
+  no_secrets_in_query: true

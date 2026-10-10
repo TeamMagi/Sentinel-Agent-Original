@@ -1,0 +1,47 @@
+# crAPI benchmark endpoint'leri — kopyala: cp config/crapi.endpoints.example.yaml config/crapi.endpoints.yaml
+# Vaka etiketleri: benchmarks/crapi.expected.yaml (5 pozitif / 7 negatif). Her vaka canlı HTTP ile
+# doğrulanmıştır (2026-09-16, crAPI main).
+endpoints:
+  # --- pozitif yüzeyler ---
+  - method: POST                      # ssrf: mechanic_api alanı sunucudan çekiliyor
+    path_template: "/workshop/api/merchant/contact_mechanic"
+    id_param: mechanic_api
+    id_location: body
+    resource_key: contact
+
+  - method: POST                      # nosqli: coupon_code={"$ne":"x"} operatör enjeksiyonu
+    path_template: "/community/api/v2/coupon/validate-coupon"
+    id_param: coupon_code
+    id_location: body
+    resource_key: coupon
+
+  - method: GET                       # edx: gönderi listesinde başka kullanıcıların email/vehicleid'si
+    path_template: "/community/api/v2/community/posts/recent"
+    id_param: id
+    id_location: path
+    resource_key: posts
+
+  - method: GET                       # idor/BOLA: c2, c1'in gönderi objesine erişip c1'in email'ini alır
+    path_template: "/community/api/v2/community/posts/{postId}"
+    id_param: postId
+    id_location: path
+    resource_key: posts
+
+  - method: GET                       # jwt: alg=none imzasız token kabul ediliyor
+    path_template: "/identity/api/v2/user/dashboard"
+    id_param: id
+    id_location: path
+    resource_key: dashboard
+
+  # --- negatif tuzaklar (araç CONFIRM ederse FP) ---
+  - method: POST                      # login — kimlik üretir, korunan kaynak değil
+    path_template: "/identity/api/auth/login"
+    id_param: id
+    id_location: path
+    resource_key: auth
+
+  - method: POST                      # BFLA yok: POST = 405 Method Not Allowed
+    path_template: "/workshop/api/mechanic/mechanic_report"
+    id_param: id
+    id_location: path
+    resource_key: mechanic

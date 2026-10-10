@@ -1,0 +1,48 @@
+# VAmPI benchmark endpoint'leri — kopyala: cp config/vampi.endpoints.example.yaml config/vampi.endpoints.yaml
+# resource_key, actor.own_object_ids anahtarıyla eşleşmeli. Path şablonundan HESAPLANAN
+# resource_key: /books/v1/{book_title} -> "books", /users/v1/{username} -> "users".
+# Vaka etiketleri: benchmarks/vampi.expected.yaml (4 pozitif / 8 negatif).
+endpoints:
+  # --- pozitif yüzeyler ---
+  - method: GET                       # edx: tüm kullanıcıları parolalarıyla ifşa eder (anonim)
+    path_template: "/users/v1/_debug"
+    id_param: id
+    id_location: path
+    resource_key: users
+
+  - method: GET                       # idor/BOLA: sahiplik kontrolsüz başka kullanıcının kitabı+secret
+    path_template: "/books/v1/{book_title}"
+    id_param: book_title
+    id_location: path
+    resource_key: books
+
+  - method: POST                      # mass_assignment: kayıtta admin=true set edilebiliyor
+    path_template: "/users/v1/register"
+    id_param: id
+    id_location: path
+    resource_key: users
+
+  - method: GET                       # sqli: string-format sorgu → error-based (tek tırnak)
+    path_template: "/users/v1/{username}"
+    id_param: username
+    id_location: path
+    resource_key: users
+
+  # --- negatif tuzaklar (araç CONFIRM ederse FP) ---
+  - method: GET                       # public-by-design kullanıcı listesi
+    path_template: "/users/v1"
+    id_param: id
+    id_location: path
+    resource_key: users
+
+  - method: PUT                       # yalnız JWT sahibinin KENDİ e-postası (cross-user yazma yok)
+    path_template: "/users/v1/{username}/email"
+    id_param: username
+    id_location: path
+    resource_key: users
+
+  - method: POST                      # kitap oluşturma sahibi JWT'ye bağlar (owner enjeksiyonu yok sayılır)
+    path_template: "/books/v1"
+    id_param: id
+    id_location: path
+    resource_key: books

@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 11,
+    "tp": 13,
     "fp": 0,
     "fn": 0,
-    "tn": 14,
-    "total": 25
+    "tn": 16,
+    "total": 29
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -207,6 +207,38 @@
     {
       "name": "method-bypass-delete:hardened",
       "vuln_type": "method_bypass",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "mass-assignment-isadmin:vulnerable",
+      "vuln_type": "mass_assignment",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "mass-assignment-isadmin:hardened",
+      "vuln_type": "mass_assignment",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "graphql-bola-order:vulnerable",
+      "vuln_type": "graphql_bola",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "graphql-bola-order:hardened",
+      "vuln_type": "graphql_bola",
       "category": "negative",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

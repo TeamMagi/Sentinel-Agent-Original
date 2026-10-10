@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 25 · **TP/FP/FN/TN:** 11/0/0/14
+**Vaka:** 29 · **TP/FP/FN/TN:** 13/0/0/16
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -34,3 +34,7 @@
 | bopla-exposure:near-miss | excessive_data_exposure | near_miss | not:CONFIRMED | LIKELY | ✅ |
 | method-bypass-delete:vulnerable | method_bypass | positive | CONFIRMED | CONFIRMED | ✅ |
 | method-bypass-delete:hardened | method_bypass | negative | not:CONFIRMED | REJECTED | ✅ |
+| mass-assignment-isadmin:vulnerable | mass_assignment | positive | CONFIRMED | CONFIRMED | ✅ |
+| mass-assignment-isadmin:hardened | mass_assignment | negative | not:CONFIRMED | REJECTED | ✅ |
+| graphql-bola-order:vulnerable | graphql_bola | positive | CONFIRMED | CONFIRMED | ✅ |
+| graphql-bola-order:hardened | graphql_bola | negative | not:CONFIRMED | REJECTED | ✅ |

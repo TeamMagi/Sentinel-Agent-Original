@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 29 · **TP/FP/FN/TN:** 13/0/0/16
+**Vaka:** 31 · **TP/FP/FN/TN:** 14/0/0/17
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -38,3 +38,5 @@
 | mass-assignment-isadmin:hardened | mass_assignment | negative | not:CONFIRMED | REJECTED | ✅ |
 | graphql-bola-order:vulnerable | graphql_bola | positive | CONFIRMED | CONFIRMED | ✅ |
 | graphql-bola-order:hardened | graphql_bola | negative | not:CONFIRMED | REJECTED | ✅ |
+| state-change-bola-write:vulnerable | state_change_authz | positive | CONFIRMED | CONFIRMED | ✅ |
+| state-change-bola-write:hardened | state_change_authz | negative | not:CONFIRMED | REJECTED | ✅ |

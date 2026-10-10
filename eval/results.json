@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 13,
+    "tp": 14,
     "fp": 0,
     "fn": 0,
-    "tn": 16,
-    "total": 29
+    "tn": 17,
+    "total": 31
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -239,6 +239,22 @@
     {
       "name": "graphql-bola-order:hardened",
       "vuln_type": "graphql_bola",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "state-change-bola-write:vulnerable",
+      "vuln_type": "state_change_authz",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "state-change-bola-write:hardened",
+      "vuln_type": "state_change_authz",
       "category": "negative",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

@@ -30,6 +30,8 @@
     {"name": "mass-assignment-isadmin:vulnerable",   "vuln_type": "mass_assignment", "category": "positive",  "expected": "CONFIRMED"},
     {"name": "mass-assignment-isadmin:hardened",     "vuln_type": "mass_assignment", "category": "negative",  "expected": "not:CONFIRMED"},
     {"name": "graphql-bola-order:vulnerable",        "vuln_type": "graphql_bola", "category": "positive",  "expected": "CONFIRMED"},
-    {"name": "graphql-bola-order:hardened",          "vuln_type": "graphql_bola", "category": "negative",  "expected": "not:CONFIRMED"}
+    {"name": "graphql-bola-order:hardened",          "vuln_type": "graphql_bola", "category": "negative",  "expected": "not:CONFIRMED"},
+    {"name": "state-change-bola-write:vulnerable",   "vuln_type": "state_change_authz", "category": "positive",  "expected": "CONFIRMED"},
+    {"name": "state-change-bola-write:hardened",     "vuln_type": "state_change_authz", "category": "negative",  "expected": "not:CONFIRMED"}
   ]
 }

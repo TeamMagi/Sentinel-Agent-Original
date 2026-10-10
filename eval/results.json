@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 21,
+    "tp": 22,
     "fp": 0,
     "fn": 0,
-    "tn": 24,
-    "total": 45
+    "tn": 25,
+    "total": 47
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -367,6 +367,22 @@
     {
       "name": "insecure-output-exec:hardened",
       "vuln_type": "insecure_output_handling",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "excessive-agency-wildcard:vulnerable",
+      "vuln_type": "excessive_agency",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "excessive-agency-wildcard:hardened",
+      "vuln_type": "excessive_agency",
       "category": "negative",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

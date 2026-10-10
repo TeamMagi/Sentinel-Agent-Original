@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 45 · **TP/FP/FN/TN:** 21/0/0/24
+**Vaka:** 47 · **TP/FP/FN/TN:** 22/0/0/25
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -54,3 +54,5 @@
 | memory-poisoning-chain:hardened | memory_poisoning | negative | not:CONFIRMED | REJECTED | ✅ |
 | insecure-output-exec:vulnerable | insecure_output_handling | positive | CONFIRMED | CONFIRMED | ✅ |
 | insecure-output-exec:hardened | insecure_output_handling | negative | not:CONFIRMED | REJECTED | ✅ |
+| excessive-agency-wildcard:vulnerable | excessive_agency | positive | CONFIRMED | CONFIRMED | ✅ |
+| excessive-agency-wildcard:hardened | excessive_agency | negative | not:CONFIRMED | REJECTED | ✅ |

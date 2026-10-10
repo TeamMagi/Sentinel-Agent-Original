@@ -46,6 +46,8 @@
     {"name": "memory-poisoning-chain:vulnerable",    "vuln_type": "memory_poisoning", "category": "positive",  "expected": "CONFIRMED"},
     {"name": "memory-poisoning-chain:hardened",      "vuln_type": "memory_poisoning", "category": "negative",  "expected": "not:CONFIRMED"},
     {"name": "insecure-output-exec:vulnerable",      "vuln_type": "insecure_output_handling", "category": "positive",  "expected": "CONFIRMED"},
-    {"name": "insecure-output-exec:hardened",        "vuln_type": "insecure_output_handling", "category": "negative",  "expected": "not:CONFIRMED"}
+    {"name": "insecure-output-exec:hardened",        "vuln_type": "insecure_output_handling", "category": "negative",  "expected": "not:CONFIRMED"},
+    {"name": "excessive-agency-wildcard:vulnerable", "vuln_type": "excessive_agency", "category": "positive",  "expected": "CONFIRMED"},
+    {"name": "excessive-agency-wildcard:hardened",   "vuln_type": "excessive_agency", "category": "negative",  "expected": "not:CONFIRMED"}
   ]
 }

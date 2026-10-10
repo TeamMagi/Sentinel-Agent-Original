@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 22,
+    "tp": 23,
     "fp": 0,
     "fn": 0,
-    "tn": 25,
-    "total": 47
+    "tn": 26,
+    "total": 49
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -383,6 +383,22 @@
     {
       "name": "excessive-agency-wildcard:hardened",
       "vuln_type": "excessive_agency",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "sqli-error-based:vulnerable",
+      "vuln_type": "sqli",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "sqli-error-based:hardened",
+      "vuln_type": "sqli",
       "category": "negative",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

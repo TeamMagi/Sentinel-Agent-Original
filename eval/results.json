@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 18,
+    "tp": 19,
     "fp": 0,
     "fn": 0,
-    "tn": 21,
-    "total": 39
+    "tn": 22,
+    "total": 41
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -319,6 +319,22 @@
     {
       "name": "manifest-deviation-tool:hardened",
       "vuln_type": "manifest_deviation",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "untrusted-to-action-email:vulnerable",
+      "vuln_type": "untrusted_to_action",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "untrusted-to-action-email:hardened",
+      "vuln_type": "untrusted_to_action",
       "category": "negative",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

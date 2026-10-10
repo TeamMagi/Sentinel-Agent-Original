@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 18 · **TP/FP/FN/TN:** 8/0/0/10
+**Vaka:** 25 · **TP/FP/FN/TN:** 11/0/0/14
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -27,3 +27,10 @@
 | path-traversal:vulnerable | path_traversal | positive | CONFIRMED | CONFIRMED | ✅ |
 | path-traversal:hardened | path_traversal | negative | not:CONFIRMED | REJECTED | ✅ |
 | path-traversal:echo | path_traversal | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| unauthorized-access-admin:vulnerable | unauthorized_access | positive | CONFIRMED | CONFIRMED | ✅ |
+| unauthorized-access-admin:hardened | unauthorized_access | negative | not:CONFIRMED | REJECTED | ✅ |
+| bopla-exposure:vulnerable | excessive_data_exposure | positive | CONFIRMED | CONFIRMED | ✅ |
+| bopla-exposure:hardened | excessive_data_exposure | negative | not:CONFIRMED | REJECTED | ✅ |
+| bopla-exposure:near-miss | excessive_data_exposure | near_miss | not:CONFIRMED | LIKELY | ✅ |
+| method-bypass-delete:vulnerable | method_bypass | positive | CONFIRMED | CONFIRMED | ✅ |
+| method-bypass-delete:hardened | method_bypass | negative | not:CONFIRMED | REJECTED | ✅ |

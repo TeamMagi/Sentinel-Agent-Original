@@ -19,6 +19,13 @@
     {"name": "collection-leak:public",             "vuln_type": "bola", "category": "near_miss", "expected": "not:CONFIRMED"},
     {"name": "path-traversal:vulnerable",          "vuln_type": "path_traversal", "category": "positive",  "expected": "CONFIRMED"},
     {"name": "path-traversal:hardened",            "vuln_type": "path_traversal", "category": "negative",  "expected": "not:CONFIRMED"},
-    {"name": "path-traversal:echo",                "vuln_type": "path_traversal", "category": "near_miss", "expected": "not:CONFIRMED"}
+    {"name": "path-traversal:echo",                "vuln_type": "path_traversal", "category": "near_miss", "expected": "not:CONFIRMED"},
+    {"name": "unauthorized-access-admin:vulnerable", "vuln_type": "unauthorized_access", "category": "positive", "expected": "CONFIRMED"},
+    {"name": "unauthorized-access-admin:hardened",   "vuln_type": "unauthorized_access", "category": "negative", "expected": "not:CONFIRMED"},
+    {"name": "bopla-exposure:vulnerable",            "vuln_type": "excessive_data_exposure", "category": "positive",  "expected": "CONFIRMED"},
+    {"name": "bopla-exposure:hardened",              "vuln_type": "excessive_data_exposure", "category": "negative",  "expected": "not:CONFIRMED"},
+    {"name": "bopla-exposure:near-miss",             "vuln_type": "excessive_data_exposure", "category": "near_miss", "expected": "not:CONFIRMED"},
+    {"name": "method-bypass-delete:vulnerable",      "vuln_type": "method_bypass", "category": "positive",  "expected": "CONFIRMED"},
+    {"name": "method-bypass-delete:hardened",        "vuln_type": "method_bypass", "category": "negative",  "expected": "not:CONFIRMED"}
   ]
 }

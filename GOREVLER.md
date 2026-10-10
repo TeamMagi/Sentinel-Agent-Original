@@ -47,7 +47,7 @@ iş-mantığı). Bu karar şimdilik ertelendi.
 
 ### P0 — Kanıt konsolidasyonu (yeni özellikten ÖNCE)
 - [~] **A ve D kollarındaki kayıtlı her tip için eval twin** (`_vuln`/`_hardened`/near-miss + `_one`)
-      → amiral kollarda tam kapsam. **(Kol A TAM — eval 18→31 vaka, 10 kanıtlı tip)**
+      → amiral kollarda tam kapsam. **(Kol A + Kol D TAM — eval 18→39 vaka, 14 kanıtlı tip)**
   - Kol A twin'li: `idor`, `bola`, `bfla`, `path_traversal` (önceden) ✓
   - [x] `unauthorized_access` — `UnauthorizedAccessTwin` (GET, yönetim-path, anon attacker)
   - [x] `excessive_data_exposure` (BOPLA) — `BoplaTwin` (vuln/hardened/near-miss: tarih-indirme)
@@ -56,13 +56,19 @@ iş-mantığı). Bu karar şimdilik ertelendi.
   - [x] `graphql_bola` — `GraphqlBolaTwin` (sahiplik kontrolsüz `order(id:)`; kurban-özel marker sızar)
   - [x] `state_change_authz` — `StateChangeTwin` (BOLA-write; kurbanın objesine kalıcı PUT mutasyonu)
   - Kol A tamam; yalnız `nested_idor` opsiyonel (not: `vuln_type="idor"`, yeni proven tip eklemez — derinlik twin'i)
-  - [ ] Kol D tamamı: `exfiltration`, `confused_deputy`, `destructive_write`, `manifest_deviation`,
-        `dangerous_mcp_tool` — ayrı desen: `AgentTrace` fixture'ı (HTTP iki-aktör değil) → **sıradaki tur**
+  - [x] `confused_deputy` — `ConfusedDeputyTwin` (niyet yok + yan-etkili `email.send` → CONFIRMED)
+  - [x] `destructive_write` — `DestructiveWriteTwin` (korumalı `secret.txt`'ye yıkıcı çağrı; `destructive_tests=True`)
+  - [x] `exfiltration` — `ExfiltrationTwin` (canary sır outbound `http.post` gövdesinde sızar; nedensel zincir)
+  - [x] `manifest_deviation` — `ManifestDeviationTwin` (beyan dışı tool; uyumlu+sapan çağrı birlikte)
+  - `dangerous_mcp_tool`: **tasarım gereği LIKELY-tavanlı** (sinyal, kanıtlanmış istismar değil) →
+    CONFIRMED twin modeline oturmaz, **doğru davranış experimental kalması** (verdict disiplini).
+  - Kol D kanıtlanabilir 4 tip TAM; agent twin'leri `AgentTrace` fixture'ı + sync `AgentOracle` sarıcı
+    (`finding()`) deseniyle eklendi — HTTP iki-aktör değil.
 - [x] B/C'de twin'siz kalan tipleri **"experimental" olarak etiketle** (ürün dürüstlüğü — "57 tip"
       derken azını ispatlayabilme açığını kapat). → `classify.PROVEN_TYPES` + `is_experimental()`;
       eval twin'leriyle senkronu `tests/test_experimental_tag.py` (drift-guard) zorlar.
-- [x] Kapıları her adımda koş: `pytest -q`, `eval/evaluate.py` (31 vaka, precision/recall %100,
-      FP-rate %0), `scripts.bench_guard` (9 ikiz, 0-FP), `scripts.verify_release`, `ruff check`. ✓
+- [x] Kapıları her adımda koş: `pytest -q`, `eval/evaluate.py` (39 vaka, precision/recall %100,
+      FP-rate %0), `scripts.bench_guard` (13 ikiz, 0-FP), `scripts.verify_release`, `ruff check`. ✓
 
 ### P1 — Kol D'yi amiral farklılaştırıcı yap (asıl büyüme yönü)
 - [ ] `agent/` ailesine yeni `AgentOracle` alt sınıfları ekle (Open/Closed; çekirdek değişmez).

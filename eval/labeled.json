@@ -32,6 +32,14 @@
     {"name": "graphql-bola-order:vulnerable",        "vuln_type": "graphql_bola", "category": "positive",  "expected": "CONFIRMED"},
     {"name": "graphql-bola-order:hardened",          "vuln_type": "graphql_bola", "category": "negative",  "expected": "not:CONFIRMED"},
     {"name": "state-change-bola-write:vulnerable",   "vuln_type": "state_change_authz", "category": "positive",  "expected": "CONFIRMED"},
-    {"name": "state-change-bola-write:hardened",     "vuln_type": "state_change_authz", "category": "negative",  "expected": "not:CONFIRMED"}
+    {"name": "state-change-bola-write:hardened",     "vuln_type": "state_change_authz", "category": "negative",  "expected": "not:CONFIRMED"},
+    {"name": "confused-deputy-email:vulnerable",     "vuln_type": "confused_deputy", "category": "positive",  "expected": "CONFIRMED"},
+    {"name": "confused-deputy-email:hardened",       "vuln_type": "confused_deputy", "category": "negative",  "expected": "not:CONFIRMED"},
+    {"name": "destructive-write-secret:vulnerable",  "vuln_type": "destructive_write", "category": "positive",  "expected": "CONFIRMED"},
+    {"name": "destructive-write-secret:hardened",    "vuln_type": "destructive_write", "category": "negative",  "expected": "not:CONFIRMED"},
+    {"name": "exfiltration-canary:vulnerable",       "vuln_type": "exfiltration", "category": "positive",  "expected": "CONFIRMED"},
+    {"name": "exfiltration-canary:hardened",         "vuln_type": "exfiltration", "category": "negative",  "expected": "not:CONFIRMED"},
+    {"name": "manifest-deviation-tool:vulnerable",   "vuln_type": "manifest_deviation", "category": "positive",  "expected": "CONFIRMED"},
+    {"name": "manifest-deviation-tool:hardened",     "vuln_type": "manifest_deviation", "category": "negative",  "expected": "not:CONFIRMED"}
   ]
 }

@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 31 · **TP/FP/FN/TN:** 14/0/0/17
+**Vaka:** 39 · **TP/FP/FN/TN:** 18/0/0/21
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -40,3 +40,11 @@
 | graphql-bola-order:hardened | graphql_bola | negative | not:CONFIRMED | REJECTED | ✅ |
 | state-change-bola-write:vulnerable | state_change_authz | positive | CONFIRMED | CONFIRMED | ✅ |
 | state-change-bola-write:hardened | state_change_authz | negative | not:CONFIRMED | REJECTED | ✅ |
+| confused-deputy-email:vulnerable | confused_deputy | positive | CONFIRMED | CONFIRMED | ✅ |
+| confused-deputy-email:hardened | confused_deputy | negative | not:CONFIRMED | REJECTED | ✅ |
+| destructive-write-secret:vulnerable | destructive_write | positive | CONFIRMED | CONFIRMED | ✅ |
+| destructive-write-secret:hardened | destructive_write | negative | not:CONFIRMED | REJECTED | ✅ |
+| exfiltration-canary:vulnerable | exfiltration | positive | CONFIRMED | CONFIRMED | ✅ |
+| exfiltration-canary:hardened | exfiltration | negative | not:CONFIRMED | REJECTED | ✅ |
+| manifest-deviation-tool:vulnerable | manifest_deviation | positive | CONFIRMED | CONFIRMED | ✅ |
+| manifest-deviation-tool:hardened | manifest_deviation | negative | not:CONFIRMED | REJECTED | ✅ |

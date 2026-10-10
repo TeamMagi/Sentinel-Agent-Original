@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 14,
+    "tp": 18,
     "fp": 0,
     "fn": 0,
-    "tn": 17,
-    "total": 31
+    "tn": 21,
+    "total": 39
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -255,6 +255,70 @@
     {
       "name": "state-change-bola-write:hardened",
       "vuln_type": "state_change_authz",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "confused-deputy-email:vulnerable",
+      "vuln_type": "confused_deputy",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "confused-deputy-email:hardened",
+      "vuln_type": "confused_deputy",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "destructive-write-secret:vulnerable",
+      "vuln_type": "destructive_write",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "destructive-write-secret:hardened",
+      "vuln_type": "destructive_write",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "exfiltration-canary:vulnerable",
+      "vuln_type": "exfiltration",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "exfiltration-canary:hardened",
+      "vuln_type": "exfiltration",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "manifest-deviation-tool:vulnerable",
+      "vuln_type": "manifest_deviation",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "manifest-deviation-tool:hardened",
+      "vuln_type": "manifest_deviation",
       "category": "negative",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

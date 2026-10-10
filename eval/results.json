@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 20,
+    "tp": 21,
     "fp": 0,
     "fn": 0,
-    "tn": 23,
-    "total": 43
+    "tn": 24,
+    "total": 45
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -351,6 +351,22 @@
     {
       "name": "memory-poisoning-chain:hardened",
       "vuln_type": "memory_poisoning",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "insecure-output-exec:vulnerable",
+      "vuln_type": "insecure_output_handling",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "insecure-output-exec:hardened",
+      "vuln_type": "insecure_output_handling",
       "category": "negative",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

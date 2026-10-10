@@ -47,7 +47,7 @@ iş-mantığı). Bu karar şimdilik ertelendi.
 
 ### P0 — Kanıt konsolidasyonu (yeni özellikten ÖNCE)
 - [x] **A ve D kollarındaki kayıtlı her tip için eval twin** (`_vuln`/`_hardened`/near-miss + `_one`)
-      → amiral kollarda tam kapsam. **(Kol A + Kol D TAM — eval 18→43 vaka, 16 kanıtlı tip)**
+      → amiral kollarda tam kapsam. **(Kol A + Kol D TAM — eval 18→45 vaka, 17 kanıtlı tip)**
   - Kol A twin'li: `idor`, `bola`, `bfla`, `path_traversal` (önceden) ✓
   - [x] `unauthorized_access` — `UnauthorizedAccessTwin` (GET, yönetim-path, anon attacker)
   - [x] `excessive_data_exposure` (BOPLA) — `BoplaTwin` (vuln/hardened/near-miss: tarih-indirme)
@@ -70,18 +70,20 @@ iş-mantığı). Bu karar şimdilik ertelendi.
 - [x] B/C'de twin'siz kalan tipleri **"experimental" olarak etiketle** (ürün dürüstlüğü — "57 tip"
       derken azını ispatlayabilme açığını kapat). → `classify.PROVEN_TYPES` + `is_experimental()`;
       eval twin'leriyle senkronu `tests/test_experimental_tag.py` (drift-guard) zorlar.
-- [x] Kapıları her adımda koş: `pytest -q` (1066), `eval/evaluate.py` (43 vaka, precision/recall
-      %100, FP-rate %0), `scripts.bench_guard` (15 ikiz, 0-FP), `scripts.verify_release`, `ruff`. ✓
+- [x] Kapıları her adımda koş: `pytest -q` (1075), `eval/evaluate.py` (45 vaka, precision/recall
+      %100, FP-rate %0), `scripts.bench_guard` (16 ikiz, 0-FP), `scripts.verify_release`, `ruff`. ✓
 
 ### P1 — Kol D'yi amiral farklılaştırıcı yap (asıl büyüme yönü) — BAŞLADI
 - [~] `agent/` ailesine yeni `AgentOracle` alt sınıfları ekle (Open/Closed; çekirdek değişmez).
       Gerekçe: Burp/ZAP/Nuclei/Strix/XBOW *hedefteki* AI agent'ı/MCP'yi authz/exfil için test etmiyor
       — 2026'da boş arazi + yükselen talep + mimari bedava.
   - [x] `memory_poisoning` — `MemoryPoisoningOracle` (turlar-arası kalıcılık: güvenilmez içerik
-        belleğe → geri-okuma → yan-etki tetiği; üç-adımlı nedensel zincir). **16 kanıtlı tip.**
-  - sıradaki adaylar: `insecure_output_handling` (tool çıktısı → `shell.exec`/`eval`),
-    `excessive_agency` (blast-radius: tek hedef istenirken toplu/wildcard yıkıcı çağrı).
-- [~] Her yeni predicate için twin (P0 disiplini) + `tests/test_*` (network'süz). memory_poisoning ✓
+        belleğe → geri-okuma → yan-etki tetiği; üç-adımlı nedensel zincir).
+  - [x] `insecure_output_handling` — `InsecureOutputHandlingOracle` (LLM02; arıtılmamış tool çıktısı
+        → exec-sink `shell.exec`/`sql.query`; yürütülebilir token ayırt edici kontrol). **17 kanıtlı tip.**
+  - sıradaki aday: `excessive_agency` (blast-radius: tek hedef istenirken toplu/wildcard yıkıcı çağrı).
+- [~] Her yeni predicate için twin (P0 disiplini) + `tests/test_*` (network'süz).
+      memory_poisoning ✓ · insecure_output_handling ✓
 - [ ] Ürün anlatısı: "AI çağının access-control + agent güvenlik tarayıcısı".
 
 ### P2 — Kol A'yı taban olarak sağlamlaştır (büyütme değil, pekiştir)

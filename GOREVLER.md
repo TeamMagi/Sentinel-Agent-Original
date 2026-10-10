@@ -47,7 +47,7 @@ iş-mantığı). Bu karar şimdilik ertelendi.
 
 ### P0 — Kanıt konsolidasyonu (yeni özellikten ÖNCE)
 - [x] **A ve D kollarındaki kayıtlı her tip için eval twin** (`_vuln`/`_hardened`/near-miss + `_one`)
-      → amiral kollarda tam kapsam. **(Kol A + Kol D TAM — eval 18→47 vaka, 18 kanıtlı tip)**
+      → amiral kollarda tam kapsam. **(Kol A + Kol D TAM — eval 18→49 vaka, 19 kanıtlı tip; +sqli emtia)**
   - Kol A twin'li: `idor`, `bola`, `bfla`, `path_traversal` (önceden) ✓
   - [x] `unauthorized_access` — `UnauthorizedAccessTwin` (GET, yönetim-path, anon attacker)
   - [x] `excessive_data_exposure` (BOPLA) — `BoplaTwin` (vuln/hardened/near-miss: tarih-indirme)
@@ -70,8 +70,8 @@ iş-mantığı). Bu karar şimdilik ertelendi.
 - [x] B/C'de twin'siz kalan tipleri **"experimental" olarak etiketle** (ürün dürüstlüğü — "57 tip"
       derken azını ispatlayabilme açığını kapat). → `classify.PROVEN_TYPES` + `is_experimental()`;
       eval twin'leriyle senkronu `tests/test_experimental_tag.py` (drift-guard) zorlar.
-- [x] Kapıları her adımda koş: `pytest -q` (1085), `eval/evaluate.py` (47 vaka, precision/recall
-      %100, FP-rate %0), `scripts.bench_guard` (17 ikiz, 0-FP), `scripts.verify_release`, `ruff`. ✓
+- [x] Kapıları her adımda koş: `pytest -q` (1085), `eval/evaluate.py` (49 vaka, precision/recall
+      %100, FP-rate %0), `scripts.bench_guard` (18 ikiz, 0-FP), `scripts.verify_release`, `ruff`. ✓
 
 ### P1 — Kol D'yi amiral farklılaştırıcı yap (asıl büyüme yönü) — BAŞLADI
 - [~] `agent/` ailesine yeni `AgentOracle` alt sınıfları ekle (Open/Closed; çekirdek değişmez).
@@ -86,14 +86,21 @@ iş-mantığı). Bu karar şimdilik ertelendi.
   - Kol D şu an 8 kanıtlı tip; OWASP LLM Top-10 agentic kapsamı genişliyor.
 - [x] Her yeni predicate için twin (P0 disiplini) + `tests/test_*` (network'süz).
       memory_poisoning ✓ · insecure_output_handling ✓ · excessive_agency ✓
-- [ ] Ürün anlatısı: "AI çağının access-control + agent güvenlik tarayıcısı".
+- [x] Ürün anlatısı: "AI çağının access-control + agent güvenlik tarayıcısı".
+      → README'ye dört-kol konumlandırması + Kol D'nin 8 predicate'i + on-prem argümanı eklendi.
 
 ### P2 — Kol A'yı taban olarak sağlamlaştır (büyütme değil, pekiştir)
-- [ ] Benchmark'ı Juice Shop dışına çıkar: **crAPI** ve **VAmPI** (ikisi de authz/BOLA için tasarlı)
-      ekle → "gerçek sistemde çalışıyor" iddiasının kanıtı.
+- [~] Benchmark'ı Juice Shop dışına çıkar: **crAPI** ve **VAmPI** (ikisi de authz/BOLA için tasarlı).
+  - [x] **VAmPI** koşuldu + belgelendi (`vampi.result.md`, 2026-09-20; README %100 precision / %50 recall / %0 FP).
+  - [x] Her iki hedef için commit'li config örnekleri (`config/{crapi,vampi}.*.example.yaml`) + runbook
+        (`benchmarks/README.md`) + HTTP-doğrulanmış yer-gerçeği (`*.expected.yaml`) + suite.
+  - [ ] **crAPI canlı koşum** (`crapi.result.md`) — kullanıcı ortamında üretilir (çok-servisli compose
+        + yerel LLM). Yer-gerçeği + config + runbook hazır; kalan tek adım koşum.
 
 ### P3 — B (injection) ve C (altyapı): fırsatçı, en sona
-- [ ] Emtia alan; önden gitme. "Tamamlayıcı kapsam" olarak konumlandır, çekirdek iddiaya karıştırma.
+- [~] Emtia alan; önden gitme. "Tamamlayıcı kapsam" olarak konumlandır, çekirdek iddiaya karıştırma.
+  - [x] `sqli` (error-based differential) — `SqliTwin` ile kanıtlı (VAmPI'nin SQLi FN'ini kapatır).
+        İlk emtia kanıtlı tip; gerisi fırsatçı eklenecek (çoğu imza/LIKELY-tavanlı dedektör experimental kalır).
 
 ---
 

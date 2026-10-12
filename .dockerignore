@@ -17,3 +17,8 @@ runs/
 .vscode/
 *.md
 !DESIGN.md
+# gerçek config/oturum dosyaları (hedef kimlik bilgileri) imaja girmesin — yalnızca örnekler
+config/*.yaml
+config/*/
+!config/*.example.yaml
+*.storagestate.json

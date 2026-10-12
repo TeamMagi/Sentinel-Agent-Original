@@ -782,6 +782,22 @@ def test_narrow_scope_rejects_every_axis():
     assert "max_payload_bytes" in req(max_payload_bytes=999_999)
 
 
+def test_narrow_scope_empty_lists_inherit_server_instead_of_widening():
+    # Boş liste alt-küme denetimini vakumda geçer; to_scope() onu ["/"] / ["GET","HEAD"]
+    # varsayılanına çevirirse sunucu scope'u GENİŞLER (§5.6) — sunucunun değeri miras alınmalı.
+    server = _server_scope(
+        allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/api/"],
+        allowed_methods=["GET"],
+    )
+    eff = narrow_scope(server, ScopeSpec(
+        allowed_hosts=["localhost"], allowed_ports=[3000],
+        allowed_path_prefixes=[], allowed_methods=[]))
+    assert isinstance(eff, ScopeSpec)
+    scope = eff.to_scope()
+    assert scope.allowed_path_prefixes == ["/api/"]
+    assert scope.allowed_methods == ["GET"]
+
+
 def test_authspec_to_cfg_header_token_kind():
     cfg = AuthSpec(type="token", token_kind="header", token_header="X-Api-Key",
                    token_from="json:token").to_cfg()

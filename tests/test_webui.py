@@ -1035,3 +1035,19 @@ def test_server_serve_forever_binds_serves_and_closes(tmp_path):
         srv._httpd.shutdown()
         t.join(timeout=5)
     assert srv._httpd is None
+
+
+def test_server_sends_anti_clickjacking_and_csp_headers(tmp_path):
+    # Panel authN istemez → başka bir site onu çerçeveleyip tarama başlattıramamalı (clickjacking).
+    app = _app(tmp_path)
+    with WebServer(app, host="127.0.0.1", port=0) as srv:
+        port = srv.bound_port
+        app.guard = RequestGuard([f"127.0.0.1:{port}"])
+        t = threading.Thread(target=srv.handle_request, daemon=True)
+        t.start()
+        r = httpx.get(f"http://127.0.0.1:{port}/", timeout=5)
+        t.join(timeout=5)
+    assert r.status_code == 200
+    assert r.headers["x-frame-options"] == "DENY"
+    assert r.headers["x-content-type-options"] == "nosniff"
+    assert "frame-ancestors 'none'" in r.headers["content-security-policy"]

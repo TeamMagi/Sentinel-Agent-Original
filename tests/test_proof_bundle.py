@@ -84,6 +84,22 @@ def test_signed_bundle_hash_still_enforced_without_key():
     assert ok is True and "doğrulanmadı" in reason
 
 
+def test_stripped_signature_fails_when_key_is_given():
+    # Downgrade: kanıt değiştirilir, imza silinir, hash yeniden hesaplanır → anahtarla doğrulayan
+    # taraf imzasız paketi KABUL ETMEMELİ.
+    b = _bundle(key="s3cret")
+    b["proof"]["endpoint"] = b["endpoint"] = "/api/tahrif/{id}"
+    del b["integrity"]["signature"], b["integrity"]["signature_algorithm"]
+    b["integrity"]["proof_hash"] = proof_hash(b["proof"])
+    ok, reason = verify_bundle(b, key="s3cret")
+    assert ok is False and "imza" in reason
+
+
+def test_unsigned_bundle_fails_when_key_is_given():
+    ok, reason = verify_bundle(_bundle(), key="s3cret")
+    assert ok is False and "imza" in reason
+
+
 def test_reprove_any_dispatches_bundle_vs_fixture():
     assert reprove_any(_bundle())[0] is True
     assert reprove_any(build_proof(_confirmed()))[0] is True   # düz fixture

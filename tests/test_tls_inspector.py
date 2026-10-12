@@ -116,3 +116,20 @@ def test_is_weak_cipher():
     assert is_weak_cipher("EXP-RC4-MD5") is True
     assert is_weak_cipher(None) is False
     assert is_weak_cipher("") is False
+
+
+@pytest.mark.asyncio
+async def test_handshakes_connect_to_pinned_ip_but_keep_sni_hostname(monkeypatch):
+    # DNS-pin: iki handshake de pinlenmiş IP'ye açılır (yeniden DNS çözümü yok → rebinding yok);
+    # SNI/sertifika doğrulaması yine asıl host adıyla yapılır.
+    seen = []
+
+    async def _capture(host, port, **kw):
+        seen.append((host, kw.get("server_hostname")))
+        raise OSError("test: bağlantı kurulmaz")
+
+    monkeypatch.setattr("asyncio.open_connection", _capture)
+    scope = Scope(allowed_hosts=["target.test.local"], allowed_ports=[443], allowed_path_prefixes=["/"])
+    inspector = TlsInspector(policy=PolicyEngine(scope, pin_map={"target.test.local": "127.0.0.1"}))
+    await inspector.inspect("target.test.local", 443)
+    assert seen == [("127.0.0.1", "target.test.local")] * 2

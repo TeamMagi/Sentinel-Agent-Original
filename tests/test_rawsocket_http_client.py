@@ -118,3 +118,21 @@ async def test_budget_exceeded_raises_before_touching_socket(monkeypatch):
     client = RawHttpClient(budget=BudgetTracker(max_total_requests=0))
     with pytest.raises(BudgetExceeded):
         await client.send("http://127.0.0.1:80", "/", raw_request=b"x", read_timeout=1.0)
+
+
+@pytest.mark.asyncio
+async def test_socket_connects_to_pinned_ip_not_re_resolved_hostname(monkeypatch):
+    # DNS-pin: authorize pinlenmiş IP'yi onayladıysa soket O IP'ye açılmalı; host adı yeniden
+    # çözülürse authorize ile bağlantı arasındaki DNS değişimi (rebinding) scope dışına taşır.
+    seen = []
+
+    async def _capture(host, port, **kw):
+        seen.append(host)
+        raise OSError("test: bağlantı kurulmaz")
+
+    monkeypatch.setattr("asyncio.open_connection", _capture)
+    scope = Scope(allowed_hosts=["target.test.local"], allowed_ports=[80], allowed_path_prefixes=["/"],
+                  allowed_methods=["POST"], destructive_tests=True)
+    client = RawHttpClient(policy=PolicyEngine(scope, pin_map={"target.test.local": "127.0.0.1"}))
+    await client.send("http://target.test.local:80", "/", raw_request=b"x", read_timeout=1.0)
+    assert seen == ["127.0.0.1"]

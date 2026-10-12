@@ -103,3 +103,42 @@ async def test_budget_exceeded_raises_before_touching_browser(monkeypatch):
     driver = BrowserDriver(budget=BudgetTracker(max_total_requests=0))
     with pytest.raises(BudgetExceeded):
         await driver.navigate_and_observe(f"{ORIGIN}/x", marker="MARKER")
+
+
+THIRD_PARTY = "https://cdn.evil.test.local"
+SUBRESOURCE_PAGE = (f"<html><body><img src='{THIRD_PARTY}/p.png'><img src='{ORIGIN}/own.png'>"
+                    "</body></html>")
+
+
+async def _record(route, seen: list) -> None:
+    seen.append((route.request.url, route.request.headers.get("authorization")))
+    await route.fulfill(status=200, content_type="image/png", body=b"")
+
+
+@pytest.mark.asyncio
+async def test_auth_header_goes_only_to_target_host(context):
+    """Auth başlığı bağlam geneline eklenirse sayfanın yüklediği ÜÇÜNCÜ TARAF isteklere de gider
+    (token sızıntısı). Yalnızca hedef host'a gitmeli."""
+    seen: list = []
+    await context.route(f"{ORIGIN}/x", lambda r: _serve(r, SUBRESOURCE_PAGE))
+    await context.route(f"{ORIGIN}/own.png", lambda r: _record(r, seen))
+    await context.route(f"{THIRD_PARTY}/**", lambda r: _record(r, seen))
+    driver = BrowserDriver(context=context, timeout_ms=5_000, settle_ms=100)
+    auth = AuthState(headers={"Authorization": "Bearer VICTIM"})
+    await driver.navigate_and_observe(f"{ORIGIN}/x", marker="MARKER", auth=auth)
+    by_url = dict(seen)
+    assert by_url[f"{ORIGIN}/own.png"] == "Bearer VICTIM"
+    assert by_url[f"{THIRD_PARTY}/p.png"] is None
+
+
+@pytest.mark.asyncio
+async def test_out_of_scope_subresource_is_aborted(context):
+    """Scope kapısı yalnızca ilk URL'e değil sayfanın yaptığı HER isteğe uygulanır (§5.6)."""
+    seen: list = []
+    await context.route(f"{ORIGIN}/x", lambda r: _serve(r, SUBRESOURCE_PAGE))
+    await context.route(f"{ORIGIN}/own.png", lambda r: _record(r, seen))
+    await context.route(f"{THIRD_PARTY}/**", lambda r: _record(r, seen))
+    scope = Scope(allowed_hosts=["dom.test.local"], allowed_ports=[443], allowed_path_prefixes=["/"])
+    driver = BrowserDriver(policy=PolicyEngine(scope), context=context, timeout_ms=5_000, settle_ms=100)
+    await driver.navigate_and_observe(f"{ORIGIN}/x", marker="MARKER")
+    assert [u for u, _ in seen] == [f"{ORIGIN}/own.png"]

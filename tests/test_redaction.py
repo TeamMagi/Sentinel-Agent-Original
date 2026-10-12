@@ -189,3 +189,27 @@ def test_save_run_does_not_overwrite_existing_run_dir(tmp_path):
     store.save_run(run_id, [])
     with pytest.raises(FileExistsError):
         store.save_run(run_id, [])
+
+
+# --- özel adlı auth başlıkları + başlık-satırı / query / opak token boşlukları ---
+
+def test_custom_auth_header_names_are_redacted():
+    out = redact('{"X-Access-Token": "opaque-live-token-123", "X-Session": "s3cr3tsession"}')
+    assert "opaque-live-token-123" not in out and "s3cr3tsession" not in out
+
+
+@pytest.mark.parametrize("raw, secret", [
+    ("curl -H 'Cookie: connect.sid=abcDEF123456; t=plainsecretvalue'", "plainsecretvalue"),
+    ('curl -H "X-Api-Key: live_plainsecretvalue_123"', "live_plainsecretvalue_123"),
+    ('curl -H "Authorization: Basic dXNlcjpwYXNzd29yZA=="', "dXNlcjpwYXNzd29yZA=="),
+    ("Authorization: Bearer abc+def/ghi==tail", "def/ghi==tail"),
+    ("GET http://h/x?api_key=plainsecretvalue&id=7", "plainsecretvalue"),
+    ('{"access_token": "opaqueTokenValue99"}', "opaqueTokenValue99"),
+])
+def test_secret_forms_outside_json_headers_are_redacted(raw, secret):
+    out = redact(raw)
+    assert secret not in out and "<REDACTED>" in out
+
+
+def test_query_redaction_keeps_non_secret_params():
+    assert redact("http://h/x?api_key=plainsecretvalue&id=7").endswith("&id=7")

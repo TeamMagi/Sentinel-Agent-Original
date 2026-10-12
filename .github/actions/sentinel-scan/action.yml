@@ -62,7 +62,7 @@ runs:
   using: "composite"
   steps:
     - name: Python kur
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
       with:
         python-version: ${{ inputs.python-version }}
 
@@ -71,20 +71,29 @@ runs:
       # Action'ın kendi repo kökünü kur (github.action_path = .../.github/actions/sentinel-scan).
       # `sentinel` konsol giriş noktasını (pentestai.cli:main) sağlar → caller repo'da `scripts/`
       # bulunmasa da çalışır.
-      run: pip install "$(realpath "${{ github.action_path }}/../../..")"
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: pip install "$(realpath "$ACTION_PATH/../../..")"
 
     - name: Tarama (SARIF üret, eşiğe göre çıkış kodu)
       id: sentinel
       shell: bash
+      # Girdiler betiğe `${{ }}` ile GÖMÜLMEZ, ortam değişkeninden okunur: gömülü ifade kabuk
+      # betiğinin metnine yazıldığından, çağıran workflow PR başlığı/dal adı gibi saldırgan
+      # denetimli bir değer geçirirse runner'da komut çalıştırılabilirdi (script injection).
+      env:
+        IN_SCOPE: ${{ inputs.scope }}
+        IN_ACTORS: ${{ inputs.actors }}
+        IN_ENDPOINTS: ${{ inputs.endpoints }}
+        IN_MODE: ${{ inputs.mode }}
+        IN_OUT: ${{ inputs.out }}
+        IN_SARIF: ${{ inputs.sarif }}
+        IN_FAIL_ON: ${{ inputs.fail-on }}
+        IN_EXTRA_ARGS: ${{ inputs.extra-args }}
       run: |
-        ep_arg=""
-        if [ -n "${{ inputs.endpoints }}" ]; then ep_arg="--endpoints ${{ inputs.endpoints }}"; fi
-        sentinel scan \
-          --scope "${{ inputs.scope }}" \
-          --actors "${{ inputs.actors }}" \
-          $ep_arg \
-          --mode "${{ inputs.mode }}" \
-          --out "${{ inputs.out }}" \
-          --sarif "${{ inputs.sarif }}" \
-          --fail-on "${{ inputs.fail-on }}" \
-          ${{ inputs.extra-args }}
+        args=(--scope "$IN_SCOPE" --actors "$IN_ACTORS")
+        if [ -n "$IN_ENDPOINTS" ]; then args+=(--endpoints "$IN_ENDPOINTS"); fi
+        args+=(--mode "$IN_MODE" --out "$IN_OUT" --sarif "$IN_SARIF" --fail-on "$IN_FAIL_ON")
+        # extra-args bilerek kelimelere bölünür (ham argüman listesi) ama kabukta YORUMLANMAZ.
+        read -r -a extra <<< "$IN_EXTRA_ARGS"
+        sentinel scan "${args[@]}" "${extra[@]}"

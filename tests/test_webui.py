@@ -10,6 +10,7 @@ import json
 import socket
 import threading
 import time
+from pathlib import Path
 
 import httpx
 import pytest
@@ -875,6 +876,26 @@ def test_storagestate_path_inside_secrets_dir_is_allowed(tmp_path):
     body = json.dumps(req.model_dump(mode="json")).encode()
     resp = app.handle("POST", "/api/scan", {}, body, _JSON)
     assert resp.status == 202
+
+
+def test_storagestate_path_reads_the_file_that_was_validated(tmp_path, monkeypatch):
+    # Doğrulama secrets_dir/<yol>'a bakıp okuma çalışma dizinindeki <yol>'dan yapılıyordu:
+    # "other/x.json" kabul ediliyor ve .secrets DIŞINDAN okunuyordu. Artık koşucuya giden yol
+    # doğrulanan (secrets_dir içindeki) dosyanın kendisi olmalı.
+    monkeypatch.chdir(tmp_path)
+    secrets = tmp_path / ".secrets"
+    secrets.mkdir()
+    (tmp_path / "other").mkdir()
+    (tmp_path / "other" / "x.json").write_text("{}", encoding="utf-8")
+    fake = FakeRunner()
+    app = _app(tmp_path, runner=fake, secrets_dir=secrets)
+
+    for raw in ("other/x.json", ".secrets/user_A.json", "user_A.json"):
+        req = ScanRequest(**_valid_request(actors=[ActorSpec(
+            name="user_A", auth=AuthSpec(type="storagestate", storagestate_path=raw))]).model_dump())
+        assert app._validate_secrets_paths(req) is None
+        used = Path(req.actors[0].auth.storagestate_path)
+        assert used.is_absolute() and used.is_relative_to(secrets.resolve())
 
 
 # --------------------------- eşzamanlılık sınırı ---------------------------

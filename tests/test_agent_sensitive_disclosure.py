@@ -84,3 +84,15 @@ def test_custom_tools_di():
     )
     result = oracle.run(trace, finding_id="f1")
     assert result.verdict == "CONFIRMED"
+
+
+def test_entropy_fallback_detects_unknown_secret():
+    oracle = SensitiveDisclosureOracle()
+    trace = AgentTrace(
+        tool_calls=[
+            ToolCall(name="display", arguments={"text": "token: xK9mP2vL8nQ5wR3jF7hT1cY6bA4dE0gU"}, ok=True, step=1),
+            ToolCall(name="display", arguments={"text": "Hello world"}, ok=True, step=2),
+        ]
+    )
+    result = oracle.run(trace, finding_id="f1")
+    assert result.verdict == "CONFIRMED"

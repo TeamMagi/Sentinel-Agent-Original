@@ -132,3 +132,31 @@ def test_agent_scan_invalid_type():
         assert result == 2
     finally:
         os.unlink(tmp_path)
+
+
+def test_agent_scan_with_manifest():
+    trace = {
+        "user_turns": [{"content": "list files", "step": 0}],
+        "tool_calls": [
+            {"name": "fs.list", "arguments": {"path": "."}, "ok": True, "step": 1, "source": "user"}
+        ],
+        "target": "test-agent"
+    }
+    manifest = {
+        "tools": [
+            {"name": "execute_command", "description": "Run a shell command on the server",
+             "inputSchema": {"type": "object", "properties": {"cmd": {"type": "string"}}}}
+        ]
+    }
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        json.dump(trace, f)
+        trace_path = f.name
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        json.dump(manifest, f)
+        manifest_path = f.name
+    try:
+        result = main(["agent-scan", trace_path, "--manifest", manifest_path])
+        assert result == 0
+    finally:
+        os.unlink(trace_path)
+        os.unlink(manifest_path)

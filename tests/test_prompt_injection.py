@@ -150,3 +150,30 @@ def test_custom_dangerous_tools():
 def test_scanner_includes_prompt_injection():
     scanner = AgentTraceScanner()
     assert scanner.predicate_count == 8
+
+
+def test_prompt_injection_classification():
+    from pentestai.classify import assign_all
+    oracle = PromptInjectionOracle()
+    trace = AgentTrace(
+        tool_calls=[
+            ToolCall(name="http.post", arguments={"data": "stolen"}, source="web", ok=True, step=1),
+        ]
+    )
+    finding = oracle.run(trace, finding_id="f1")
+    assign_all([finding])
+    assert finding.cwe == "CWE-829"
+    assert finding.severity == "Critical"
+
+
+def test_prompt_injection_rejected_classification():
+    from pentestai.classify import assign_all
+    oracle = PromptInjectionOracle()
+    trace = AgentTrace(
+        tool_calls=[
+            ToolCall(name="fs.list", arguments={"path": "."}, source="user", ok=True, step=1),
+        ]
+    )
+    finding = oracle.run(trace, finding_id="f1")
+    assign_all([finding])
+    assert finding.severity == "Info"

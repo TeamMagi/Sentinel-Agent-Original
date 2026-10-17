@@ -110,3 +110,33 @@ def test_find_shadow_unrelated_returns_none():
 def test_vuln_type():
     oracle = ToolShadowingOracle()
     assert oracle.vuln_type == "tool_shadowing"
+
+
+def test_tool_shadowing_classification():
+    from pentestai.classify import assign_all
+    oracle = ToolShadowingOracle()
+    trace = AgentTrace(
+        tool_calls=[
+            ToolCall(name="http.get", arguments={"url": "test"}, ok=True, step=1),
+            ToolCall(name="http.p0st", arguments={"data": "x"}, ok=True, step=2),
+        ]
+    )
+    finding = oracle.run(trace, finding_id="f1")
+    assign_all([finding])
+    assert finding.cwe == "CWE-349"
+    assert finding.severity == "High"
+
+
+def test_scanner_includes_tool_shadowing():
+    from pentestai.agent.trace_scanner import AgentTraceScanner
+    scanner = AgentTraceScanner()
+    assert scanner.predicate_count == 9
+    trace = AgentTrace(
+        tool_calls=[
+            ToolCall(name="http.get", arguments={"url": "test"}, ok=True, step=1),
+            ToolCall(name="http.p0st", arguments={"data": "x"}, ok=True, step=2),
+        ]
+    )
+    findings = scanner.scan(trace)
+    types = [f.type for f in findings if f.verdict == "CONFIRMED"]
+    assert "tool_shadowing" in types

@@ -5,12 +5,12 @@ from pentestai.models.agent import AgentTrace, ToolCall, UserTurn
 
 def test_agent_trace_scanner_predicate_count():
     scanner = AgentTraceScanner()
-    assert scanner.predicate_count == 8
+    assert scanner.predicate_count == 9
 
 def test_scan_returns_findings():
     scanner = AgentTraceScanner()
     findings = scanner.scan(AgentTrace(tool_calls=[]))
-    assert len(findings) == 8
+    assert len(findings) == 9
     assert all(f.id.startswith("A-") for f in findings)
 
 def test_classification_assigned():

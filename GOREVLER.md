@@ -321,8 +321,7 @@ kaldırıldı. Kayıp yok:
 
 - **Tamamlananlar** git geçmişinde ve kodda duruyor: RK turu **27/27 Serhat + 27/27 Görkem**;
   AS turu da **bitti** — Görkem AS-2/AS-4/AS-5/AS-7, Serhat AS-1/AS-3/AS-6/AS-9.
-- **Açık kalan tek madde:** ortak, açık uçlu **AS-8** (Go-Explore / evrimsel hipotez araması) —
-  yarışma sonrasına ertelendi.
+- **Açık kalan tek madde:** ortak, açık uçlu **AS-8** (Go-Explore / evrimsel hipotez araması) ve AS-4 tamamlandı (ToolShadowingOracle eklendi).
 - **Madde 19 gereği** agent-security oracle'ları, template ekosistemi, sürüm bütünlüğü doğrulama ve
   holdout **kodda kalır ama README'de öne çıkarılmaz**: vizyon dosyasına taşınıp README'de tek
   satırlık "yol haritası" olurlar.

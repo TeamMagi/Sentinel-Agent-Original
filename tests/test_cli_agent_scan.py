@@ -105,3 +105,30 @@ def test_agent_scan_multiple_traces():
         assert result == 0
     finally:
         os.unlink(tmp_path)
+
+
+def test_agent_scan_missing_file():
+    result = main(["agent-scan", "/nonexistent/path/trace.json"])
+    assert result == 2
+
+
+def test_agent_scan_invalid_json():
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        f.write("this is not valid json {{{")
+        tmp_path = f.name
+    try:
+        result = main(["agent-scan", tmp_path])
+        assert result == 2
+    finally:
+        os.unlink(tmp_path)
+
+
+def test_agent_scan_invalid_type():
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False, encoding="utf-8") as f:
+        json.dump("just a string", f)
+        tmp_path = f.name
+    try:
+        result = main(["agent-scan", tmp_path])
+        assert result == 2
+    finally:
+        os.unlink(tmp_path)

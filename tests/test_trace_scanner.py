@@ -9,14 +9,14 @@ def _call(name: str, step: int = 1, **kwargs) -> ToolCall:
 
 def test_predicate_count():
     scanner = AgentTraceScanner()
-    assert scanner.predicate_count == 9
+    assert scanner.predicate_count == 12
 
 
 def test_empty_trace_returns_findings():
     scanner = AgentTraceScanner()
     trace = AgentTrace(tool_calls=[])
     findings = scanner.scan(trace)
-    assert len(findings) == 9
+    assert len(findings) == 12
     assert all(f.id.startswith("A-") for f in findings)
 
 
@@ -104,5 +104,7 @@ def test_finding_ids_sequential():
     trace = AgentTrace(tool_calls=[_call("http.get")])
     findings = scanner.scan(trace)
     ids = [f.id for f in findings]
-    expected = [f"A-{i:03d}" for i in range(1, 10)]
+    expected = [f"A-{i:03d}" for i in range(1, 13)]
     assert ids == expected
+
+

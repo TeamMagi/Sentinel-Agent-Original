@@ -149,7 +149,7 @@ def test_custom_dangerous_tools():
 
 def test_scanner_includes_prompt_injection():
     scanner = AgentTraceScanner()
-    assert scanner.predicate_count == 9
+    assert scanner.predicate_count == 12
 
 
 def test_prompt_injection_classification():

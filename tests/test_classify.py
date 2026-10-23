@@ -31,7 +31,7 @@ PRODUCED_TYPES = [
     "rate_limit", "session_lifecycle", "graphql_introspection", "graphql_bola",
     # Dalga 5 — agent-security predicate'leri (agent/*.py vuln_type'ları)
     "exfiltration", "destructive_write", "confused_deputy", "untrusted_to_action", "prompt_injection",
-    "tool_shadowing",
+    "tool_shadowing", "memory_poisoning", "insecure_output_handling", "excessive_agency",
 ]
 
 

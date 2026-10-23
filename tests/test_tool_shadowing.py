@@ -130,7 +130,7 @@ def test_tool_shadowing_classification():
 def test_scanner_includes_tool_shadowing():
     from pentestai.agent.trace_scanner import AgentTraceScanner
     scanner = AgentTraceScanner()
-    assert scanner.predicate_count == 9
+    assert scanner.predicate_count == 12
     trace = AgentTrace(
         tool_calls=[
             ToolCall(name="http.get", arguments={"url": "test"}, ok=True, step=1),

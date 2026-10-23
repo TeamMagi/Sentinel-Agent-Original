@@ -60,7 +60,7 @@ def sha256_of(path: pathlib.Path) -> str:
 def _iter(globs: tuple[str, ...]) -> list[pathlib.Path]:
     out: list[pathlib.Path] = []
     for g in globs:
-        out.extend(p for p in REPO.glob(g) if p.is_file())
+        out.extend(p for p in REPO.glob(g) if p.is_file() and not p.name.startswith(".aider"))
     return sorted(set(out))
 
 

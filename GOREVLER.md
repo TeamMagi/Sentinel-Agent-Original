@@ -230,8 +230,8 @@ satır 113 kalacak.
 sağlayıcı dokümanıyla birebir doğrula.
 
 ### [x] 22. Kod-dışı referansları kontrol et · *(Görkem · ~1s)*
-`DESIGN.md §5`, `docs/rakip-analizi-agent-security-2026-09.md`, `docs/sozluk.md`, `SECURITY.md`,
-`LICENSE §5`. **Durum:** bu beşinin hepsi artık **VAR** (`docs/sozluk.md` AS-9 ile eklendi) —
+`DESIGN.md §5`, `docs/sozluk.md`, `SECURITY.md`,
+`LICENSE §5`. **Durum:** hepsi artık **VAR** (`docs/sozluk.md` AS-9 ile eklendi; rakip-analizi dokümanları git geçmişine taşındı) —
 `scripts/verify_release.py` yerel Markdown linklerini zaten kontrol ediyor, kırık link yok.
 Kalan iş: **bölüm numaralarının** (`DESIGN.md §5`, `LICENSE §5`) gerçekten o bölüme denk geldiğini
 doğrulamak. Olmayan dosyaya/bölüme link vermeyin.
@@ -322,12 +322,9 @@ kaldırıldı. Kayıp yok:
 - **Madde 19 gereği** agent-security oracle'ları, template ekosistemi, sürüm bütünlüğü doğrulama ve
   holdout **kodda kalır ama README'de öne çıkarılmaz**: vizyon dosyasına taşınıp README'de tek
   satırlık "yol haritası" olurlar.
-- Gerekçe/kıyas dokümanları yerinde: [rakip analizi](docs/rakip-analizi-2026-09.md) ·
-  [agent-security kıyası](docs/rakip-analizi-agent-security-2026-09.md) · [ROADMAP](ROADMAP.md) ·
-  [kalite artığı](GOREVLER_Q.md) · [Tier C](TIER_C.md).
+- Gerekçe/kıyas dokümanları yerinde: [ROADMAP](ROADMAP.md) ·
+  [kalite artığı](GOREVLER_Q.md) · [Tier C](TIER_C.md) (rakip-analizi dokümanları git geçmişinde).
 Bu dosyanın önceki içeriği (yarışma penceresi listesi: A–G blokları, maddeler **1–30** ve **T1–T4**;
 ondan önceki RK-1…RK-14 ve AS-1…AS-9 dalgaları) galeri-analizi eylem planına yer açmak için
 kaldırıldı — **kayıp yok, git geçmişinde ve kodda duruyor**. Referanslar yerinde:
-[genel rakip analizi](docs/rakip-analizi-2026-09.md) ·
-[agent-security kıyası](docs/rakip-analizi-agent-security-2026-09.md) ·
-[galeri analizi](docs/rakip-analizi-tln-galeri-2026-09-21.md) · [ROADMAP](ROADMAP.md) · [DESIGN.md](DESIGN.md).
+[ROADMAP](ROADMAP.md) · [DESIGN.md](DESIGN.md) (rakip-analizi dokümanları git geçmişinde).

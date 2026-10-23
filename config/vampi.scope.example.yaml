@@ -1,0 +1,22 @@
+# VAmPI benchmark scope — kopyala: cp config/vampi.scope.example.yaml config/vampi.scope.yaml
+# Hedef: erev0s/VAmPI ("vulnerable" mod). Yer-gerçeği: benchmarks/vampi.expected.yaml
+target:
+  base_url: "http://localhost:5000"
+
+scope:
+  allowed_hosts: ["localhost", "127.0.0.1", "vampi"]
+  allowed_ports: [5000]
+  allowed_path_prefixes: ["/"]
+  denied_path_patterns: ["*/createdb*"]   # seed endpoint'i — taranırsa test verisini sıfırlar
+  allowed_methods: ["GET", "HEAD", "POST", "PUT"]   # DELETE YOK: yıkıcı BFLA testi test kullanıcılarını silebilir
+  destructive_tests: false
+  external_network: false
+
+budget:
+  max_total_requests: 2000
+  max_rps_per_host: 5
+  max_wall_clock_sec: 900
+  max_payload_bytes: 1048576
+
+privacy:
+  no_secrets_in_query: true

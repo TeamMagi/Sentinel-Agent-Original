@@ -57,6 +57,31 @@ logs in as **two real users**, then measures whether one can reach the other's d
 A finding is only marked `CONFIRMED` when the victim's *own private data* is provably present in
 the attacker's response. That decision is made by code, never by a language model.
 
+### An access-control *and* agent-security scanner for the AI era
+
+The same engine now covers a second kind of target: **AI agents and their MCP tools**. As
+applications hand real authority to LLM agents, a new class of authorization bug appears that no
+URL-replay scanner looks for — an agent, carrying the user's privileges, is tricked into acting
+against them. Sentinel analyzes an agent's **observed tool-call trace** (collected from MCP logs or
+an SDK, offline — the LLM never touches the network) with the *same* deterministic, 0-false-positive
+discipline, and proves agent-security predicates such as:
+
+- **confused deputy** — a side-effecting call (`email.send`) with no user intent behind it;
+- **exfiltration** — a planted canary secret leaving in an outbound call, even base64-encoded;
+- **untrusted-to-action** — attacker-controlled content (a web/email result) driving a privileged action;
+- **memory poisoning** — untrusted content written to persistent memory, then re-read a turn later to trigger an action;
+- **insecure output handling** — a tool's output flowing unsanitized into `shell.exec`/`sql.query`;
+- **excessive agency** — a destructive call whose blast radius (`rm /drafts/*`, `DELETE … ` with no `WHERE`) exceeds what the user authorized;
+- plus **destructive write** and **manifest deviation** (an agent stepping outside its own declared tool set).
+
+The product is deliberately **four arms on one spine**: **(A)** access control — the crown jewel;
+**(B)** classic injection/web and **(C)** infrastructure/config — commodity, complementary coverage;
+and **(D)** agent/LLM/MCP security — the flagship differentiator. Every type in A and D, and the
+commodity types proven so far, is backed by a vulnerable↔hardened **eval twin** that runs the real
+oracle network-free in CI (0-FP gate). Because *the LLM reasons, the engine proves*, the whole thing
+runs **on-prem against a local model** — a strong argument for finance/defense/health teams who will
+not send traffic or vulnerability data to a cloud LLM.
+
 ### Why this matters to people who will never read this README
 
 Broken Object Level Authorization has been **#1 on the OWASP API Security Top 10** for years, and

@@ -1,0 +1,25 @@
+# crAPI benchmark aktörleri — kopyala: cp config/crapi.actors.example.yaml config/crapi.actors.yaml
+# GERÇEK parola buraya YAZILMAZ (örnekte REDACTED). İki hesap kaydet (POST /identity/api/auth/signup)
+# ve e-postalarını doğrula; yer-gerçeği (benchmarks/crapi.expected.yaml) sentinel_c1 / sentinel_c2
+# ile doğrulanmıştır. Login JSON'da {"token": "..."} döner → bearer json:token.
+#
+# BOLA vakası (posts/{postId}) için c2, c1'in gönderi id'sine erişebilmeli: c1 ile bir gönderi
+# oluştur, postId'yi own_object_ids.posts'a c1 için yaz; c2 saldırgan olur.
+actors:
+  - name: sentinel_c1
+    role: user
+    auth:
+      type: token
+      login_url: "http://localhost:8888/identity/api/auth/login"
+      credentials: { email: "sentinel_c1@example.com", password: "REDACTED" }
+      token_location: { kind: "bearer", from: "json:token" }
+    own_object_ids: { posts: "<c1-gönderi-postId>" }
+
+  - name: sentinel_c2
+    role: user
+    auth:
+      type: token
+      login_url: "http://localhost:8888/identity/api/auth/login"
+      credentials: { email: "sentinel_c2@example.com", password: "REDACTED" }
+      token_location: { kind: "bearer", from: "json:token" }
+    own_object_ids: { posts: "<c2-gönderi-postId>" }

@@ -79,3 +79,19 @@ async def test_out_of_scope_raises():
     with pytest.raises(ScopeError):
         await _replayer().replay(base, sA)
     await store.aclose_all()
+
+
+async def test_custom_auth_header_does_not_leak_to_other_actor():
+    # Özel adlı auth başlığı (sabit AUTH_HEADER_NAMES'te yok) kayıt edildikten sonra, başka aktörün
+    # (burada anonim) replay'inde base istekten TEMİZLENMELİ — aksi halde cross-contamination.
+    from pentestai.models import Actor, AuthState, CapturedRequest
+
+    victim = Actor(name="user_A", auth=AuthState(headers={"X-Access-Token": "TOKEN_A"}))
+    anon = Actor(name="anonymous")
+    base = CapturedRequest(method="GET", url="http://t/api/x",
+                           headers={"X-Access-Token": "TOKEN_A", "Accept": "application/json"})
+    names = {"authorization"}
+    assert "X-Access-Token" in Replayer._prepare(base, anon, names).headers   # kayıtsız: sızar
+    names.update(h.lower() for h in victim.auth.headers)
+    prepared = Replayer._prepare(base, anon, names)
+    assert "X-Access-Token" not in prepared.headers and prepared.headers["Accept"] == "application/json"

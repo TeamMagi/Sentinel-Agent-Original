@@ -10,6 +10,7 @@ import json
 import socket
 import threading
 import time
+from pathlib import Path
 
 import httpx
 import pytest
@@ -782,6 +783,22 @@ def test_narrow_scope_rejects_every_axis():
     assert "max_payload_bytes" in req(max_payload_bytes=999_999)
 
 
+def test_narrow_scope_empty_lists_inherit_server_instead_of_widening():
+    # Boş liste alt-küme denetimini vakumda geçer; to_scope() onu ["/"] / ["GET","HEAD"]
+    # varsayılanına çevirirse sunucu scope'u GENİŞLER (§5.6) — sunucunun değeri miras alınmalı.
+    server = _server_scope(
+        allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/api/"],
+        allowed_methods=["GET"],
+    )
+    eff = narrow_scope(server, ScopeSpec(
+        allowed_hosts=["localhost"], allowed_ports=[3000],
+        allowed_path_prefixes=[], allowed_methods=[]))
+    assert isinstance(eff, ScopeSpec)
+    scope = eff.to_scope()
+    assert scope.allowed_path_prefixes == ["/api/"]
+    assert scope.allowed_methods == ["GET"]
+
+
 def test_authspec_to_cfg_header_token_kind():
     cfg = AuthSpec(type="token", token_kind="header", token_header="X-Api-Key",
                    token_from="json:token").to_cfg()
@@ -859,6 +876,26 @@ def test_storagestate_path_inside_secrets_dir_is_allowed(tmp_path):
     body = json.dumps(req.model_dump(mode="json")).encode()
     resp = app.handle("POST", "/api/scan", {}, body, _JSON)
     assert resp.status == 202
+
+
+def test_storagestate_path_reads_the_file_that_was_validated(tmp_path, monkeypatch):
+    # Doğrulama secrets_dir/<yol>'a bakıp okuma çalışma dizinindeki <yol>'dan yapılıyordu:
+    # "other/x.json" kabul ediliyor ve .secrets DIŞINDAN okunuyordu. Artık koşucuya giden yol
+    # doğrulanan (secrets_dir içindeki) dosyanın kendisi olmalı.
+    monkeypatch.chdir(tmp_path)
+    secrets = tmp_path / ".secrets"
+    secrets.mkdir()
+    (tmp_path / "other").mkdir()
+    (tmp_path / "other" / "x.json").write_text("{}", encoding="utf-8")
+    fake = FakeRunner()
+    app = _app(tmp_path, runner=fake, secrets_dir=secrets)
+
+    for raw in ("other/x.json", ".secrets/user_A.json", "user_A.json"):
+        req = ScanRequest(**_valid_request(actors=[ActorSpec(
+            name="user_A", auth=AuthSpec(type="storagestate", storagestate_path=raw))]).model_dump())
+        assert app._validate_secrets_paths(req) is None
+        used = Path(req.actors[0].auth.storagestate_path)
+        assert used.is_absolute() and used.is_relative_to(secrets.resolve())
 
 
 # --------------------------- eşzamanlılık sınırı ---------------------------
@@ -998,3 +1035,19 @@ def test_server_serve_forever_binds_serves_and_closes(tmp_path):
         srv._httpd.shutdown()
         t.join(timeout=5)
     assert srv._httpd is None
+
+
+def test_server_sends_anti_clickjacking_and_csp_headers(tmp_path):
+    # Panel authN istemez → başka bir site onu çerçeveleyip tarama başlattıramamalı (clickjacking).
+    app = _app(tmp_path)
+    with WebServer(app, host="127.0.0.1", port=0) as srv:
+        port = srv.bound_port
+        app.guard = RequestGuard([f"127.0.0.1:{port}"])
+        t = threading.Thread(target=srv.handle_request, daemon=True)
+        t.start()
+        r = httpx.get(f"http://127.0.0.1:{port}/", timeout=5)
+        t.join(timeout=5)
+    assert r.status_code == 200
+    assert r.headers["x-frame-options"] == "DENY"
+    assert r.headers["x-content-type-options"] == "nosniff"
+    assert "frame-ancestors 'none'" in r.headers["content-security-policy"]

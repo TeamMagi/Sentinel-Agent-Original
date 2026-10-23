@@ -1,136 +1,133 @@
-# Görev Listesi — Galeri Rakip Analizi Eylem Planı (2026-09-21)
+# Görev Listesi — Ürünleşme Yol Haritası (2026-10-10)
 
-> **Kaynak:** [`docs/rakip-analizi-tln-galeri-2026-09-21.md`](docs/rakip-analizi-tln-galeri-2026-09-21.md)
-> (91 Devpost gönderimi + en yakın 8 rakibin derin incelemesi). Bu dosya, o belgenin **eyleme
-> dönüştürülebilir** maddelerini **Serhat ↔ Görkem** arasında **efor bazında eşit** paylaştırır.
-> Madde numaraları analizin **§3 tablosu** (#1–#15) ve **§6** ile birebir eşleşir ki iki belge
-> birbirine referans verebilsin.
->
-> Kurallar: **[CLAUDE.md](CLAUDE.md)** (Türkçe/imzasız commit, `pytest -q` yeşil kalmadan merge yok)
-> · mimari: **[DESIGN.md](DESIGN.md)** · korunacak kenar (moat): analiz **§5**.
-
-## Öncelik (analiz §3'ten)
-
-| Grup | Anlamı |
-|---|---|
-| **A · P0** | Kod-dışı, hemen — sunum/anlatı. En yüksek getiri, sıfır kod riski. |
-| **B · P1** | Hızlı kazançlar (kod). Küçük yüzey, yüksek etki. |
-| **C · P2** | Orta kod lifti — yeni detector/oracle/gate. |
-| **D · P3** | Büyük lift — ekosistem entegrasyonu, öğrenen bileşenler. |
+> Bu dosya, Sentinel-Agent'ı **kişisel araçtan ürüne** taşıma kararını ve önceliklenmiş sırayı
+> tutar. Kurallar: **[CLAUDE.md](CLAUDE.md)** (Türkçe/imzasız commit, `pytest -q` yeşil kalmadan
+> merge yok) · mimari: **[DESIGN.md](DESIGN.md)** · sözlük: **[docs/sozluk.md](docs/sozluk.md)**.
 
 ## ⛔ İhlal edilemez kural
 
 **Verdict tarafına fallback KOYMAYIN.** Oracle emin olamadığında `INCONCLUSIVE` demesi bir eksiklik
-değil, projenin **en güçlü tarafıdır**. "Emin olamadım, o zaman LIKELY diyeyim" gibi bir gevşeme
-precision'ı kaybettirir ve tüm tezi çökertir. Bu, CLAUDE.md §5'teki değişmezlerin üstünde tutulur.
-Aşağıdaki remediation/verify/functional-regression maddeleri (#7, #8) **verdict merdivenini
-gevşetmeden** eklenecek: yeni bir kanıt, mevcut dört-kademeyi zenginleştirir, kısayol açmaz.
+değil, projenin **en güçlü tarafıdır**. "Emin olamadım, LIKELY diyeyim" gibi bir gevşeme precision'ı
+kaybettirir ve tüm tezi çökertir — CLAUDE.md §5 değişmezlerinin üstünde tutulur. Her yeni yetenek,
+mevcut dört-kademeli verdict merdivenini (CONFIRMED/LIKELY/REJECTED/INCONCLUSIVE) **zenginleştirir,
+kısayol açmaz.** `CONFIRMED` kararını daima deterministik imza + positive/negative/stability
+kontrolleri verir.
 
 ---
 
-## Yük dağılımı (dengeli — efor bazında)
+## 0. Durum tespiti (bu plan neye dayanıyor)
 
-| | A Anlatı (P0) | B Kod (P1) | C Kod (P2) | D Kod (P3) | Efor toplamı |
-|---|---|---|---|---|---|
-| **Görkem** | #1, #3, #4, §6-5 (4.0) | #6, #7 (5.0) | #8, #9, #10, #11 (12.5) | — | **≈ 21.5 s** |
-| **Serhat** | #2, §6-1b, §6-4 (2.5) | #5 (2.5) | #12 (3.5) | #13, #14, #15 (12.5) | **≈ 21.0 s** |
+- **Kayıtlı açık tipi (`classify.TYPE_META`): 57** · oracle modülü: 22 · detector: 17 ·
+  agent-güvenlik: 4.
+- **Benchmark'la (eval twin, 0-FP kapısı) kanıtlanmış: yalnız 18.** Yani katalog geniş ama
+  ~%32'si twin ile kurşungeçirmez. **Asıl açık bu uçurum** — tip sayısı değil, kanıt kapsamı.
+- Benchmark recall'ü yerel LLM (dış makine, on-prem) ile ~%95. Bu **yeterli**; hedef %100 recall
+  DEĞİL. Ürün riski recall değil, (a) 39 kanıtsız tip ve (b) Juice Shop dışı gerçek hedef eksikliği.
 
-> Saatler analiz §3'ün efor sütunundan türetilmiştir (Düşük≈1.0 · Düşük-Orta≈1.5 · Orta≈2.5 ·
-> Orta-Yüksek≈3.5 · Yüksek≈5.0). Denge **madde sayısıyla değil eforla** kurulur (Görkem 10, Serhat 8
-> madde; efor 21.5/21.0). İş bölmeleri **DESIGN.md §7 bağımlılık yönüne** göre ayrıldı.
+### Ürün dört koldan oluşuyor (tek kol değil)
 
-**Paylaştırma mantığı (katman sahipliğiyle):**
-- **Görkem** = README/deck anlatısı + **oracle / detector / verdict / evidence** katmanı (proof-bundle
-  bayatlaması, remediation-verify verdict'i, causal-lineage oracle, entropy detector, MCP-manifest
-  detektörü). Bu, Görkem'in T3 (LLM'siz hipotez/detector) ve T4 (benchmark) sahipliğiyle örtüşür.
-- **Serhat** = video/Devpost teslim paketi + **report/webui / net / policy** katmanı (yapıştırılabilir
-  remediation prompt UI'si, manifest-deviation policy kapısı, nuclei ingestion, pasif URL on-ramp,
-  immunity-memory). Bu, Serhat'ın T1/T2 (dikey dilim: scope/policy) ve panel/demo sahipliğiyle örtüşür.
+| Kol | Kapsam | Durum | Rol |
+|---|---|---|---|
+| **A — Access control** | IDOR/BOLA/BFLA/BOPLA/mass-assignment | En derin, en çok twin'li | **Taban** (güven temeli) |
+| **B — Injection/web** | sqli/xss/ssti/traversal/crlf… | Geniş ama çoğu sığ imza | Tamamlayıcı (emtia) |
+| **C — Altyapı/config** | tls/headers/cve/default-creds/session | Nuclei'nin güçlü alanı | Tamamlayıcı (emtia) |
+| **D — Agent/LLM/MCP güvenliği** | exfiltration/confused-deputy/destructive-write/manifest/dangerous-tool | 4 modül, genişlemeye hazır | **Amiral farklılaştırıcı** |
 
-**Önerilen sıra:** A (P0, kod-dışı — hemen ve bedava) → B (P1 hızlı kazançlar) → C (P2) → D (P3).
-
----
-
-## A) Anlatı / sunum — P0 · *(kod-dışı, hemen)* · [analiz §6 + §3 #1–#4]
-
-### [x] 1. Benchmark tablosunu README'den çıkar · *(Görkem · ~1s)*
-"Canlı koşum, 2026-09-16", 3 hedef / 31 vaka, precision %100, FP-rate %0, TP/FN/FP/TN dağılımı —
-**hepsi**. **Metodoloji anlatımı KALSIN** (vulnerable↔hardened ikiz mantığı, etiketlerin gerçek HTTP
-davranışından konması, FP kapanı olarak negatif vakalar); **rakam gitsin**. Gerçek koşum çıkınca geri
-konur; o zaman en güçlü koz olur.
-
-### [x] 2. Badge'lerden test sayısını sil · *(Görkem · ~0.5s)*
-**Durum:** README satır 10 → `tests-541 passing`; proje yapısındaki "(276 test)" ile çelişiyor ve
-her koşumda eskiyor. Badge tamamen kalkacak.
-
-### [x] 3. Tarihli / sürümlü iddiaları gözden geçir · *(Görkem · ~1.5s)*
-`OWASP Juice Shop (v20.2.0)`, `VAmPI (vulnerable=1)`, `crAPI (main)` sürüm etiketleri **ve**
-"VAmPI e-posta güncelleme yalnızca kendi hesabını değiştirir", "crAPI mechanic_report POST = 405"
-gibi gözlem cümleleri de birer **ölçüm iddiasıdır**. Gerçekten koşulana kadar dursun.
-
-### [x] 4. `make demo` çıktı örneğini kaldır · *(Görkem · ~0.5s)*
-`[done] 6 bulgu · 1 CONFIRMED · runs/run-.../` satırı gerçek bir demo çıktısı gibi duruyor. Gerçek
-çıktı alınana kadar çıkarılmalı.
-### [ ] #1. Anlatıyı "klasik API + ajan-çağı yetki, ikisini de KANITLA" diye çerçevele · *(Görkem · efor: Düşük)*
-Kaynak: ChainBreak/Ranger/Pramaan kümesinin varlığı · katman: README + deck.
-Sahip olduğumuz dört predicate (CONFUSED_DEPUTY, DESTRUCTIVE_WRITE, EXFILTRATION,
-UNTRUSTED_TO_ACTION) README/deck'te bir cümleyle öne çıksın; deck IDOR/BOLA'yı öne, ajan tarafını
-dipnota atmayı bıraksın. Innovation puanının toplandığı yere taşır.
-
-### [ ] #2. "intended vs claimed vs actual" çerçevesini rapor/sunuma al · *(Serhat · efor: Düşük)*
-Kaynak: Ranger · katman: report/video anlatısı.
-Ajanın *ne yapmak istediği*, *ne iddia ettiği*, *ne gerçekten olduğu* ayrımını rapor/video diline
-işle. Bedava, kod gerektirmez, jüriye çok satar.
-
-### [ ] #3. "evidence-first, model gets no vote" + "trajectory/lineage" dilini vurgula · *(Görkem · efor: Düşük)*
-Kaynak: HORCRUX / ChainBreak · katman: README + deck.
-Jürinin ödüllendirdiği dili kullan: "reproducible offline", "measured not claimed". Bunları benchmark
-slaytı + proof-bundle slaytıyla eşle.
-
-### [ ] #4. Ranger kontrastı: "biz hedefi kanıtlıyoruz, meta-değerlendirmiyoruz" · *(Görkem · efor: Düşük)*
-Kaynak: Ranger · katman: deck + README.
-"Ranger ajanın davranışını değerlendirir; Sentinel hedefin zafiyetini kanıtlar — biz daha zor ispatı
-yapıyoruz, üstelik aynı Juice Shop üzerinde." Güçlü, net konumlandırma.
-
-### [ ] §6-1b. Devpost yazımı + videoda ajan-güvenliğini yükselt · *(Serhat · efor: Düşük)*
-Kaynak: analiz §6.1 · katman: Devpost/video teslim.
-Dört predicate'i Devpost açıklamasında ve video anlatısında görünür kıl (#1'in teslim-yüzü karşılığı).
-
-### [ ] §6-4. Devpost linkini gerçek adrese çevir · *(Serhat · efor: Düşük)*
-Kaynak: analiz §6.4 · katman: Devpost/deck.
-Deck'te placeholder `[devpost.com/software/…]` görülüyordu — gerçek gönderim adresiyle değiştir.
-
-### [ ] §6-5. "Herkes kanıt diyor; biz ÖLÇTÜK" slaytı · *(Görkem · efor: Düşük)*
-Kaynak: analiz §6.5 · katman: benchmark slaytı (T4 sahipliği).
-Kanıt-temelli küme kalabalık; farkı *ölçülmüş sayılar* (precision/recall + 0-FP tuzak) yaratıyor. En
-ayrıştırıcı slayt bu.
+**Mimari tespit:** Aynı kola yeni açık tipi eklemek yeni mimari gerektirmez — `detector-ekleme-zinciri`
+(7 dosya) zaten "kola ekleme" mekanizması. Yeni mimari YALNIZCA bir kol HTTP-replay + tek-değişken
+diferansiyel omurgasını kırdığında gerekir (ağ/host port tarama, binary/SAST, çok-adımlı stateful
+iş-mantığı). Bu karar şimdilik ertelendi.
 
 ---
 
-## B) Kod — P1 · *(hızlı kazançlar)* · [analiz §3 #5–#7]
+## Öncelik sırası (kararlaştırıldı)
 
-### [x] 6. README **İNGİLİZCE** olacak · *(Görkem · ~4s)*
-Jüri Amazon, U.S. Bank, Corteva, Blue Cross Blue Shield tarafından; hiçbiri Türkçe okumayacak.
-Bu maddeyi 10/11/13/16/17/18/19 ile **tek geçişte** yap (README'yi iki kez yazma).
-### [x] #5. Yapıştırılabilir "AI-ready remediation prompt" · *(Serhat · efor: Orta)*
-Kaynak: Synk · katman: report/webui.
-Remediation düzyazısını, geliştirme ortamına (Lovable/Cursor vb.) yapıştırılabilir somut bir prompt'a
-çevir. Küçük yüzey, yüksek UX getirisi.
+> İlke: **her yönü geliştireceğiz, hiçbir yeri eksik bırakmayacağız** — ama sıra önce *derinlik +
+> dürüst konumlandırma*, sonra *yeni kol*. Önce A+D amiral olacak; yeni kol/mimari en sona.
 
-### [ ] #6. Proof-bundle "bayatlama" (hedef değişince yeniden-ispat işareti) · *(Görkem · efor: Orta)*
-Kaynak: Crucible · katman: evidence.
-Bundle zaten SHA-256 ile mühürlü; hedef yanıtı değişince bundle "yeniden-ispat gerekiyor" işaretine
-geçsin (girdi hash'i tutup karşılaştır). Verdict'e dokunmaz, kanıtın güncelliğini ölçer.
+### P0 — Kanıt konsolidasyonu (yeni özellikten ÖNCE)
+- [x] **A ve D kollarındaki kayıtlı her tip için eval twin** (`_vuln`/`_hardened`/near-miss + `_one`)
+      → amiral kollarda tam kapsam. **(Kol A + Kol D TAM — eval 18→49 vaka, 19 kanıtlı tip; +sqli emtia)**
+  - Kol A twin'li: `idor`, `bola`, `bfla`, `path_traversal` (önceden) ✓
+  - [x] `unauthorized_access` — `UnauthorizedAccessTwin` (GET, yönetim-path, anon attacker)
+  - [x] `excessive_data_exposure` (BOPLA) — `BoplaTwin` (vuln/hardened/near-miss: tarih-indirme)
+  - [x] `method_bypass` — `MethodBypassTwin` (DELETE reddi → POST bypass; destructive scope)
+  - [x] `mass_assignment` — `MassAssignmentTwin` (isAdmin bind; durum-bilgili yaz-sonra-oku; destructive scope)
+  - [x] `graphql_bola` — `GraphqlBolaTwin` (sahiplik kontrolsüz `order(id:)`; kurban-özel marker sızar)
+  - [x] `state_change_authz` — `StateChangeTwin` (BOLA-write; kurbanın objesine kalıcı PUT mutasyonu)
+  - Kol A tamam; yalnız `nested_idor` opsiyonel (not: `vuln_type="idor"`, yeni proven tip eklemez — derinlik twin'i)
+  - [x] `confused_deputy` — `ConfusedDeputyTwin` (niyet yok + yan-etkili `email.send` → CONFIRMED)
+  - [x] `destructive_write` — `DestructiveWriteTwin` (korumalı `secret.txt`'ye yıkıcı çağrı; `destructive_tests=True`)
+  - [x] `exfiltration` — `ExfiltrationTwin` (canary sır outbound `http.post` gövdesinde sızar; nedensel zincir)
+  - [x] `manifest_deviation` — `ManifestDeviationTwin` (beyan dışı tool; uyumlu+sapan çağrı birlikte)
+  - [x] `untrusted_to_action` — `UntrustedToActionTwin` (AS-3; güvenilmez içerik→ayrıcalıklı aksiyon
+        taint zinciri; hardened: kullanıcı aksiyonu açıkça ister → REJECTED). Oracle önceden tam
+        test edilmişti ama eval twin'i yoktu → 0-FP kapısına bağlandı, PROVEN'a yükseltildi.
+  - `dangerous_mcp_tool`: **tasarım gereği LIKELY-tavanlı** (sinyal, kanıtlanmış istismar değil) →
+    CONFIRMED twin modeline oturmaz, **doğru davranış experimental kalması** (verdict disiplini).
+  - Kol D kanıtlanabilir 4 tip TAM; agent twin'leri `AgentTrace` fixture'ı + sync `AgentOracle` sarıcı
+    (`finding()`) deseniyle eklendi — HTTP iki-aktör değil.
+- [x] B/C'de twin'siz kalan tipleri **"experimental" olarak etiketle** (ürün dürüstlüğü — "57 tip"
+      derken azını ispatlayabilme açığını kapat). → `classify.PROVEN_TYPES` + `is_experimental()`;
+      eval twin'leriyle senkronu `tests/test_experimental_tag.py` (drift-guard) zorlar.
+- [x] Kapıları her adımda koş: `pytest -q` (1085), `eval/evaluate.py` (49 vaka, precision/recall
+      %100, FP-rate %0), `scripts.bench_guard` (18 ikiz, 0-FP), `scripts.verify_release`, `ruff`. ✓
 
-### [ ] #7. Remediation doğrulama döngüsü + "failed-repair" verdict · *(Görkem · efor: Orta)*
-Kaynak: Crucible · katman: oracle/report.
-Önerilen düzeltmeyi uygulayıp yeniden tarayınca zafiyet kapanıyor mu? "failed-repair" durumu, mevcut
-dört-kademeli merdiveni **gevşetmeden** zenginleştirir (⛔ kuralına dikkat).
+### P1 — Kol D'yi amiral farklılaştırıcı yap (asıl büyüme yönü) — BAŞLADI
+- [~] `agent/` ailesine yeni `AgentOracle` alt sınıfları ekle (Open/Closed; çekirdek değişmez).
+      Gerekçe: Burp/ZAP/Nuclei/Strix/XBOW *hedefteki* AI agent'ı/MCP'yi authz/exfil için test etmiyor
+      — 2026'da boş arazi + yükselen talep + mimari bedava.
+  - [x] `memory_poisoning` — `MemoryPoisoningOracle` (turlar-arası kalıcılık: güvenilmez içerik
+        belleğe → geri-okuma → yan-etki tetiği; üç-adımlı nedensel zincir).
+  - [x] `insecure_output_handling` — `InsecureOutputHandlingOracle` (LLM02; arıtılmamış tool çıktısı
+        → exec-sink `shell.exec`/`sql.query`; yürütülebilir token ayırt edici kontrol).
+  - [x] `excessive_agency` — `ExcessiveAgencyOracle` (LLM06; sınırsız blast-radius: joker `*`/
+        where'siz DML/`recursive` bayrağı; kullanıcı toplu kapsamı yetkilendirmediyse). **18 kanıtlı tip.**
+  - Kol D şu an 8 kanıtlı tip; OWASP LLM Top-10 agentic kapsamı genişliyor.
+- [x] Her yeni predicate için twin (P0 disiplini) + `tests/test_*` (network'süz).
+      memory_poisoning ✓ · insecure_output_handling ✓ · excessive_agency ✓
+- [x] Ürün anlatısı: "AI çağının access-control + agent güvenlik tarayıcısı".
+      → README'ye dört-kol konumlandırması + Kol D'nin 8 predicate'i + on-prem argümanı eklendi.
+
+### P2 — Kol A'yı taban olarak sağlamlaştır (büyütme değil, pekiştir)
+- [~] Benchmark'ı Juice Shop dışına çıkar: **crAPI** ve **VAmPI** (ikisi de authz/BOLA için tasarlı).
+  - [x] **VAmPI** koşuldu + belgelendi (`vampi.result.md`, 2026-09-20; README %100 precision / %50 recall / %0 FP).
+  - [x] Her iki hedef için commit'li config örnekleri (`config/{crapi,vampi}.*.example.yaml`) + runbook
+        (`benchmarks/README.md`) + HTTP-doğrulanmış yer-gerçeği (`*.expected.yaml`) + suite.
+  - [ ] **crAPI canlı koşum** (`crapi.result.md`) — kullanıcı ortamında üretilir (çok-servisli compose
+        + yerel LLM). Yer-gerçeği + config + runbook hazır; kalan tek adım koşum.
+
+### P3 — B (injection) ve C (altyapı): fırsatçı, en sona
+- [~] Emtia alan; önden gitme. "Tamamlayıcı kapsam" olarak konumlandır, çekirdek iddiaya karıştırma.
+  - [x] `sqli` (error-based differential) — `SqliTwin` ile kanıtlı (VAmPI'nin SQLi FN'ini kapatır).
+        İlk emtia kanıtlı tip; gerisi fırsatçı eklenecek (çoğu imza/LIKELY-tavanlı dedektör experimental kalır).
 
 ---
 
-## C) Kod — P2 · *(orta lift)* · [analiz §3 #8–#12]
+## Agent/scout ölçekleme ilkesi (karar)
 
+`ParallelOrchestrator` scout'ları **endpoint'i** bölüşür (round-robin), **açık-tipini** değil; hepsi
+**tek bütçe + tek rate-limiter + tek WorldModel** paylaşır. Dolayısıyla:
+
+- **Scout sayısını yetenek (açık tipi) sayısına orantılama — bu iki dik eksen.** Tip eklemek endpoint
+  *başına* derinlik, scout ise endpoint'ler *arası* hızdır.
+- Tek hedefte scout tavanı **hedefin RPS'i**, scout sayısı değil (`scout ≈ min(anlamlı endpoint
+  dilimi, rps_headroom)` → tipik 3-6). Fazlası israf + 0-FP için cross-contamination riski (§5.3) +
+  N× LLM maliyeti.
+- **Ürün ölçeği yatay büyür:** çok hedefte **hedef başına bir orchestrator** (her biri kendi
+  bütçesiyle, izole world) — tek hedefe daha çok scout değil.
+- **Agent çeşidini kol başına uzmanlaştır** (access-control scout / agent-güvenlik scout / injection
+  scout), klonlama. Agent sayısı **kol sayısıyla** orantılı büyür (bugün 4 kol → 4 uzman), yetenek
+  sayısıyla değil.
+
+## Konumlandırma notu (kaybolmasın)
+
+**On-prem / local-LLM** çalışabilirlik satılabilir farklılaşma: trafiğini/zafiyet verisini bulut
+LLM'ine göndermek istemeyen güvenlik-duyarlı müşteriler (finans/savunma/sağlık) için güçlü argüman.
+"LLM akıl yürütür, motor kanıtlar" mimarisi bunu zaten mümkün kılıyor.
+
+Bir kol şu üçü sağlanınca "amiral/olgun" sayılır: (1) kayıtlı her tipi twin ile kanıtlı, (2) FP-rate
+%0, (3) Juice Shop + en az bir gerçek hedefte tekrarlanabilir CONFIRMED bulgu.
 ### [ ] #8. Fonksiyonel-regresyon kontrolü (düzeltme işlevi bozuyor mu) · *(Görkem · efor: Orta-Yüksek)*
 Kaynak: Crucible · katman: oracle/verify (#7 ile eşleşir).
 Güvenlik düzeltmesi işlevi (ör. ödeme/format) bozabilir; "exploit bloklandı MI **VE** işlev hâlâ

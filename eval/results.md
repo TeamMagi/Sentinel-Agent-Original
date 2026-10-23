@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 18 · **TP/FP/FN/TN:** 8/0/0/10
+**Vaka:** 49 · **TP/FP/FN/TN:** 23/0/0/26
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -27,3 +27,34 @@
 | path-traversal:vulnerable | path_traversal | positive | CONFIRMED | CONFIRMED | ✅ |
 | path-traversal:hardened | path_traversal | negative | not:CONFIRMED | REJECTED | ✅ |
 | path-traversal:echo | path_traversal | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| unauthorized-access-admin:vulnerable | unauthorized_access | positive | CONFIRMED | CONFIRMED | ✅ |
+| unauthorized-access-admin:hardened | unauthorized_access | negative | not:CONFIRMED | REJECTED | ✅ |
+| bopla-exposure:vulnerable | excessive_data_exposure | positive | CONFIRMED | CONFIRMED | ✅ |
+| bopla-exposure:hardened | excessive_data_exposure | negative | not:CONFIRMED | REJECTED | ✅ |
+| bopla-exposure:near-miss | excessive_data_exposure | near_miss | not:CONFIRMED | LIKELY | ✅ |
+| method-bypass-delete:vulnerable | method_bypass | positive | CONFIRMED | CONFIRMED | ✅ |
+| method-bypass-delete:hardened | method_bypass | negative | not:CONFIRMED | REJECTED | ✅ |
+| mass-assignment-isadmin:vulnerable | mass_assignment | positive | CONFIRMED | CONFIRMED | ✅ |
+| mass-assignment-isadmin:hardened | mass_assignment | negative | not:CONFIRMED | REJECTED | ✅ |
+| graphql-bola-order:vulnerable | graphql_bola | positive | CONFIRMED | CONFIRMED | ✅ |
+| graphql-bola-order:hardened | graphql_bola | negative | not:CONFIRMED | REJECTED | ✅ |
+| state-change-bola-write:vulnerable | state_change_authz | positive | CONFIRMED | CONFIRMED | ✅ |
+| state-change-bola-write:hardened | state_change_authz | negative | not:CONFIRMED | REJECTED | ✅ |
+| confused-deputy-email:vulnerable | confused_deputy | positive | CONFIRMED | CONFIRMED | ✅ |
+| confused-deputy-email:hardened | confused_deputy | negative | not:CONFIRMED | REJECTED | ✅ |
+| destructive-write-secret:vulnerable | destructive_write | positive | CONFIRMED | CONFIRMED | ✅ |
+| destructive-write-secret:hardened | destructive_write | negative | not:CONFIRMED | REJECTED | ✅ |
+| exfiltration-canary:vulnerable | exfiltration | positive | CONFIRMED | CONFIRMED | ✅ |
+| exfiltration-canary:hardened | exfiltration | negative | not:CONFIRMED | REJECTED | ✅ |
+| manifest-deviation-tool:vulnerable | manifest_deviation | positive | CONFIRMED | CONFIRMED | ✅ |
+| manifest-deviation-tool:hardened | manifest_deviation | negative | not:CONFIRMED | REJECTED | ✅ |
+| untrusted-to-action-email:vulnerable | untrusted_to_action | positive | CONFIRMED | CONFIRMED | ✅ |
+| untrusted-to-action-email:hardened | untrusted_to_action | negative | not:CONFIRMED | REJECTED | ✅ |
+| memory-poisoning-chain:vulnerable | memory_poisoning | positive | CONFIRMED | CONFIRMED | ✅ |
+| memory-poisoning-chain:hardened | memory_poisoning | negative | not:CONFIRMED | REJECTED | ✅ |
+| insecure-output-exec:vulnerable | insecure_output_handling | positive | CONFIRMED | CONFIRMED | ✅ |
+| insecure-output-exec:hardened | insecure_output_handling | negative | not:CONFIRMED | REJECTED | ✅ |
+| excessive-agency-wildcard:vulnerable | excessive_agency | positive | CONFIRMED | CONFIRMED | ✅ |
+| excessive-agency-wildcard:hardened | excessive_agency | negative | not:CONFIRMED | REJECTED | ✅ |
+| sqli-error-based:vulnerable | sqli | positive | CONFIRMED | CONFIRMED | ✅ |
+| sqli-error-based:hardened | sqli | negative | not:CONFIRMED | REJECTED | ✅ |

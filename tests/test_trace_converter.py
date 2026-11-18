@@ -50,3 +50,14 @@ def test_convert_trace_preserves_output():
     result = convert_tool_call(tc)
     assert result.result == 'root:x:0:0'
     assert result.arguments == {'path': '/etc/passwd'}
+
+
+def test_convert_trace_assistant_replies():
+    simple = AgentTrace(task='t', assistant_replies=['merhaba', 'ikinci'])
+    rich = convert_trace(simple)
+    assert [(t.content, t.step) for t in rich.assistant_turns] == [('merhaba', 0), ('ikinci', 1)]
+
+
+def test_convert_trace_no_replies_empty_turns():
+    rich = convert_trace(AgentTrace(task='t'))
+    assert rich.assistant_turns == []

@@ -59,3 +59,25 @@ def test_markdown_and_json() -> None:
         assert h in md
     d = m.to_dict()
     assert json.loads(json.dumps(d, ensure_ascii=False)) == d
+
+
+def _llm_rows() -> dict[str, dict]:
+    rows = CoverageMatrix().category_rows()
+    key = next(k for k in rows if k.startswith("LLM"))
+    return {r["id"]: r for r in rows[key]}
+
+
+def test_llm_2025_labels_are_correct() -> None:
+    # 2025 numaralandırması: eski (2023) etiketlerden sapma regresyonu.
+    assert TYPE_META["insecure_output_handling"].owasp == "LLM05:2025"
+    assert TYPE_META["sensitive_disclosure"].owasp == "LLM02:2025"
+    assert TYPE_META["tool_shadowing"].owasp == "LLM03:2025"
+    rows = _llm_rows()
+    assert "insecure_output_handling" in rows["LLM05:2025"]["types"]
+    assert "insecure_output_handling" not in rows["LLM02:2025"]["types"]
+
+
+def test_llm07_system_prompt_leakage_is_gap() -> None:
+    # Karşılığı olmayan LLM07 dürüstçe BOŞLUK görünmeli (hiçbir tip yanlışlıkla bağlanmamalı).
+    row = _llm_rows()["LLM07:2025"]
+    assert row["status"] == BOSLUK and row["types"] == []

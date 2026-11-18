@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 172 · **TP/FP/FN/TN:** 62/0/0/110
+**Vaka:** 202 · **TP/FP/FN/TN:** 71/0/0/131
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -181,3 +181,33 @@
 | system-prompt-leakage-canary:vulnerable | system_prompt_leakage | positive | CONFIRMED | CONFIRMED | ✅ |
 | system-prompt-leakage-canary:hardened | system_prompt_leakage | negative | not:CONFIRMED | REJECTED | ✅ |
 | system-prompt-leakage-canary:near-miss | system_prompt_leakage | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| biz-negative-amount:vulnerable | negative_amount | positive | CONFIRMED | CONFIRMED | ✅ |
+| biz-negative-amount:hardened | negative_amount | negative | not:CONFIRMED | REJECTED | ✅ |
+| biz-negative-amount:near-miss | negative_amount | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| biz-coupon-reuse:vulnerable | coupon_reuse | positive | CONFIRMED | CONFIRMED | ✅ |
+| biz-coupon-reuse:hardened | coupon_reuse | negative | not:CONFIRMED | REJECTED | ✅ |
+| biz-coupon-reuse:near-miss | coupon_reuse | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| biz-workflow-bypass:vulnerable | workflow_bypass | positive | CONFIRMED | CONFIRMED | ✅ |
+| biz-workflow-bypass:hardened | workflow_bypass | negative | not:CONFIRMED | REJECTED | ✅ |
+| biz-workflow-bypass:near-miss | workflow_bypass | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| ato-reset-token-reuse:vulnerable | password_reset_abuse | positive | CONFIRMED | CONFIRMED | ✅ |
+| ato-reset-token-reuse:hardened | password_reset_abuse | negative | not:CONFIRMED | REJECTED | ✅ |
+| ato-reset-token-reuse:near-miss | password_reset_abuse | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| ato-reset-token-weak:vulnerable | password_reset_abuse | positive | CONFIRMED | CONFIRMED | ✅ |
+| ato-reset-token-weak:hardened | password_reset_abuse | negative | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| ato-reset-token-weak:near-miss | password_reset_abuse | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| ato-2fa-bypass:vulnerable | mfa_bypass | positive | CONFIRMED | CONFIRMED | ✅ |
+| ato-2fa-bypass:hardened | mfa_bypass | negative | not:CONFIRMED | REJECTED | ✅ |
+| ato-2fa-bypass:near-miss | mfa_bypass | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| sqli-boolean-blind:vulnerable | sqli | positive | CONFIRMED | CONFIRMED | ✅ |
+| sqli-boolean-blind:hardened | sqli | negative | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| sqli-boolean-blind:near-miss | sqli | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| sqli-boolean-blind:near-miss-invalid | sqli | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| sqli-union:vulnerable | sqli | positive | CONFIRMED | CONFIRMED | ✅ |
+| sqli-union:hardened | sqli | negative | not:CONFIRMED | REJECTED | ✅ |
+| sqli-union:near-miss | sqli | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| sqli-second-order:vulnerable | sqli | positive | CONFIRMED | CONFIRMED | ✅ |
+| sqli-second-order:hardened | sqli | negative | not:CONFIRMED | REJECTED | ✅ |
+| sqli-second-order:near-miss | sqli | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| sqli-second-order:near-miss-sanitize | sqli | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| sqli-second-order:near-miss-persistent-error | sqli | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |

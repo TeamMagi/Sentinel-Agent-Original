@@ -4,10 +4,10 @@
 
 ## Genel özet
 
-- Toplam tip: **66** (`generic` hariç)
-- Kanıtlı (proven): **57**
+- Toplam tip: **71** (`generic` hariç)
+- Kanıtlı (proven): **62**
 - Deneysel (experimental): **9**
-- Kanıtlı oranı: **%86.4**
+- Kanıtlı oranı: **%87.3**
 - Eşlenmemiş tip: yok
 
 ## Web (OWASP Top 10 2021)
@@ -19,10 +19,10 @@ KANITLI: 8 · DENEYSEL: 1 · BOŞLUK: 1
 | A01:2021 Broken Access Control (Bozuk Erişim Kontrolü) | KANITLI | 18 | 1 | `bfla`, `bola`, `confused_deputy`, `csrf`, `destructive_write`, `excessive_data_exposure`, `exfiltration`, `generic`*, `graphql_bola`, `idor`, `jwt_privilege_escalation`, `manifest_deviation`, `method_bypass`, `open_redirect`, `parameter_pollution`, `path_traversal`, `privilege_escalation`, `state_change_authz`, `unauthorized_access` |
 | A02:2021 Cryptographic Failures (Kriptografik Hatalar) | KANITLI | 1 | 3 | `certificate_misconfiguration`*, `jwt`*, `jwt_algorithm_confusion`, `tls_misconfiguration`* |
 | A03:2021 Injection (Enjeksiyon, XSS dahil) | KANITLI | 12 | 2 | `blind_sqli`, `command_injection`, `crlf_injection`, `dom_xss`, `injection`*, `insecure_output_handling`, `nosqli`, `prototype_pollution`, `rfi`, `sqli`, `ssti`, `stored_xss`, `timing`*, `xss` |
-| A04:2021 Insecure Design (Güvensiz Tasarım) | KANITLI | 3 | 0 | `file_upload`, `mass_assignment`, `race_condition` |
+| A04:2021 Insecure Design (Güvensiz Tasarım) | KANITLI | 6 | 0 | `coupon_reuse`, `file_upload`, `mass_assignment`, `negative_amount`, `race_condition`, `workflow_bypass` |
 | A05:2021 Security Misconfiguration (Güvenlik Yanlış Yapılandırması) | KANITLI | 9 | 2 | `cache_poisoning`, `clickjacking`, `cors`, `debug_mode`*, `exposure`, `graphql_introspection`, `host_header_injection`, `http_request_smuggling`, `info_leak`, `security_headers`*, `xxe` |
 | A06:2021 Vulnerable and Outdated Components (Zafiyetli/Eski Bileşenler) | DENEYSEL | 0 | 1 | `vulnerable_component`* |
-| A07:2021 Identification and Authentication Failures (Kimlik Doğrulama Hataları) | KANITLI | 7 | 1 | `default_credentials`, `host_header_injection`, `jwt`*, `oauth_misconfig`, `rate_limit`, `session_lifecycle`, `unauthorized_access`, `user_enumeration` |
+| A07:2021 Identification and Authentication Failures (Kimlik Doğrulama Hataları) | KANITLI | 9 | 1 | `default_credentials`, `host_header_injection`, `jwt`*, `mfa_bypass`, `oauth_misconfig`, `password_reset_abuse`, `rate_limit`, `session_lifecycle`, `unauthorized_access`, `user_enumeration` |
 | A08:2021 Software and Data Integrity Failures (Yazılım/Veri Bütünlüğü Hataları) | KANITLI | 3 | 0 | `file_upload`, `prototype_pollution`, `rfi` |
 | A09:2021 Security Logging and Monitoring Failures (Loglama/İzleme Hataları) | BOŞLUK | 0 | 0 | — |
 | A10:2021 Server-Side Request Forgery (SSRF) | KANITLI | 1 | 0 | `ssrf` |
@@ -34,11 +34,11 @@ KANITLI: 9 · DENEYSEL: 0 · BOŞLUK: 1
 | Kategori | Durum | Proven | Exp. | Tipler |
 |---|---|---|---|---|
 | API1:2023 Broken Object Level Authorization (BOLA/IDOR) | KANITLI | 3 | 0 | `bola`, `graphql_bola`, `idor` |
-| API2:2023 Broken Authentication (Bozuk Kimlik Doğrulama) | KANITLI | 7 | 1 | `default_credentials`, `jwt`*, `jwt_algorithm_confusion`, `jwt_privilege_escalation`, `oauth_misconfig`, `session_lifecycle`, `unauthorized_access`, `user_enumeration` |
+| API2:2023 Broken Authentication (Bozuk Kimlik Doğrulama) | KANITLI | 9 | 1 | `default_credentials`, `jwt`*, `jwt_algorithm_confusion`, `jwt_privilege_escalation`, `mfa_bypass`, `oauth_misconfig`, `password_reset_abuse`, `session_lifecycle`, `unauthorized_access`, `user_enumeration` |
 | API3:2023 Broken Object Property Level Authorization (Nesne Özelliği Yetkisi) | KANITLI | 1 | 0 | `excessive_data_exposure` |
 | API4:2023 Unrestricted Resource Consumption (Sınırsız Kaynak Tüketimi) | KANITLI | 1 | 0 | `rate_limit` |
 | API5:2023 Broken Function Level Authorization (BFLA) | KANITLI | 5 | 0 | `bfla`, `jwt_privilege_escalation`, `method_bypass`, `privilege_escalation`, `state_change_authz` |
-| API6:2023 Unrestricted Access to Sensitive Business Flows (Hassas İş Akışlarına Sınırsız Erişim) | KANITLI | 3 | 0 | `mass_assignment`, `race_condition`, `rate_limit` |
+| API6:2023 Unrestricted Access to Sensitive Business Flows (Hassas İş Akışlarına Sınırsız Erişim) | KANITLI | 6 | 0 | `coupon_reuse`, `mass_assignment`, `negative_amount`, `race_condition`, `rate_limit`, `workflow_bypass` |
 | API7:2023 Server Side Request Forgery (SSRF) | KANITLI | 1 | 0 | `ssrf` |
 | API8:2023 Security Misconfiguration (Yanlış Yapılandırma) | KANITLI | 6 | 4 | `cache_poisoning`, `certificate_misconfiguration`*, `cors`, `debug_mode`*, `exposure`, `graphql_introspection`, `http_request_smuggling`, `info_leak`, `security_headers`*, `tls_misconfiguration`* |
 | API9:2023 Improper Inventory Management (Hatalı Envanter Yönetimi) | KANITLI | 2 | 0 | `exposure`, `graphql_introspection` |
@@ -77,9 +77,9 @@ KANITLI: 7 · DENEYSEL: 0 · BOŞLUK: 3
 
 | Aile | OWASP | Sentinel karşılığı | Not |
 |---|---|---|---|
-| İş mantığı / workflow bypass | A04:2021, API6:2023 | YOK | adım atlama, fiyat/miktar manipülasyonu, kupon kötüye kullanımı |
+| İş mantığı / workflow bypass | A04:2021, API6:2023 | `workflow_bypass` | adım atlama, fiyat/miktar manipülasyonu, kupon kötüye kullanımı |
 | Hesap ele geçirme / şifre sıfırlama | A07:2021, API2:2023 | YOK | tahmin edilebilir/yeniden kullanılabilir reset token |
-| 2FA / MFA atlatma | A07:2021, API2:2023 | YOK | OTP brute-force, adım atlama, yanıt manipülasyonu |
+| 2FA / MFA atlatma | A07:2021, API2:2023 | `mfa_bypass` | OTP brute-force, adım atlama, yanıt manipülasyonu |
 | WebSocket güvenliği | A01:2021, A05:2021 | YOK | origin kontrolü yok, kimlik doğrulamasız kanal |
 | Insecure deserialization | A08:2021 | YOK | güvensiz nesne seri-kaldırma → RCE/mantık atlatma |
 | JS bundle'da sır sızıntısı | A02:2021, A05:2021 | YOK | istemci paketinde API anahtarı/token |

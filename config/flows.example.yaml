@@ -1,0 +1,68 @@
+# Çok-adımlı / durum-bilgili oracle akışları (config/flows.yaml).
+#
+# Bu aileler GENEL KEŞİFLE tetiklenemez: iş mantığı, second-order SQLi ve 2FA atlatma hedefe özgü
+# endpoint, alan adı ve beklenen yön bilgisi gerektirir. Operatör bunları burada tipli olarak verir.
+# Kopyala-çalıştır:  cp config/flows.example.yaml config/flows.yaml
+# Koş:               ... --flows config/flows.yaml
+#
+# Tüm bölümler OPSİYONELdir. Yazma yapan aileler (business_logic, second_order_sqli) yalnız
+# scope.destructive_tests=True iken koşar; kapalıysa atlanır. Aşağıdaki örnekler YETKİLİ bir lab
+# hedefi (OWASP Juice Shop) içindir; gerçek değerleri kendi yetkili hedefine göre doldur.
+
+# --- İş mantığı (business logic) ---
+business_logic:
+  # Negatif/sıfır miktar: satın alma bakiyeyi düşürmeli; negatif değer TERS yönde oynatırsa açık.
+  - kind: negative_amount
+    endpoint: {method: POST, path_template: "/api/purchase"}
+    state_path: "/api/wallet/{id}"      # kaynak bakiyesini okuyan GET ("{id}" = own_object_ids anahtarı)
+    state_field: "balance"              # JSON'da izlenen değer (noktalı yol destekli)
+    amount_field: "amount"              # negatif gönderilecek alan
+    expected_direction: decrease        # meşru satın almada bakiye azalır
+    bad_value: -50                      # manipüle değer
+    action_body: {product: "9"}         # aksiyon gövdesinin sabit kısmı
+    resource_key: wallet                # actor.own_object_ids[wallet] = kaynak id'si
+    actor: user_A                       # akışı koşturacak aktör (yoksa ilk oturum)
+
+  # Kupon tekrarı: tek kullanımlık kupon ikinci kez toplamı indirmemeli.
+  - kind: coupon_reuse
+    endpoint: {method: POST, path_template: "/api/basket/apply-coupon"}
+    state_path: "/api/basket/{id}"
+    state_field: "total"
+    coupon_field: "coupon"
+    coupon_code: "WELCOME10"
+    action_body: {}
+    resource_key: basket
+    actor: user_A
+
+  # İş akışı atlama: ödeme adımı yapılmadan sipariş "completed" olmamalı.
+  - kind: workflow_bypass
+    endpoint: {method: POST, path_template: "/api/order/confirm"}
+    state_path: "/api/order/{id}"
+    state_field: "status"
+    completed_value: "completed"
+    action_body: {}
+    resource_key: order
+    actor: user_A
+
+# --- Second-order (stored) SQLi ---
+second_order_sqli:
+  # Profil adına yazılan değer, başka bir okuma sorgusunda patlar.
+  - write_endpoint: {method: POST, path_template: "/api/profile"}
+    read_endpoint: {method: GET, path_template: "/api/profile/{id}"}
+    write_param: "name"
+    write_fields: {bio: "ornek"}        # gövdenin diğer sabit alanları
+    read_id: "1"
+    actor: user_A
+
+# --- Hesap ele geçirme: 2FA ön-koşul atlama ---
+account_takeover:
+  # 2FA tamamlanmamış oturum korumalı kaynağa erişebiliyor mu?
+  - kind: mfa_precondition_bypass
+    endpoint: {method: GET, path_template: "/api/me"}
+    pre_mfa_actor: user_pre_mfa         # 1. faktör geçmiş, 2FA TAMAMLANMAMIŞ aktör
+    anon_actor: anonymous               # negatif kontrol (401/403 beklenir) — opsiyonel
+    authed_actor: user_A                # pozitif kontrol (tam yetkili, 2xx) — opsiyonel
+
+# NOT (kapsam dışı): şifre sıfırlama token tekrarı/zayıflığı ve OTP tekrarı oracle'ları MEVCUT
+# (oracle/account_takeover.py) ama hedefe özgü istek-kurucu (request_builder) gerektirdiğinden bu
+# deklaratif config'e henüz bağlı değil; programatik kullanımları için ilgili testlere bakılabilir.

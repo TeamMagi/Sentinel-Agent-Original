@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 164 · **TP/FP/FN/TN:** 60/0/0/104
+**Vaka:** 172 · **TP/FP/FN/TN:** 62/0/0/110
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -64,6 +64,11 @@
 | ssti-arithmetic:vulnerable | ssti | positive | CONFIRMED | CONFIRMED | ✅ |
 | ssti-arithmetic:hardened | ssti | negative | not:CONFIRMED | REJECTED | ✅ |
 | ssti-arithmetic:near-miss | ssti | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| xss-reflected-param:vulnerable | xss | positive | CONFIRMED | CONFIRMED | ✅ |
+| xss-reflected-param:hardened | xss | negative | not:CONFIRMED | REJECTED | ✅ |
+| xss-reflected-param:near-miss | xss | near_miss | not:CONFIRMED | LIKELY | ✅ |
+| xss-reflected-param:near-miss-plain | xss | near_miss | not:CONFIRMED | LIKELY | ✅ |
+| xss-reflected-param:near-miss-strip | xss | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | blind-sqli-timing:vulnerable | blind_sqli | positive | CONFIRMED | CONFIRMED | ✅ |
 | blind-sqli-timing:hardened | blind_sqli | negative | not:CONFIRMED | REJECTED | ✅ |
 | blind-sqli-timing:near-miss | blind_sqli | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
@@ -173,3 +178,6 @@
 | tool-shadowing-typosquat:vulnerable | tool_shadowing | positive | CONFIRMED | CONFIRMED | ✅ |
 | tool-shadowing-typosquat:hardened | tool_shadowing | negative | not:CONFIRMED | REJECTED | ✅ |
 | tool-shadowing-typosquat:near-miss | tool_shadowing | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| system-prompt-leakage-canary:vulnerable | system_prompt_leakage | positive | CONFIRMED | CONFIRMED | ✅ |
+| system-prompt-leakage-canary:hardened | system_prompt_leakage | negative | not:CONFIRMED | REJECTED | ✅ |
+| system-prompt-leakage-canary:near-miss | system_prompt_leakage | near_miss | not:CONFIRMED | REJECTED | ✅ |

@@ -4,10 +4,10 @@
 
 ## Genel özet
 
-- Toplam tip: **64** (`generic` hariç)
-- Kanıtlı (proven): **55**
+- Toplam tip: **66** (`generic` hariç)
+- Kanıtlı (proven): **57**
 - Deneysel (experimental): **9**
-- Kanıtlı oranı: **%85.9**
+- Kanıtlı oranı: **%86.4**
 - Eşlenmemiş tip: yok
 
 ## Web (OWASP Top 10 2021)
@@ -18,7 +18,7 @@ KANITLI: 8 · DENEYSEL: 1 · BOŞLUK: 1
 |---|---|---|---|---|
 | A01:2021 Broken Access Control (Bozuk Erişim Kontrolü) | KANITLI | 18 | 1 | `bfla`, `bola`, `confused_deputy`, `csrf`, `destructive_write`, `excessive_data_exposure`, `exfiltration`, `generic`*, `graphql_bola`, `idor`, `jwt_privilege_escalation`, `manifest_deviation`, `method_bypass`, `open_redirect`, `parameter_pollution`, `path_traversal`, `privilege_escalation`, `state_change_authz`, `unauthorized_access` |
 | A02:2021 Cryptographic Failures (Kriptografik Hatalar) | KANITLI | 1 | 3 | `certificate_misconfiguration`*, `jwt`*, `jwt_algorithm_confusion`, `tls_misconfiguration`* |
-| A03:2021 Injection (Enjeksiyon, XSS dahil) | KANITLI | 11 | 2 | `blind_sqli`, `command_injection`, `crlf_injection`, `dom_xss`, `injection`*, `insecure_output_handling`, `nosqli`, `prototype_pollution`, `rfi`, `sqli`, `ssti`, `stored_xss`, `timing`* |
+| A03:2021 Injection (Enjeksiyon, XSS dahil) | KANITLI | 12 | 2 | `blind_sqli`, `command_injection`, `crlf_injection`, `dom_xss`, `injection`*, `insecure_output_handling`, `nosqli`, `prototype_pollution`, `rfi`, `sqli`, `ssti`, `stored_xss`, `timing`*, `xss` |
 | A04:2021 Insecure Design (Güvensiz Tasarım) | KANITLI | 3 | 0 | `file_upload`, `mass_assignment`, `race_condition` |
 | A05:2021 Security Misconfiguration (Güvenlik Yanlış Yapılandırması) | KANITLI | 9 | 2 | `cache_poisoning`, `clickjacking`, `cors`, `debug_mode`*, `exposure`, `graphql_introspection`, `host_header_injection`, `http_request_smuggling`, `info_leak`, `security_headers`*, `xxe` |
 | A06:2021 Vulnerable and Outdated Components (Zafiyetli/Eski Bileşenler) | DENEYSEL | 0 | 1 | `vulnerable_component`* |
@@ -46,7 +46,7 @@ KANITLI: 9 · DENEYSEL: 0 · BOŞLUK: 1
 
 ## LLM (OWASP Top 10 for LLM Apps 2025)
 
-KANITLI: 6 · DENEYSEL: 0 · BOŞLUK: 4
+KANITLI: 7 · DENEYSEL: 0 · BOŞLUK: 3
 
 | Kategori | Durum | Proven | Exp. | Tipler |
 |---|---|---|---|---|
@@ -56,7 +56,7 @@ KANITLI: 6 · DENEYSEL: 0 · BOŞLUK: 4
 | LLM04:2025 Data and Model Poisoning (Veri ve Model Zehirleme) | KANITLI | 1 | 0 | `memory_poisoning` |
 | LLM05:2025 Improper Output Handling (Hatalı Çıktı İşleme) | KANITLI | 1 | 0 | `insecure_output_handling` |
 | LLM06:2025 Excessive Agency (Aşırı Yetki/Özerklik) | KANITLI | 9 | 1 | `confused_deputy`, `dangerous_mcp_tool`*, `destructive_write`, `excessive_agency`, `excessive_autonomy`, `exfiltration`, `manifest_deviation`, `privilege_escalation`, `tool_shadowing`, `untrusted_to_action` |
-| LLM07:2025 System Prompt Leakage (Sistem İstemi Sızıntısı) | BOŞLUK | 0 | 0 | — |
+| LLM07:2025 System Prompt Leakage (Sistem İstemi Sızıntısı) | KANITLI | 1 | 0 | `system_prompt_leakage` |
 | LLM08:2025 Vector and Embedding Weaknesses (Vektör/Gömme Zayıflıkları) | BOŞLUK | 0 | 0 | — |
 | LLM09:2025 Misinformation (Yanlış Bilgi) | BOŞLUK | 0 | 0 | — |
 | LLM10:2025 Unbounded Consumption (Sınırsız Tüketim) | BOŞLUK | 0 | 0 | — |
@@ -69,7 +69,6 @@ KANITLI: 6 · DENEYSEL: 0 · BOŞLUK: 4
 
 - [Web] A09:2021 Security Logging and Monitoring Failures (Loglama/İzleme Hataları)
 - [API] API10:2023 Unsafe Consumption of APIs (API'lerin Güvensiz Tüketimi)
-- [LLM] LLM07:2025 System Prompt Leakage (Sistem İstemi Sızıntısı)
 - [LLM] LLM08:2025 Vector and Embedding Weaknesses (Vektör/Gömme Zayıflıkları)
 - [LLM] LLM09:2025 Misinformation (Yanlış Bilgi)
 - [LLM] LLM10:2025 Unbounded Consumption (Sınırsız Tüketim)
@@ -87,8 +86,8 @@ KANITLI: 6 · DENEYSEL: 0 · BOŞLUK: 4
 | LDAP / XPath injection | A03:2021 | YOK | dizin/XML sorgu enjeksiyonu |
 | GraphQL batching / derinlik DoS | API4:2023 | YOK | alias/batch ile rate-limit atlatma, derin sorgu |
 | Subdomain takeover | A05:2021, API9:2023 | YOK | sahipsiz DNS kaydı → alan adı devralma |
-| Yansıyan (reflected) XSS | A03:2021 | YOK | yalnız stored/DOM XSS var; yansıyan yok |
-| Sistem istemi sızıntısı | LLM07:2025 | YOK | hedef LLM'in gizli sistem istemini ifşa etmesi |
+| Yansıyan (reflected) XSS | A03:2021 | `xss` | yansıyan XSS: InjectionOracle `xss` tipi (marker ham yansıma) |
+| Sistem istemi sızıntısı | LLM07:2025 | `system_prompt_leakage` | hedef LLM'in gizli sistem istemini ifşa etmesi |
 | Vektör/RAG zayıflıkları | LLM08:2025 | YOK | gömme/RAG deposu zehirleme veya çapraz-kiracı sızıntı |
 | Sınırsız tüketim (LLM/API maliyet DoS) | LLM10:2025, API4:2023 | YOK | token/kaynak sınırı yok |
 | Loglama/izleme eksikliği | A09:2021 | YOK | dışarıdan kanıtlanması zor; çoğunlukla kapsam dışı |

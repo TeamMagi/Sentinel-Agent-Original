@@ -57,6 +57,11 @@
     {"name": "ssti-arithmetic:vulnerable", "vuln_type": "ssti", "category": "positive", "expected": "CONFIRMED"},
     {"name": "ssti-arithmetic:hardened", "vuln_type": "ssti", "category": "negative", "expected": "not:CONFIRMED"},
     {"name": "ssti-arithmetic:near-miss", "vuln_type": "ssti", "category": "near_miss", "expected": "not:CONFIRMED"},
+    {"name": "xss-reflected-param:vulnerable", "vuln_type": "xss", "category": "positive", "expected": "CONFIRMED"},
+    {"name": "xss-reflected-param:hardened", "vuln_type": "xss", "category": "negative", "expected": "not:CONFIRMED"},
+    {"name": "xss-reflected-param:near-miss", "vuln_type": "xss", "category": "near_miss", "expected": "not:CONFIRMED"},
+    {"name": "xss-reflected-param:near-miss-plain", "vuln_type": "xss", "category": "near_miss", "expected": "not:CONFIRMED"},
+    {"name": "xss-reflected-param:near-miss-strip", "vuln_type": "xss", "category": "near_miss", "expected": "not:CONFIRMED"},
     {"name": "blind-sqli-timing:vulnerable", "vuln_type": "blind_sqli", "category": "positive", "expected": "CONFIRMED"},
     {"name": "blind-sqli-timing:hardened", "vuln_type": "blind_sqli", "category": "negative", "expected": "not:CONFIRMED"},
     {"name": "blind-sqli-timing:near-miss", "vuln_type": "blind_sqli", "category": "near_miss", "expected": "not:CONFIRMED"},
@@ -165,6 +170,9 @@
     {"name": "excessive-autonomy-streak:near-miss", "vuln_type": "excessive_autonomy", "category": "near_miss", "expected": "not:CONFIRMED"},
     {"name": "tool-shadowing-typosquat:vulnerable", "vuln_type": "tool_shadowing", "category": "positive", "expected": "CONFIRMED"},
     {"name": "tool-shadowing-typosquat:hardened", "vuln_type": "tool_shadowing", "category": "negative", "expected": "not:CONFIRMED"},
-    {"name": "tool-shadowing-typosquat:near-miss", "vuln_type": "tool_shadowing", "category": "near_miss", "expected": "not:CONFIRMED"}
+    {"name": "tool-shadowing-typosquat:near-miss", "vuln_type": "tool_shadowing", "category": "near_miss", "expected": "not:CONFIRMED"},
+    {"name": "system-prompt-leakage-canary:vulnerable", "vuln_type": "system_prompt_leakage", "category": "positive", "expected": "CONFIRMED"},
+    {"name": "system-prompt-leakage-canary:hardened", "vuln_type": "system_prompt_leakage", "category": "negative", "expected": "not:CONFIRMED"},
+    {"name": "system-prompt-leakage-canary:near-miss", "vuln_type": "system_prompt_leakage", "category": "near_miss", "expected": "not:CONFIRMED"}
   ]
 }

@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 60,
+    "tp": 62,
     "fp": 0,
     "fn": 0,
-    "tn": 104,
-    "total": 164
+    "tn": 110,
+    "total": 172
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -447,6 +447,46 @@
     {
       "name": "ssti-arithmetic:near-miss",
       "vuln_type": "ssti",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "xss-reflected-param:vulnerable",
+      "vuln_type": "xss",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "xss-reflected-param:hardened",
+      "vuln_type": "xss",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "xss-reflected-param:near-miss",
+      "vuln_type": "xss",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "LIKELY",
+      "passed": true
+    },
+    {
+      "name": "xss-reflected-param:near-miss-plain",
+      "vuln_type": "xss",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "LIKELY",
+      "passed": true
+    },
+    {
+      "name": "xss-reflected-param:near-miss-strip",
+      "vuln_type": "xss",
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",
@@ -1319,6 +1359,30 @@
     {
       "name": "tool-shadowing-typosquat:near-miss",
       "vuln_type": "tool_shadowing",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "system-prompt-leakage-canary:vulnerable",
+      "vuln_type": "system_prompt_leakage",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "system-prompt-leakage-canary:hardened",
+      "vuln_type": "system_prompt_leakage",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "system-prompt-leakage-canary:near-miss",
+      "vuln_type": "system_prompt_leakage",
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

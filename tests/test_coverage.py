@@ -77,7 +77,8 @@ def test_llm_2025_labels_are_correct() -> None:
     assert "insecure_output_handling" not in rows["LLM02:2025"]["types"]
 
 
-def test_llm07_system_prompt_leakage_is_gap() -> None:
-    # Karşılığı olmayan LLM07 dürüstçe BOŞLUK görünmeli (hiçbir tip yanlışlıkla bağlanmamalı).
+def test_llm07_system_prompt_leakage_is_covered() -> None:
+    # LLM07 artık canary tabanlı system_prompt_leakage oracle'ıyla kanıtlı (eski BOŞLUK kapandı);
+    # kategoriye SADECE system_prompt_leakage bağlı olmalı (başka tip yanlışlıkla sızmamalı).
     row = _llm_rows()["LLM07:2025"]
-    assert row["status"] == BOSLUK and row["types"] == []
+    assert row["status"] == KANITLI and row["types"] == ["system_prompt_leakage"]

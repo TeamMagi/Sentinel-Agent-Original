@@ -23,6 +23,14 @@ async def test_proto_pollution_stores_key_not_confirmed():
     assert (await twin.stores_key()).verdict != CONFIRMED
 
 
+async def test_proto_pollution_side_effect_only_confirmed():
+    """Kirlenen özellik JSON'a yazılmasa da yan etki (girinti/durum) kanıt sayılmalı."""
+    twin = next(t for t in TWINS if t.name == "prototype-pollution-side-effects")
+    f = await twin.vulnerable()
+    assert f.verdict == CONFIRMED
+    assert f.evidence.leaked_markers
+
+
 async def test_cases_consistent_and_pass():
     cs = cases()
     names = [c.name for c in cs]

@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 202 · **TP/FP/FN/TN:** 71/0/0/131
+**Vaka:** 205 · **TP/FP/FN/TN:** 72/0/0/133
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -106,6 +106,9 @@
 | prototype-pollution-merge:hardened | prototype_pollution | negative | not:CONFIRMED | REJECTED | ✅ |
 | prototype-pollution-merge:near-miss | prototype_pollution | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | prototype-pollution-merge:stores-key | prototype_pollution | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| prototype-pollution-side-effects:vulnerable | prototype_pollution | positive | CONFIRMED | CONFIRMED | ✅ |
+| prototype-pollution-side-effects:hardened | prototype_pollution | negative | not:CONFIRMED | REJECTED | ✅ |
+| prototype-pollution-side-effects:near-miss | prototype_pollution | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | cache-poisoning-unkeyed-header:vulnerable | cache_poisoning | positive | CONFIRMED | CONFIRMED | ✅ |
 | cache-poisoning-unkeyed-header:hardened | cache_poisoning | negative | not:CONFIRMED | REJECTED | ✅ |
 | cache-poisoning-unkeyed-header:near-miss | cache_poisoning | near_miss | not:CONFIRMED | LIKELY | ✅ |

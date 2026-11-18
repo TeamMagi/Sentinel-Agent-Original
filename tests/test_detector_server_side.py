@@ -73,6 +73,35 @@ async def test_prototype_pollution_inconclusive_when_write_blocked():
     assert fs[0].verdict == base.INCONCLUSIVE
 
 
+def _proto_status_side_effect_handler():
+    """Kirlenen anahtar JSON'a yazılmaz; yalnızca hata yanıtının durum kodu değişir."""
+    proto: dict = {}
+
+    def handler(request):
+        if request.method in ("POST", "PUT"):
+            try:
+                data = json.loads(request.content.decode() or "{}")
+            except ValueError:                       # hata → prototip `status` kullanılır
+                return httpx.Response(proto.get("status", 400), json={"error": "invalid json"})
+            inner = data.get("__proto__") or data.get("constructor", {}).get("prototype", {})
+            if isinstance(inner, dict):
+                proto.update(inner)
+            return httpx.Response(200, json={"ok": True})
+        return httpx.Response(200, json={"user": "x"})   # kompakt; kirlenen alan sızmaz
+
+    return handler
+
+
+@pytest.mark.asyncio
+async def test_prototype_pollution_status_side_effect_confirmed():
+    """`json spaces` etkisi olmasa da `status` yan etkisi tek başına kanıt olmalı."""
+    store, s, replayer = _store(_proto_status_side_effect_handler(), destructive=True)
+    fs = await PrototypePollutionDetector(replayer, BASE).run(EP, s)
+    await store.aclose_all()
+    assert fs[0].verdict == base.CONFIRMED
+    assert "status yan etkisi" in fs[0].evidence.leaked_markers[0]
+
+
 # --- Web Cache Poisoning ---
 
 def _cache_handler(*, cacheable: bool, reflect: bool):

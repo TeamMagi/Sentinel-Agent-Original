@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 71,
+    "tp": 72,
     "fp": 0,
     "fn": 0,
-    "tn": 131,
-    "total": 202
+    "tn": 133,
+    "total": 205
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -782,6 +782,30 @@
     },
     {
       "name": "prototype-pollution-merge:stores-key",
+      "vuln_type": "prototype_pollution",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "prototype-pollution-side-effects:vulnerable",
+      "vuln_type": "prototype_pollution",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "prototype-pollution-side-effects:hardened",
+      "vuln_type": "prototype_pollution",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "prototype-pollution-side-effects:near-miss",
       "vuln_type": "prototype_pollution",
       "category": "near_miss",
       "expected": "not:CONFIRMED",

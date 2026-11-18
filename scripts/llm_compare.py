@@ -14,11 +14,15 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
 
-from pentestai.llm.client import (
+# PYTHONPATH ayarlamadan `python -m scripts.llm_compare` çalışsın (diğer scripts/* ile aynı desen).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from pentestai.llm.client import (  # noqa: E402
     AnthropicLLMClient,
     GeminiLLMClient,
     LLMClient,

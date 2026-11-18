@@ -101,3 +101,57 @@ async def test_run_hypotheses_dispatches_nested_idor():
     assert any(any("bob@test.local" in m or "alice@test.local" in m for m in f.evidence.leaked_markers)
                for f in confirmed)
     await store.aclose_all()
+
+
+# --- C) boolean-blind SQLi: injection hipotezi destructive_tests ile advanced tekniği de koşar ---
+
+def _bool_blind_app(request):
+    """id parametresine gömülü SQL önermesine göre sonuç kümesi daralan savunmasız sunucu.
+
+    `' OR '1'='1` → her kayıt döner (baseline gibi dolu); `' AND '1'='2` → boş küme.
+    Hata mesajı DÖNMEZ (error-based yakalayamaz); yalnız boolean-blind differential yakalar."""
+    import urllib.parse
+    raw = urllib.parse.unquote(str(request.url))
+    val = raw.split("id=", 1)[-1] if "id=" in raw else raw.rsplit("/", 1)[-1]
+    low = val.lower()
+    always_false = "'1'='2" in low or "1=2" in low or "and 1=2" in low
+    rows = [] if always_false else [{"id": "1", "name": "widget"}]
+    return httpx.Response(200, json={"items": rows})
+
+
+@pytest.mark.asyncio
+async def test_run_hypotheses_injection_runs_boolean_blind_when_destructive():
+    scope = Scope(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/"],
+                  allowed_methods=["GET"], destructive_tests=True)
+    scanner = Scanner(BASE, scope, BudgetConfig(max_rps_per_host=1000))
+    store = SessionStore(base_url=BASE, transport=httpx.MockTransport(_bool_blind_app))
+    A = store.create(Actor(name="user_A", auth=AuthState(headers={"Authorization": "Bearer T"})))
+
+    ep = Endpoint(method="GET", path_template="/api/items", id_param="id", id_location="query")
+    hyp = Hypothesis(type="injection", endpoint=ep, param="id", param_location="query",
+                     source="deterministic")
+    findings = await scanner.run_hypotheses([A], [hyp])
+
+    confirmed = [f for f in findings if f.type == "sqli" and f.verdict == "CONFIRMED"]
+    assert confirmed, "boolean-blind SQLi CONFIRMED bekleniyordu (advanced teknik dispatch'e kablolu değil?)"
+    assert any("boolean-blind" in (f.parameter or "") for f in confirmed)
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
+async def test_run_hypotheses_injection_skips_advanced_without_destructive():
+    """destructive_tests kapalıyken boolean-blind/UNION koşulmaz (yalnız error-based yansıma)."""
+    scope = Scope(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/"],
+                  allowed_methods=["GET"], destructive_tests=False)
+    scanner = Scanner(BASE, scope, BudgetConfig(max_rps_per_host=1000))
+    store = SessionStore(base_url=BASE, transport=httpx.MockTransport(_bool_blind_app))
+    A = store.create(Actor(name="user_A", auth=AuthState(headers={"Authorization": "Bearer T"})))
+
+    ep = Endpoint(method="GET", path_template="/api/items", id_param="id", id_location="query")
+    hyp = Hypothesis(type="injection", endpoint=ep, param="id", param_location="query",
+                     source="deterministic")
+    findings = await scanner.run_hypotheses([A], [hyp])
+
+    assert not any("boolean-blind" in (f.parameter or "") for f in findings), \
+        "destructive kapalıyken advanced SQLi koşulmamalıydı"
+    await store.aclose_all()

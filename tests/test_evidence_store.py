@@ -2,7 +2,7 @@
 import json
 import re
 
-from pentestai.evidence.store import EvidenceStore, redact, new_run_id
+from pentestai.evidence.store import EvidenceStore, new_run_id, redact
 
 
 def test_redact_empty_string():

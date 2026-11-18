@@ -12,7 +12,6 @@ from pentestai.webui.api_models import (
     narrow_scope,
 )
 
-
 # ===================== AuthSpec =====================
 
 def test_auth_spec_token_to_cfg():

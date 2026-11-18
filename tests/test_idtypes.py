@@ -1,9 +1,13 @@
 """IdTypeInferrer testleri — id tipi çıkarımı ve bogus id üretimi."""
 from pentestai.idtypes import (
-    INTEGER, OBJECTID, OPAQUE, STRING, UNKNOWN, UUID,
+    INTEGER,
+    OBJECTID,
+    OPAQUE,
+    STRING,
+    UNKNOWN,
+    UUID,
     IdTypeInferrer,
 )
-
 
 # ===================== from_value =====================
 

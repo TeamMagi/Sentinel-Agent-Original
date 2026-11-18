@@ -1,6 +1,6 @@
 """RemediationVerifier testleri — fix-verification (düzeltme doğrulama)."""
 from pentestai.models import CapturedRequest, Evidence, Finding, NormalizedResponse
-from pentestai.report.remediation_verify import RemediationVerifier, VerifyResult
+from pentestai.report.remediation_verify import RemediationVerifier
 
 
 def _make_finding(fid="F-001", vtype="idor", verdict="CONFIRMED", endpoint="/api/orders/{id}",

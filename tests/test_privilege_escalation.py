@@ -1,6 +1,5 @@
 """PrivilegeEscalationOracle testleri -- rol tabanli yetki asimi denetler."""
 from pentestai.agent.privilege_escalation import (
-    DEFAULT_ROLE_PERMISSIONS,
     PrivilegeEscalationOracle,
 )
 from pentestai.models.agent import AgentTrace, ToolCall

@@ -1,7 +1,6 @@
 """ConfusedDeputyOracle testleri -- niyet olmadan yan-etkili cagri tespiti."""
 from pentestai.agent.confused_deputy import (
     ConfusedDeputyOracle,
-    DEFAULT_ACTIONS,
     SideEffectAction,
 )
 from pentestai.models.agent import AgentTrace, ToolCall, UserTurn

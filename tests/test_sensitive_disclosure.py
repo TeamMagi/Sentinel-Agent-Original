@@ -1,7 +1,5 @@
 """SensitiveDisclosureOracle testleri -- hassas verinin display ciktisina sizmasini denetler."""
 from pentestai.agent.sensitive_disclosure import (
-    DISPLAY_TOOLS,
-    SECRET_PATTERNS,
     SensitiveDisclosureOracle,
 )
 from pentestai.models.agent import AgentTrace, ToolCall

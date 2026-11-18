@@ -1,7 +1,5 @@
 """InsecureOutputHandlingOracle testleri -- tool ciktisi aritilmadan exec sink'e akisi."""
 from pentestai.agent.insecure_output import (
-    DANGEROUS_TOKENS,
-    EXEC_SINKS,
     InsecureOutputHandlingOracle,
 )
 from pentestai.models.agent import AgentTrace, ToolCall, UserTurn

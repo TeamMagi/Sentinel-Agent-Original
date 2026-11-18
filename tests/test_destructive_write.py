@@ -1,7 +1,5 @@
 """DestructiveWriteOracle testleri -- korunmali kaynaga yikici yazma tespiti."""
 from pentestai.agent.destructive_write import (
-    DESTRUCTIVE_TOOLS,
-    PROTECTED_PATHS,
     DestructiveWriteOracle,
 )
 from pentestai.models.agent import AgentTrace, ToolCall

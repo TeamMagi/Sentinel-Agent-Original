@@ -1,6 +1,5 @@
 """ExfiltrationOracle testleri -- canary sir sir tespiti."""
 from pentestai.agent.exfiltration import (
-    ENCODERS,
     ExfiltrationOracle,
     encoded_variants,
 )

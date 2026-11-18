@@ -6,8 +6,8 @@ import xml.etree.ElementTree as ET
 
 from pentestai.models import CapturedRequest, Evidence, Finding, NormalizedResponse
 from pentestai.report.render_csv import CsvReporter
-from pentestai.report.render_sarif import SarifReporter, fingerprint_of
 from pentestai.report.render_junit import JUnitReporter
+from pentestai.report.render_sarif import SarifReporter, fingerprint_of
 
 
 def _make_finding(fid="F-001", vtype="idor", verdict="CONFIRMED", endpoint="/api/orders/{id}",

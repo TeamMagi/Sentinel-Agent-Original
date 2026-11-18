@@ -1,10 +1,9 @@
 """SessionStore ve Session testleri — aktör izolasyonu ve cookie domain."""
-import pytest
 import httpx
+import pytest
 
 from pentestai.models import Actor, AuthState
-from pentestai.net.session_store import SessionStore, Session, _cookie_domain
-
+from pentestai.net.session_store import Session, SessionStore, _cookie_domain
 
 # --- _cookie_domain ---
 

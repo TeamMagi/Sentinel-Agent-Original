@@ -1,8 +1,6 @@
 """ExcessiveAutonomyOracle testleri -- kullanici onaysiz ardisik hassas islem denetler."""
 from pentestai.agent.excessive_autonomy import (
-    DEFAULT_AUTONOMY_THRESHOLD,
     ExcessiveAutonomyOracle,
-    SENSITIVE_TOOLS,
 )
 from pentestai.models.agent import AgentTrace, ToolCall, UserTurn
 

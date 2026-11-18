@@ -7,6 +7,7 @@ Network'süz (MockTransport), çok-endpoint'li vulnerable hedef. Doğrulananlar:
 import httpx
 import pytest
 
+from pentestai.llm.refusal import LLMRefusalError
 from pentestai.models import Actor, AuthState, Endpoint, Scope
 from pentestai.net import BudgetTracker, Replayer, SessionStore
 from pentestai.oracle import BflaOracle, BoplaOracle, IdorOracle, InjectionOracle, StateChangingOracle
@@ -74,6 +75,28 @@ async def test_parallel_matches_sequential():
     assert len(_confirmed_idor(par.findings)) == len(COLLECTIONS)   # her endpoint'te bir IDOR
     await store1.aclose_all()
     await store2.aclose_all()
+
+
+class _RefusingLLM:
+    """Her aksiyon seçiminde açık red sinyali veren sahte LLM (ağ yok)."""
+
+    provider = "test"
+    model = "refuser"
+
+    async def complete(self, system, user, *, fmt=None):
+        raise LLMRefusalError("içerik politikası")
+
+
+@pytest.mark.asyncio
+async def test_parallel_collects_scout_refusal_notes():
+    """Scout selector'larının LLM redleri kaybolmamalı; ana orkestratörde birleşmeli."""
+    store, executor, sessions = _setup()
+    par = ParallelOrchestrator(executor, ENDPOINTS, llm=_RefusingLLM(), base_url=BASE, scouts=2)
+    await par.run(sessions)
+    await store.aclose_all()
+    assert len(par.refusal_notes) == 2      # her scout bir kez reddetti
+    assert all(n.stage == "action_selection" for n in par.refusal_notes)
+    assert all(n.provider == "test" for n in par.refusal_notes)
 
 
 @pytest.mark.asyncio

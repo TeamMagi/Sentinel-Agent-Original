@@ -23,8 +23,20 @@ def test_ornek_config_parse():
     assert kinds == {"negative_amount", "coupon_reuse", "workflow_bypass"}
     assert len(fc.second_order_sqli) == 1
     assert fc.second_order_sqli[0].write_endpoint.method == "POST"
-    assert len(fc.account_takeover) == 1
-    assert fc.account_takeover[0].pre_mfa_actor == "user_pre_mfa"
+    assert len(fc.account_takeover) == 4
+    kinds = {a.kind for a in fc.account_takeover}
+    assert kinds == {"mfa_precondition_bypass", "password_reset_reuse",
+                     "password_reset_weakness", "otp_replay"}
+    mfa = next(a for a in fc.account_takeover if a.kind == "mfa_precondition_bypass")
+    assert mfa.pre_mfa_actor == "user_pre_mfa"
+
+
+def test_kind_siz_eski_mfa_kaydi_geriye_uyumlu():
+    """Yeni discriminated union öncesi kayıtlarda `kind` yoktu → MFA varsayılanı korunur."""
+    fc = FlowConfig.model_validate({"account_takeover": [{
+        "endpoint": {"method": "GET", "path_template": "/api/me"},
+        "pre_mfa_actor": "user_pre_mfa"}]})
+    assert fc.account_takeover[0].kind == "mfa_precondition_bypass"
 
 
 def test_negative_amount_alanlari():

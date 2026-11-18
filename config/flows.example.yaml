@@ -5,9 +5,10 @@
 # Kopyala-çalıştır:  cp config/flows.example.yaml config/flows.yaml
 # Koş:               ... --flows config/flows.yaml
 #
-# Tüm bölümler OPSİYONELdir. Yazma yapan aileler (business_logic, second_order_sqli) yalnız
-# scope.destructive_tests=True iken koşar; kapalıysa atlanır. Aşağıdaki örnekler YETKİLİ bir lab
-# hedefi (OWASP Juice Shop) içindir; gerçek değerleri kendi yetkili hedefine göre doldur.
+# Tüm bölümler OPSİYONELdir. Yazma yapan aileler (business_logic, second_order_sqli ve
+# hesap ele geçirmede reset-token/OTP tekrar-kullanımı) yalnız scope.destructive_tests=True iken
+# koşar; kapalıysa atlanır. Aşağıdaki örnekler YETKİLİ bir lab hedefi (OWASP Juice Shop) içindir;
+# gerçek değerleri kendi yetkili hedefine göre doldur.
 
 # --- İş mantığı (business logic) ---
 business_logic:
@@ -54,7 +55,7 @@ second_order_sqli:
     read_id: "1"
     actor: user_A
 
-# --- Hesap ele geçirme: 2FA ön-koşul atlama ---
+# --- Hesap ele geçirme ---
 account_takeover:
   # 2FA tamamlanmamış oturum korumalı kaynağa erişebiliyor mu?
   - kind: mfa_precondition_bypass
@@ -63,6 +64,27 @@ account_takeover:
     anon_actor: anonymous               # negatif kontrol (401/403 beklenir) — opsiyonel
     authed_actor: user_A                # pozitif kontrol (tam yetkili, 2xx) — opsiyonel
 
-# NOT (kapsam dışı): şifre sıfırlama token tekrarı/zayıflığı ve OTP tekrarı oracle'ları MEVCUT
-# (oracle/account_takeover.py) ama hedefe özgü istek-kurucu (request_builder) gerektirdiğinden bu
-# deklaratif config'e henüz bağlı değil; programatik kullanımları için ilgili testlere bakılabilir.
+  # Şifre sıfırlama token'ı aynı değerle İKİ kez kullanılabiliyor mu? (yazma → destructive)
+  # `token`/`bogus_token` SIR'dır: config/flows.yaml git-ignore'da tutulur, depoya commit edilmez.
+  - kind: password_reset_reuse
+    endpoint: {method: POST, path_template: "/api/reset-confirm"}
+    token_field: token                  # gövdedeki token alanı
+    token: "REPLACE_WITH_VALID_TOKEN"
+    bogus_token: "REPLACE_WITH_BOGUS_TOKEN"   # negatif kontrol — opsiyonel
+    body_fields: {newPassword: "NewP@ss1!"}   # gövdenin sabit kısmı
+    actor: victim                       # reset akışını yürüten oturum (yoksa ilk oturum)
+
+  # Toplanmış reset token'larında zayıf desen (kısa sayısal/ardışık/timestamp/düşük entropi).
+  # Ağ isteği yapmaz; destructive_tests gerektirmez.
+  - kind: password_reset_weakness
+    tokens: ["1000001", "1000002", "1000003"]
+    min_samples: 2
+
+  # Aynı OTP iki kez doğrulanabiliyor mu? (yazma → destructive)
+  - kind: otp_replay
+    endpoint: {method: POST, path_template: "/api/otp/verify"}
+    otp_field: otp                      # gövdedeki OTP alanı
+    otp: "445566"                       # SIR — git-ignore config
+    bogus_otp: "000000"                 # negatif kontrol — opsiyonel
+    body_fields: {}                     # gövdenin sabit kısmı
+    actor: victim

@@ -17,10 +17,21 @@ async def test_twin_verdicts(twin):
     assert near.verdict != CONFIRMED
 
 
+async def test_xss_near_misses_not_confirmed():
+    from pentestai.bench.kolb.injection import ReflectedXssTwin
+    t = ReflectedXssTwin()
+    for h in [t._near_miss, *t.extra_near_misses().values()]:
+        assert (await t._one(h)).verdict != CONFIRMED
+
+
 async def test_cases_consistent_and_pass():
     cs = cases()
     names = [c.name for c in cs]
-    assert len(names) == len(set(names)) == 3 * len(TWINS)
+    # her twin 3 vaka; ReflectedXssTwin +2 ek near-miss (text/plain, tag-strip)
+    assert len(names) == len(set(names)) == 3 * len(TWINS) + 2
+    assert {"xss-reflected-param:vulnerable", "xss-reflected-param:hardened",
+            "xss-reflected-param:near-miss", "xss-reflected-param:near-miss-plain",
+            "xss-reflected-param:near-miss-strip"} <= set(names)
     assert {c.vuln_type for c in cs} == {t.vuln_type for t in TWINS}
     for c in cs:
         f = await c.run()

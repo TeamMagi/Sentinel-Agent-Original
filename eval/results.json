@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 23,
+    "tp": 61,
     "fp": 0,
     "fn": 0,
-    "tn": 26,
-    "total": 49
+    "tn": 105,
+    "total": 166
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -400,6 +400,942 @@
       "name": "sqli-error-based:hardened",
       "vuln_type": "sqli",
       "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "nosqli-operator:vulnerable",
+      "vuln_type": "nosqli",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "nosqli-operator:hardened",
+      "vuln_type": "nosqli",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "nosqli-operator:near-miss",
+      "vuln_type": "nosqli",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "ssti-arithmetic:vulnerable",
+      "vuln_type": "ssti",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "ssti-arithmetic:hardened",
+      "vuln_type": "ssti",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "ssti-arithmetic:near-miss",
+      "vuln_type": "ssti",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "blind-sqli-timing:vulnerable",
+      "vuln_type": "blind_sqli",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "blind-sqli-timing:hardened",
+      "vuln_type": "blind_sqli",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "blind-sqli-timing:near-miss",
+      "vuln_type": "blind_sqli",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "blind-cmdi-timing:vulnerable",
+      "vuln_type": "command_injection",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "blind-cmdi-timing:hardened",
+      "vuln_type": "command_injection",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "blind-cmdi-timing:near-miss",
+      "vuln_type": "command_injection",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "stored-xss-comment:vulnerable",
+      "vuln_type": "stored_xss",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "stored-xss-comment:hardened",
+      "vuln_type": "stored_xss",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "stored-xss-comment:near-miss",
+      "vuln_type": "stored_xss",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "dom-xss-sink:vulnerable",
+      "vuln_type": "dom_xss",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "dom-xss-sink:hardened",
+      "vuln_type": "dom_xss",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "dom-xss-sink:near-miss",
+      "vuln_type": "dom_xss",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "open-redirect-param:vulnerable",
+      "vuln_type": "open_redirect",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "open-redirect-param:hardened",
+      "vuln_type": "open_redirect",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "open-redirect-param:near-miss",
+      "vuln_type": "open_redirect",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "cors-reflect-credentials:vulnerable",
+      "vuln_type": "cors",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "cors-reflect-credentials:hardened",
+      "vuln_type": "cors",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "cors-reflect-credentials:near-miss",
+      "vuln_type": "cors",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "clickjacking-html:vulnerable",
+      "vuln_type": "clickjacking",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "clickjacking-html:hardened",
+      "vuln_type": "clickjacking",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "clickjacking-html:near-miss",
+      "vuln_type": "clickjacking",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "ssrf-url-fetch:vulnerable",
+      "vuln_type": "ssrf",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "ssrf-url-fetch:hardened",
+      "vuln_type": "ssrf",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "ssrf-url-fetch:near-miss",
+      "vuln_type": "ssrf",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "ssrf-url-fetch:wrong-token",
+      "vuln_type": "ssrf",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "rfi-include:vulnerable",
+      "vuln_type": "rfi",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "rfi-include:hardened",
+      "vuln_type": "rfi",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "rfi-include:near-miss",
+      "vuln_type": "rfi",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "rfi-include:wrong-token",
+      "vuln_type": "rfi",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "xxe-xml-import:vulnerable",
+      "vuln_type": "xxe",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "xxe-xml-import:hardened",
+      "vuln_type": "xxe",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "xxe-xml-import:near-miss",
+      "vuln_type": "xxe",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "xxe-xml-import:wrong-token",
+      "vuln_type": "xxe",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "prototype-pollution-merge:vulnerable",
+      "vuln_type": "prototype_pollution",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "prototype-pollution-merge:hardened",
+      "vuln_type": "prototype_pollution",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "prototype-pollution-merge:near-miss",
+      "vuln_type": "prototype_pollution",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "cache-poisoning-unkeyed-header:vulnerable",
+      "vuln_type": "cache_poisoning",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "cache-poisoning-unkeyed-header:hardened",
+      "vuln_type": "cache_poisoning",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "cache-poisoning-unkeyed-header:near-miss",
+      "vuln_type": "cache_poisoning",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "LIKELY",
+      "passed": true
+    },
+    {
+      "name": "host-header-reset-link:vulnerable",
+      "vuln_type": "host_header_injection",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "host-header-reset-link:hardened",
+      "vuln_type": "host_header_injection",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "host-header-reset-link:near-miss",
+      "vuln_type": "host_header_injection",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "crlf-redirect-header:vulnerable",
+      "vuln_type": "crlf_injection",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "crlf-redirect-header:hardened",
+      "vuln_type": "crlf_injection",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "crlf-redirect-header:near-miss",
+      "vuln_type": "crlf_injection",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "jwt-claim-forge:vulnerable",
+      "vuln_type": "jwt_privilege_escalation",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "jwt-claim-forge:hardened",
+      "vuln_type": "jwt_privilege_escalation",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "jwt-claim-forge:near-miss",
+      "vuln_type": "jwt_privilege_escalation",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "jwt-kid-injection:vulnerable",
+      "vuln_type": "jwt_algorithm_confusion",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "jwt-kid-injection:hardened",
+      "vuln_type": "jwt_algorithm_confusion",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "jwt-kid-injection:near-miss",
+      "vuln_type": "jwt_algorithm_confusion",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "jwt-alg-confusion:vulnerable",
+      "vuln_type": "jwt_algorithm_confusion",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "jwt-alg-confusion:hardened",
+      "vuln_type": "jwt_algorithm_confusion",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "jwt-alg-confusion:near-miss",
+      "vuln_type": "jwt_algorithm_confusion",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "oauth-redirect-uri:vulnerable",
+      "vuln_type": "oauth_misconfig",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "oauth-redirect-uri:hardened",
+      "vuln_type": "oauth_misconfig",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "oauth-redirect-uri:near-miss",
+      "vuln_type": "oauth_misconfig",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "user-enum-differential:vulnerable",
+      "vuln_type": "user_enumeration",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "user-enum-differential:hardened",
+      "vuln_type": "user_enumeration",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "user-enum-differential:near-miss",
+      "vuln_type": "user_enumeration",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "default-creds-login:vulnerable",
+      "vuln_type": "default_credentials",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "default-creds-login:hardened",
+      "vuln_type": "default_credentials",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "default-creds-login:near-miss",
+      "vuln_type": "default_credentials",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "session-logout-invalidation:vulnerable",
+      "vuln_type": "session_lifecycle",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "session-logout-invalidation:hardened",
+      "vuln_type": "session_lifecycle",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "session-logout-invalidation:near-miss",
+      "vuln_type": "session_lifecycle",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "csrf-token-bypass:vulnerable",
+      "vuln_type": "csrf",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "csrf-token-bypass:hardened",
+      "vuln_type": "csrf",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "csrf-token-bypass:near-miss",
+      "vuln_type": "csrf",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "LIKELY",
+      "passed": true
+    },
+    {
+      "name": "race-coupon-redeem:vulnerable",
+      "vuln_type": "race_condition",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "race-coupon-redeem:hardened",
+      "vuln_type": "race_condition",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "race-coupon-redeem:near-miss",
+      "vuln_type": "race_condition",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "file-upload-unrestricted:vulnerable",
+      "vuln_type": "file_upload",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "file-upload-unrestricted:hardened",
+      "vuln_type": "file_upload",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "file-upload-unrestricted:near-miss",
+      "vuln_type": "file_upload",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "hpp-authz-split:vulnerable",
+      "vuln_type": "parameter_pollution",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "hpp-authz-split:hardened",
+      "vuln_type": "parameter_pollution",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "hpp-authz-split:near-miss",
+      "vuln_type": "parameter_pollution",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "smuggling-cl-te-timing:vulnerable",
+      "vuln_type": "http_request_smuggling",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "smuggling-cl-te-timing:hardened",
+      "vuln_type": "http_request_smuggling",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "smuggling-cl-te-timing:near-miss",
+      "vuln_type": "http_request_smuggling",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "exposure-dotenv:vulnerable",
+      "vuln_type": "exposure",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "exposure-dotenv:hardened",
+      "vuln_type": "exposure",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "exposure-dotenv:near-miss",
+      "vuln_type": "exposure",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "info-leak-stacktrace:vulnerable",
+      "vuln_type": "info_leak",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "info-leak-stacktrace:hardened",
+      "vuln_type": "info_leak",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "info-leak-stacktrace:near-miss",
+      "vuln_type": "info_leak",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "vulnerable-component-banner:vulnerable",
+      "vuln_type": "vulnerable_component",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "vulnerable-component-banner:hardened",
+      "vuln_type": "vulnerable_component",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "vulnerable-component-banner:near-miss",
+      "vuln_type": "vulnerable_component",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "rate-limit-burst:vulnerable",
+      "vuln_type": "rate_limit",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "rate-limit-burst:hardened",
+      "vuln_type": "rate_limit",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "rate-limit-burst:near-miss",
+      "vuln_type": "rate_limit",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "graphql-introspection:vulnerable",
+      "vuln_type": "graphql_introspection",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "graphql-introspection:hardened",
+      "vuln_type": "graphql_introspection",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "graphql-introspection:near-miss",
+      "vuln_type": "graphql_introspection",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "privilege-escalation-viewer:vulnerable",
+      "vuln_type": "privilege_escalation",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "privilege-escalation-viewer:hardened",
+      "vuln_type": "privilege_escalation",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "privilege-escalation-viewer:near-miss",
+      "vuln_type": "privilege_escalation",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "prompt-injection-indirect:vulnerable",
+      "vuln_type": "prompt_injection",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "prompt-injection-indirect:hardened",
+      "vuln_type": "prompt_injection",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "prompt-injection-indirect:near-miss",
+      "vuln_type": "prompt_injection",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "sensitive-disclosure-display:vulnerable",
+      "vuln_type": "sensitive_disclosure",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "sensitive-disclosure-display:hardened",
+      "vuln_type": "sensitive_disclosure",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "sensitive-disclosure-display:near-miss",
+      "vuln_type": "sensitive_disclosure",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "excessive-autonomy-streak:vulnerable",
+      "vuln_type": "excessive_autonomy",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "excessive-autonomy-streak:hardened",
+      "vuln_type": "excessive_autonomy",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "excessive-autonomy-streak:near-miss",
+      "vuln_type": "excessive_autonomy",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "tool-shadowing-typosquat:vulnerable",
+      "vuln_type": "tool_shadowing",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "tool-shadowing-typosquat:hardened",
+      "vuln_type": "tool_shadowing",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "tool-shadowing-typosquat:near-miss",
+      "vuln_type": "tool_shadowing",
+      "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",
       "passed": true

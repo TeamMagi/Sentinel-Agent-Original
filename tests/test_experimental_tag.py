@@ -23,10 +23,10 @@ def test_proven_tip_experimental_degil():
 
 
 def test_twinsiz_kayitli_tip_experimental():
-    """Henüz twin'i olmayan kayıtlı bir tip (ör. ssrf) experimental sayılmalı."""
-    assert "ssrf" in TYPE_META
-    assert "ssrf" not in PROVEN_TYPES
-    assert is_experimental("ssrf")
+    """Henüz twin'i olmayan kayıtlı bir tip (ör. security_headers — LIKELY tavanlı) experimental sayılmalı."""
+    assert "security_headers" in TYPE_META
+    assert "security_headers" not in PROVEN_TYPES
+    assert is_experimental("security_headers")
 
 
 def test_proven_tipler_tabloda_kayitli():

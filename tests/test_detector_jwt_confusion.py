@@ -67,6 +67,8 @@ def kid_vuln(request):
     tok = _bearer(request)
     if tok == REAL:
         return httpx.Response(200, json=OK_BODY)
+    if tok.count(".") != 2:                       # tokensız/bozuk istek → 401 (gerçek sunucu gibi)
+        return httpx.Response(401, text="token required")
     h, p, s = tok.split(".")
     kid = _header(tok).get("kid", "")
     # boş-anahtar kaynağı + boş-secret HS256 doğrularsa kabul (savunmasız davranış).
@@ -96,6 +98,33 @@ async def test_kid_injection_rejected_on_secure_server():
     assert kid.verdict == base.REJECTED
 
 
+def public_endpoint(request):
+    """Token'a hiç bakmayan herkese açık uç nokta: tokensız istek de aynı 200'ü alır."""
+    return httpx.Response(200, json=OK_BODY)
+
+
+def signature_unchecked(request):
+    """Token'ı ZORUNLU tutan ama imzayı HİÇ doğrulamayan sunucu (tokensız 401, her token 200)."""
+    if not _bearer(request) or request.headers.get("authorization") is None:
+        return httpx.Response(401, text="token required")
+    return httpx.Response(200, json=OK_BODY)
+
+
+@pytest.mark.asyncio
+async def test_public_endpoint_rejected_not_confirmed():
+    """FP kapanı: auth'suz uç noktada forge kabulü doğrulama atlatma kanıtı değil."""
+    fs = await _run(public_endpoint)
+    assert fs and all(f.verdict == base.REJECTED for f in fs)
+
+
+@pytest.mark.asyncio
+async def test_signature_unchecked_server_not_rejected():
+    """FN kapanı: imzayı doğrulamayan sunucu (tokensız 401) public sayılıp REJECTED'e düşmemeli."""
+    fs = await _run(signature_unchecked)
+    kid = next(f for f in fs if f.parameter == "kid")
+    assert kid.verdict == base.CONFIRMED
+
+
 # --- RS256 → HS256 algoritma karışıklığı ---
 
 _PRIV = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -113,6 +142,8 @@ def alg_confusion_vuln(request):
     tok = _bearer(request)
     if tok == REAL:
         return httpx.Response(200, json=OK_BODY)
+    if tok.count(".") != 2:                       # tokensız/bozuk istek → 401 (gerçek sunucu gibi)
+        return httpx.Response(401, text="token required")
     h, p, s = tok.split(".")
     if _header(tok).get("alg") == "HS256" and s == _hs256(f"{h}.{p}", _PUB_PEM.encode()):
         return httpx.Response(200, json=OK_BODY)

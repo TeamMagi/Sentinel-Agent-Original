@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 166 · **TP/FP/FN/TN:** 61/0/0/105
+**Vaka:** 164 · **TP/FP/FN/TN:** 60/0/0/104
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -100,6 +100,7 @@
 | prototype-pollution-merge:vulnerable | prototype_pollution | positive | CONFIRMED | CONFIRMED | ✅ |
 | prototype-pollution-merge:hardened | prototype_pollution | negative | not:CONFIRMED | REJECTED | ✅ |
 | prototype-pollution-merge:near-miss | prototype_pollution | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| prototype-pollution-merge:stores-key | prototype_pollution | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | cache-poisoning-unkeyed-header:vulnerable | cache_poisoning | positive | CONFIRMED | CONFIRMED | ✅ |
 | cache-poisoning-unkeyed-header:hardened | cache_poisoning | negative | not:CONFIRMED | REJECTED | ✅ |
 | cache-poisoning-unkeyed-header:near-miss | cache_poisoning | near_miss | not:CONFIRMED | LIKELY | ✅ |
@@ -151,9 +152,6 @@
 | info-leak-stacktrace:vulnerable | info_leak | positive | CONFIRMED | CONFIRMED | ✅ |
 | info-leak-stacktrace:hardened | info_leak | negative | not:CONFIRMED | REJECTED | ✅ |
 | info-leak-stacktrace:near-miss | info_leak | near_miss | not:CONFIRMED | REJECTED | ✅ |
-| vulnerable-component-banner:vulnerable | vulnerable_component | positive | CONFIRMED | CONFIRMED | ✅ |
-| vulnerable-component-banner:hardened | vulnerable_component | negative | not:CONFIRMED | REJECTED | ✅ |
-| vulnerable-component-banner:near-miss | vulnerable_component | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | rate-limit-burst:vulnerable | rate_limit | positive | CONFIRMED | CONFIRMED | ✅ |
 | rate-limit-burst:hardened | rate_limit | negative | not:CONFIRMED | REJECTED | ✅ |
 | rate-limit-burst:near-miss | rate_limit | near_miss | not:CONFIRMED | REJECTED | ✅ |

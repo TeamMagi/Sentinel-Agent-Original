@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 61,
+    "tp": 60,
     "fp": 0,
     "fn": 0,
-    "tn": 105,
-    "total": 166
+    "tn": 104,
+    "total": 164
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -741,6 +741,14 @@
       "passed": true
     },
     {
+      "name": "prototype-pollution-merge:stores-key",
+      "vuln_type": "prototype_pollution",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
       "name": "cache-poisoning-unkeyed-header:vulnerable",
       "vuln_type": "cache_poisoning",
       "category": "positive",
@@ -1143,30 +1151,6 @@
     {
       "name": "info-leak-stacktrace:near-miss",
       "vuln_type": "info_leak",
-      "category": "near_miss",
-      "expected": "not:CONFIRMED",
-      "verdict": "REJECTED",
-      "passed": true
-    },
-    {
-      "name": "vulnerable-component-banner:vulnerable",
-      "vuln_type": "vulnerable_component",
-      "category": "positive",
-      "expected": "CONFIRMED",
-      "verdict": "CONFIRMED",
-      "passed": true
-    },
-    {
-      "name": "vulnerable-component-banner:hardened",
-      "vuln_type": "vulnerable_component",
-      "category": "negative",
-      "expected": "not:CONFIRMED",
-      "verdict": "REJECTED",
-      "passed": true
-    },
-    {
-      "name": "vulnerable-component-banner:near-miss",
-      "vuln_type": "vulnerable_component",
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

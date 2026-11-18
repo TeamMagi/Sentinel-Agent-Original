@@ -5,14 +5,14 @@
 ## Genel özet
 
 - Toplam tip: **64** (`generic` hariç)
-- Kanıtlı (proven): **56**
-- Deneysel (experimental): **8**
-- Kanıtlı oranı: **%87.5**
+- Kanıtlı (proven): **55**
+- Deneysel (experimental): **9**
+- Kanıtlı oranı: **%85.9**
 - Eşlenmemiş tip: yok
 
 ## Web (OWASP Top 10 2021)
 
-KANITLI: 9 · DENEYSEL: 0 · BOŞLUK: 1
+KANITLI: 8 · DENEYSEL: 1 · BOŞLUK: 1
 
 | Kategori | Durum | Proven | Exp. | Tipler |
 |---|---|---|---|---|
@@ -21,7 +21,7 @@ KANITLI: 9 · DENEYSEL: 0 · BOŞLUK: 1
 | A03:2021 Injection (Enjeksiyon, XSS dahil) | KANITLI | 11 | 2 | `blind_sqli`, `command_injection`, `crlf_injection`, `dom_xss`, `injection`*, `insecure_output_handling`, `nosqli`, `prototype_pollution`, `rfi`, `sqli`, `ssti`, `stored_xss`, `timing`* |
 | A04:2021 Insecure Design (Güvensiz Tasarım) | KANITLI | 3 | 0 | `file_upload`, `mass_assignment`, `race_condition` |
 | A05:2021 Security Misconfiguration (Güvenlik Yanlış Yapılandırması) | KANITLI | 9 | 2 | `cache_poisoning`, `clickjacking`, `cors`, `debug_mode`*, `exposure`, `graphql_introspection`, `host_header_injection`, `http_request_smuggling`, `info_leak`, `security_headers`*, `xxe` |
-| A06:2021 Vulnerable and Outdated Components (Zafiyetli/Eski Bileşenler) | KANITLI | 1 | 0 | `vulnerable_component` |
+| A06:2021 Vulnerable and Outdated Components (Zafiyetli/Eski Bileşenler) | DENEYSEL | 0 | 1 | `vulnerable_component`* |
 | A07:2021 Identification and Authentication Failures (Kimlik Doğrulama Hataları) | KANITLI | 7 | 1 | `default_credentials`, `host_header_injection`, `jwt`*, `oauth_misconfig`, `rate_limit`, `session_lifecycle`, `unauthorized_access`, `user_enumeration` |
 | A08:2021 Software and Data Integrity Failures (Yazılım/Veri Bütünlüğü Hataları) | KANITLI | 3 | 0 | `file_upload`, `prototype_pollution`, `rfi` |
 | A09:2021 Security Logging and Monitoring Failures (Loglama/İzleme Hataları) | BOŞLUK | 0 | 0 | — |
@@ -46,17 +46,17 @@ KANITLI: 9 · DENEYSEL: 0 · BOŞLUK: 1
 
 ## LLM (OWASP Top 10 for LLM Apps 2025)
 
-KANITLI: 7 · DENEYSEL: 0 · BOŞLUK: 3
+KANITLI: 6 · DENEYSEL: 0 · BOŞLUK: 4
 
 | Kategori | Durum | Proven | Exp. | Tipler |
 |---|---|---|---|---|
 | LLM01:2025 Prompt Injection (İstem Enjeksiyonu) | KANITLI | 3 | 0 | `memory_poisoning`, `prompt_injection`, `untrusted_to_action` |
-| LLM02:2025 Sensitive Information Disclosure (Hassas Bilgi İfşası) | KANITLI | 4 | 0 | `exfiltration`, `info_leak`, `insecure_output_handling`, `sensitive_disclosure` |
-| LLM03:2025 Supply Chain (Tedarik Zinciri) | KANITLI | 2 | 1 | `dangerous_mcp_tool`*, `tool_shadowing`, `vulnerable_component` |
+| LLM02:2025 Sensitive Information Disclosure (Hassas Bilgi İfşası) | KANITLI | 3 | 0 | `exfiltration`, `info_leak`, `sensitive_disclosure` |
+| LLM03:2025 Supply Chain (Tedarik Zinciri) | KANITLI | 1 | 1 | `tool_shadowing`, `vulnerable_component`* |
 | LLM04:2025 Data and Model Poisoning (Veri ve Model Zehirleme) | KANITLI | 1 | 0 | `memory_poisoning` |
-| LLM05:2025 Improper Output Handling (Hatalı Çıktı İşleme) | KANITLI | 2 | 0 | `insecure_output_handling`, `prompt_injection` |
-| LLM06:2025 Excessive Agency (Aşırı Yetki/Özerklik) | KANITLI | 10 | 1 | `confused_deputy`, `dangerous_mcp_tool`*, `destructive_write`, `excessive_agency`, `excessive_autonomy`, `exfiltration`, `manifest_deviation`, `privilege_escalation`, `sensitive_disclosure`, `tool_shadowing`, `untrusted_to_action` |
-| LLM07:2025 System Prompt Leakage (Sistem İstemi Sızıntısı) | KANITLI | 1 | 0 | `tool_shadowing` |
+| LLM05:2025 Improper Output Handling (Hatalı Çıktı İşleme) | KANITLI | 1 | 0 | `insecure_output_handling` |
+| LLM06:2025 Excessive Agency (Aşırı Yetki/Özerklik) | KANITLI | 9 | 1 | `confused_deputy`, `dangerous_mcp_tool`*, `destructive_write`, `excessive_agency`, `excessive_autonomy`, `exfiltration`, `manifest_deviation`, `privilege_escalation`, `tool_shadowing`, `untrusted_to_action` |
+| LLM07:2025 System Prompt Leakage (Sistem İstemi Sızıntısı) | BOŞLUK | 0 | 0 | — |
 | LLM08:2025 Vector and Embedding Weaknesses (Vektör/Gömme Zayıflıkları) | BOŞLUK | 0 | 0 | — |
 | LLM09:2025 Misinformation (Yanlış Bilgi) | BOŞLUK | 0 | 0 | — |
 | LLM10:2025 Unbounded Consumption (Sınırsız Tüketim) | BOŞLUK | 0 | 0 | — |
@@ -69,6 +69,7 @@ KANITLI: 7 · DENEYSEL: 0 · BOŞLUK: 3
 
 - [Web] A09:2021 Security Logging and Monitoring Failures (Loglama/İzleme Hataları)
 - [API] API10:2023 Unsafe Consumption of APIs (API'lerin Güvensiz Tüketimi)
+- [LLM] LLM07:2025 System Prompt Leakage (Sistem İstemi Sızıntısı)
 - [LLM] LLM08:2025 Vector and Embedding Weaknesses (Vektör/Gömme Zayıflıkları)
 - [LLM] LLM09:2025 Misinformation (Yanlış Bilgi)
 - [LLM] LLM10:2025 Unbounded Consumption (Sınırsız Tüketim)

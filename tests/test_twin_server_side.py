@@ -17,10 +17,16 @@ async def test_twin_verdicts(twin):
     assert near.verdict != CONFIRMED
 
 
+async def test_proto_pollution_stores_key_not_confirmed():
+    """`__proto__` meşru veri olarak saklanıp aynı nesnede geri veriliyorsa kanıt değildir."""
+    twin = next(t for t in TWINS if t.name == "prototype-pollution-merge")
+    assert (await twin.stores_key()).verdict != CONFIRMED
+
+
 async def test_cases_consistent_and_pass():
     cs = cases()
     names = [c.name for c in cs]
-    assert len(names) == len(set(names)) == 3 * len(TWINS)
+    assert len(names) == len(set(names)) == 3 * len(TWINS) + 1   # +1: prototype-pollution stores-key
     assert {c.vuln_type for c in cs} == {t.vuln_type for t in TWINS}
     for c in cs:
         f = await c.run()

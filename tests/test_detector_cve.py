@@ -22,12 +22,29 @@ def _setup(server_header: str):
 
 
 @pytest.mark.asyncio
-async def test_vulnerable_old_nginx_confirmed():
+async def test_vulnerable_old_nginx_likely_not_confirmed():
+    # Banner tabanlı eşleşme backport nedeniyle kanıt değildir → en fazla LIKELY.
     store, detector, session = _setup("nginx/1.18.0")
     findings = await detector.scan(session)
     assert len(findings) == 1
-    assert findings[0].verdict == "CONFIRMED" and findings[0].type == "vulnerable_component"
+    assert findings[0].verdict == "LIKELY" and findings[0].type == "vulnerable_component"
+    assert findings[0].status != "confirmed"
     assert "CVE-2021-23017" in findings[0].evidence.leaked_markers[0]
+    assert "backport" in findings[0].evidence.leaked_markers[0]
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
+async def test_versionless_banner_no_finding():
+    store, detector, session = _setup("nginx")
+    assert await detector.scan(session) == []
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
+async def test_fix_equal_short_banner_no_finding():
+    store, detector, session = _setup("nginx/1.21")
+    assert await detector.scan(session) == []
     await store.aclose_all()
 
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from pentestai.bench.kolb.exposure import TWINS, cases
+from pentestai.bench.kolb.exposure import TWINS, VulnerableComponentTwin, cases
 from pentestai.oracle.base import CONFIRMED
 
 
@@ -16,6 +16,16 @@ async def test_twin_verdicts(twin):
     assert vuln.type == twin.vuln_type
     assert hard.verdict != CONFIRMED
     assert near.verdict != CONFIRMED
+
+
+async def test_vulnerable_component_twin_is_likely_only():
+    # Banner tabanlı: eski sürüm → LIKELY (CONFIRMED değil); yamalı/sürümsüz-near-miss → CONFIRMED değil.
+    twin = VulnerableComponentTwin()
+    assert twin not in TWINS
+    vuln = await twin._one(twin._vuln)
+    assert vuln.verdict == "LIKELY" and vuln.verdict != CONFIRMED
+    assert (await twin._one(twin._hardened)).verdict == "REJECTED"
+    assert (await twin._one(twin._near_miss)).verdict == "REJECTED"
 
 
 async def test_cases_consistent_and_pass():

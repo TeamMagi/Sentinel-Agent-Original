@@ -117,6 +117,19 @@ async def test_agentic_loop_discovers_pivot_endpoint():
 
 
 @pytest.mark.asyncio
+async def test_trace_steps_carry_ranker_priority():
+    """Ranker kararı görünür: çalıştırılan aksiyonların trace adımı havuz sırasını taşır."""
+    store, executor, sessions = _setup()
+    agent = AgenticOrchestrator(executor, [ORDERS_EP], llm=None, base_url=BASE,
+                                max_iterations=40)
+    await agent.run(sessions)
+    priorities = [s.priority for s in agent.trace.steps if s.priority]
+    assert priorities                                    # en az bir adımda öncelik kaydı var
+    assert all(p.startswith("sıra ") for p in priorities)
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
 async def test_non_confirmed_finding_does_not_expand():
     store, executor, sessions = _setup()
     agent = AgenticOrchestrator(executor, [ORDERS_EP], llm=None, base_url=BASE)

@@ -89,6 +89,17 @@ def test_resource_key_plain_path_unchanged():
     assert Endpoint(path_template="/api/orders/{id}/items/{itemId}").resource_key == "items"
 
 
+def test_own_object_ids_are_case_insensitive():
+    # /api/Users/{id} ↔ config "users" ve camelCase "getOrder" birlikte çalışmalı.
+    a = Actor(name="u", own_object_ids={"getOrder": "A-1", "users": "25"})
+    assert a.own_object_ids.get("getOrder") == "A-1"
+    assert a.own_object_ids.get("getorder") == "A-1"
+    assert a.own_object_ids["Users"] == "25"
+    assert "USERS" in a.own_object_ids
+    a.own_object_ids.setdefault("Basket", "6")
+    assert a.own_object_ids.get("basket") == "6"
+
+
 def test_resource_key_skips_trailing_version_segment():
     # Sürüm segmenti kaynak sanılmamalı → gerçek kaynak adına düş.
     assert Endpoint(path_template="/api/v1/{id}").resource_key == "api"

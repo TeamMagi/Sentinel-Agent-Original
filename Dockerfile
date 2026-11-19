@@ -11,6 +11,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
+# Playwright'in kendi node ikilisi libatomic.so.1'e muhtaç; python:3.11-slim bunu içermez,
+# bu yüzden `playwright install` daha --with-deps apt adımına gelmeden `libatomic.so.1: cannot
+# open shared object file` ile patlar. Tarayıcı bağımlılıklarını kurmadan ÖNCE libatomic1'i kur.
+RUN apt-get update && apt-get install -y --no-install-recommends libatomic1 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Playwright Chromium + sistem bağımlılıkları (auth/login akışı için — DESIGN.md §10.1)
 RUN playwright install --with-deps chromium
 

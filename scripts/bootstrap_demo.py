@@ -5,11 +5,18 @@ sepetine bir ürün ekler (leaked-marker için) ve `run_scan`'in doğrudan okuya
 scope/actors/endpoints YAML'larını üretir. `config/*.yaml` (gerçek, git-ignore'lu) dosyalarına
 DOKUNMAZ — kendi `--out` dizinine yazar, böylece kullanıcının kendi hedefine karşı kurduğu
 config ile çakışmaz.
+
+PIVOT ZİNCİRİ (çok-endpoint demo): `/rest/basket/{id}` cevabı kurbanın `UserId`'sini sızdırır;
+`HypothesisExpander` bu referansı bilinen `/api/Users/{id}` endpoint'iyle eşleştirir → orada da
+BOLA kanıtlanır. Eski iki-endpoint'li demo yalnızca basket→basket öz-referansı üretiyordu;
+kullanıcı kaynağı config'e eklenince pivot gerçekten ikinci bir endpoint'e taşıyor.
 """
 from __future__ import annotations
 
 import argparse
 import asyncio
+import base64
+import json
 import pathlib
 
 import httpx
@@ -40,14 +47,29 @@ async def _register(client: httpx.AsyncClient, base_url: str, email: str, passwo
     })   # zaten kayıtlıysa 400 döner — bootstrap idempotent olduğu için görmezden geliriz
 
 
-async def _login(client: httpx.AsyncClient, base_url: str, email: str, password: str) -> tuple[str, int]:
+def _jwt_payload(token: str) -> dict:
+    """İmza doğrulamadan JWT gövdesini okur — yalnızca bootstrap'in kendi token'ındaki
+    kullanıcı id'sini öğrenmek için (yetki kararı DEĞİL; tarama tarafı bunu kullanmaz)."""
+    part = token.split(".")[1]
+    part += "=" * (-len(part) % 4)
+    return json.loads(base64.urlsafe_b64decode(part))
+
+
+async def _login(client: httpx.AsyncClient, base_url: str,
+                 email: str, password: str) -> tuple[str, int, int]:
     r = await client.post(f"{base_url}/rest/user/login", json={"email": email, "password": password})
     r.raise_for_status()
     auth = r.json()["authentication"]
-    return auth["token"], auth["bid"]
+    token = auth["token"]
+    # `bid` (sepet) yanıtta hazır; kullanıcı id'si yalnızca JWT claim'lerinde (`data.id`).
+    uid = _jwt_payload(token).get("data", {}).get("id")
+    if uid is None:
+        raise SystemExit("login token'ında kullanıcı id'si (data.id) yok")
+    return token, auth["bid"], int(uid)
 
 
-def _write_configs(out_dir: pathlib.Path, base_url: str, victim_bid: int, attacker_bid: int) -> None:
+def _write_configs(out_dir: pathlib.Path, base_url: str, victim_bid: int, attacker_bid: int,
+                   victim_uid: int, attacker_uid: int) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "scope.yaml").write_text(yaml.safe_dump({
         "target": {"base_url": base_url},
@@ -61,7 +83,7 @@ def _write_configs(out_dir: pathlib.Path, base_url: str, victim_bid: int, attack
             "external_network": False,
         },
         # Bütçe, tüm dedektör/oracle ailesinin (idor/bfla/injection/crlf/oauth/jwt-confusion/hpp/…)
-        # iki endpoint üzerinde rahatça koşabileceği kadar: 200 artık yetersizdi (rate_limit fazında
+        # üç endpoint üzerinde rahatça koşabileceği kadar: 200 artık yetersizdi (rate_limit fazında
         # BudgetExceeded'e düşüyordu). scope.example.yaml ile hizalı.
         "budget": {"max_total_requests": 2000, "max_rps_per_host": 5, "max_wall_clock_sec": 300},
         "privacy": {"no_secrets_in_query": True},
@@ -71,16 +93,20 @@ def _write_configs(out_dir: pathlib.Path, base_url: str, victim_bid: int, attack
         {"name": "user_victim", "role": "user", "auth": {
             "type": "token", "login_url": f"{base_url}/rest/user/login",
             "credentials": VICTIM, "token_location": {"kind": "bearer", "from": "json:authentication.token"},
-        }, "own_object_ids": {"basket": str(victim_bid)}},
+        }, "own_object_ids": {"basket": str(victim_bid), "users": str(victim_uid)}},
         {"name": "user_attacker", "role": "user", "auth": {
             "type": "token", "login_url": f"{base_url}/rest/user/login",
             "credentials": ATTACKER, "token_location": {"kind": "bearer", "from": "json:authentication.token"},
-        }, "own_object_ids": {"basket": str(attacker_bid)}},
+        }, "own_object_ids": {"basket": str(attacker_bid), "users": str(attacker_uid)}},
     ]}, sort_keys=False), encoding="utf-8")
 
     (out_dir / "endpoints.yaml").write_text(yaml.safe_dump({"endpoints": [
         {"method": "GET", "path_template": "/rest/basket/{id}", "id_param": "id",
          "id_location": "path", "resource_key": "basket"},
+        # Pivot hedefi: basket cevabındaki `UserId` → bu endpoint. Anonim erişim 401,
+        # saldırgan kurbanın e-posta/rol kaydını okuyabiliyor → gerçek BOLA (Juice Shop).
+        {"method": "GET", "path_template": "/api/Users/{id}", "id_param": "id",
+         "id_location": "path", "resource_key": "users"},
         # Juice Shop'un bilinen SQLi yüzeyi: /rest/products/search?q= (error-based, SQLITE_ERROR).
         # injection oracle'ı query-param'da SQLi'yi kanıtlar → demo CONFIRMED kapsamını genişletir.
         {"method": "GET", "path_template": "/rest/products/search", "id_param": "q",
@@ -97,15 +123,15 @@ async def _run(base_url: str, out_dir: pathlib.Path) -> None:
         await _register(client, base_url, **VICTIM)
         await _register(client, base_url, **ATTACKER)
 
-        victim_token, victim_bid = await _login(client, base_url, **VICTIM)
-        _, attacker_bid = await _login(client, base_url, **ATTACKER)
+        victim_token, victim_bid, victim_uid = await _login(client, base_url, **VICTIM)
+        _, attacker_bid, attacker_uid = await _login(client, base_url, **ATTACKER)
 
         print(f"[bootstrap] adding an item to the victim's basket (bid={victim_bid})")
         await client.post(f"{base_url}/api/BasketItems", json={
             "ProductId": 1, "BasketId": victim_bid, "quantity": 3,
         }, headers={"Authorization": f"Bearer {victim_token}"})
 
-        _write_configs(out_dir, base_url, victim_bid, attacker_bid)
+        _write_configs(out_dir, base_url, victim_bid, attacker_bid, victim_uid, attacker_uid)
         print(f"[bootstrap] config written: {out_dir}/{{scope,actors,endpoints}}.yaml")
 
 

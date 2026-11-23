@@ -70,8 +70,8 @@ iş-mantığı). Bu karar şimdilik ertelendi.
 - [x] B/C'de twin'siz kalan tipleri **"experimental" olarak etiketle** (ürün dürüstlüğü — "57 tip"
       derken azını ispatlayabilme açığını kapat). → `classify.PROVEN_TYPES` + `is_experimental()`;
       eval twin'leriyle senkronu `tests/test_experimental_tag.py` (drift-guard) zorlar.
-- [x] Kapıları her adımda koş: `pytest -q` (1085), `eval/evaluate.py` (49 vaka, precision/recall
-      %100, FP-rate %0), `scripts.bench_guard` (18 ikiz, 0-FP), `scripts.verify_release`, `ruff`. ✓
+- [x] Kapıları her adımda koş: `pytest -q` (1803 test), `eval/evaluate.py` (205 vaka, precision/recall
+      %100, FP-rate %0), `scripts.bench_guard` (67 ikiz, 0-FP), `scripts.verify_release`, `ruff`. ✓
 
 ### P1 — Kol D'yi amiral farklılaştırıcı yap (asıl büyüme yönü) — BAŞLADI
 - [~] `agent/` ailesine yeni `AgentOracle` alt sınıfları ekle (Open/Closed; çekirdek değişmez).
@@ -119,6 +119,31 @@ iş-mantığı). Bu karar şimdilik ertelendi.
 - **Agent çeşidini kol başına uzmanlaştır** (access-control scout / agent-güvenlik scout / injection
   scout), klonlama. Agent sayısı **kol sayısıyla** orantılı büyür (bugün 4 kol → 4 uzman), yetenek
   sayısıyla değil.
+
+### P1.5 — Agentic döngü sağlamlaştırması · TAM
+- [x] **ActionRanker** (`orchestrator/ranker.py`): `HeuristicRanker` + `LLMRanker`; her turda
+      aksiyonları nedensel öncelikle sıralar, agent trace'inde "sıra N/M" olarak görünür.
+- [x] **CONFIRMED → pivot** (`orchestrator/agent.py` + `HypothesisExpander`): CONFIRMED bulgunun
+      cevabındaki obje referansları yeni hipotezlere dönüşür ve ikinci endpoint'e taşınır
+      (Juice Shop: basket → `/api/Users/{id}`). `tests/test_agent_pivot.py`.
+- [x] **RunDetector + SeedTargetDetector** (`orchestrator/actions.py`, `executor.py`): hedef-seviyesi
+      dedektörler döngü başında bir kez seed edilir; `run_detector` aksiyonu tipli çalışır, tekrar
+      eden dedektör koşusu yok. `tests/test_run_detector.py`.
+- [x] Kapılar: 1764 test, eval 205 vaka FP-rate %0, bench-guard 67 ikiz / 0 yanlış CONFIRMED.
+
+### P2.5 — R-B3 sahiplik çıkarımı (own_object_ids'siz bootstrap) · TAM (2026-11-24)
+- [x] Tekil/çoğul + harf duyarsız kaynak anahtarı (`models.canonical_resource_key`):
+      `/api/Users/{id}` ('users') ↔ JWT/whoami'den gelen 'user' aynı kaynağa düşer.
+- [x] Bearer JWT gövdesinden kimlik (`idtools.jwt_payload`): Juice Shop whoami'si Bearer ile boş
+      döner (cookie tabanlı) → kullanıcı id'si JWT `data.id`'den. Yalnız bootstrap; verdict değil.
+- [x] FP korumaları: kimlik koleksiyonu (`/api/Users`) crawl edilmez; aktörlerde aynı çıkan
+      ortak ilk id düşer; config daima öncelikli.
+- [x] `IdorOracle`: kurbanın kendi baseline'ı 200 değilse INCONCLUSIVE (önceden yanlış/var olmayan
+      own-id'de iki aynı 404 "kararlı" sayılıp REJECTED — sahte "güvenli" — dönüyordu).
+- [x] Canlı kabul: `own_object_ids` silinmiş config ile Juice Shop'ta `/api/Users/{id}` IDOR iki
+      yönde CONFIRMED. Kısıt: sepet id'si yalnız login `bid`'inde → config gerekir.
+- [x] Kapılar: 1803 test, eval 205 vaka FP-rate %0, bench-guard 67 ikiz / 0 yanlış CONFIRMED,
+      verify_release + ruff temiz.
 
 ## Konumlandırma notu (kaybolmasın)
 

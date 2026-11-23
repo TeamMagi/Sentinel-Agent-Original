@@ -94,14 +94,14 @@ Durum: ✅ var · 🟡 kısmi · ⬜ yeni. Efor kabaca adam-saat.
 |---|---|---|---|---|---|---|
 | **R-B1** | **2×2 yetki matrisi + çift-yönlü** — (own/peer obje)×(own/higher rol); A→B kadar B→A | StingrAI | 🟡 | ~4s | — | Her iki yön test ediliyor; matris raporda; asimetrik izolasyon yakalanıyor |
 | **R-B2** | **ID varyasyonu + iç-içe/dolaylı referans** — int & UUID; gövde/ikinci-el lookup'taki id'ler | StingrAI | 🟡 | ~5s | — | Gövdedeki obje id'sinde IDOR CONFIRMED testi geçiyor |
-| **R-B3** | **Scalar inference / feedback-driven keşif** — yanıtlardan veri ilişkisini çıkarıp otomatik bootstrap | Escape | ⬜ | ~5s | — | own_object_ids elle verilmeden bulunabiliyor (Juice Shop'ta) |
+| **R-B3** | **Scalar inference / feedback-driven keşif** — yanıtlardan veri ilişkisini çıkarıp otomatik bootstrap | Escape | ✅ | ~5s | — | Juice Shop'ta `own_object_ids` elle verilmeden `/api/Users/{id}` IDOR iki yönde CONFIRMED (canlı, 2026-11-24). Kaynaklar: whoami/me gövdesi + Bearer JWT gövdesi (`jwt_payload`, imza doğrulamasız, yalnız bootstrap) + aktöre özel koleksiyon crawl'i. Anahtarlar tekil/çoğul duyarsız (`canonical_resource_key`). Korumalar: config daima öncelikli; kimlik koleksiyonu (`/api/Users`) crawl edilmez; aktörlerde aynı çıkan ortak ilk id düşer; yanlış own-id → INCONCLUSIVE (REJECTED değil). **Kısıt:** Juice Shop sepet id'si yalnız login'deki `bid` alanında → genel kuralla çıkarılamaz, config gerekir. Testler: `tests/test_ownership_inference.py` |
 
 ### Eksen C — Benimsenme / CI *(demo → gerçek kullanım)*
 
 | ID | Görev | Kaynak | Durum | Efor | Bağımlılık | Kabul kriteri |
 |---|---|---|---|---|---|---|
 | **R-C1** | **Baseline + diff modu** — bilinen FP'leri baseline'da bastır, yalnız yeni bulguyu raporla, "no silent drops" (bastırılan sebeple raporda kalır) | Snyk, ZAP, p1-triage | ✅ | ~5s | — | `Baseline` (`report/baseline.py`) + CLI `--baseline <önceki-findings.json>` — `baseline_status` etiketi, CI kapısı yalnız "new" CONFIRMED'i sayar, "known" bulgular Markdown'da sebebiyle kalır (silinmez); verdict kötüleşirse (regresyon) asla bastırılmaz |
-| **R-C2** | **LLM FP-triyajı `likely_fp`** — yerel Ollama, verdict+confidence+reason, **asla silmez**, fallback `unreviewed` | p1-triage | ⬜ | ~4s | LLM opsiyonel | LLM kapalıyken davranış değişmez; açıkken bulgu `likely_fp` etiketi alır, verdict değişmez |
+| **R-C2** | **LLM FP-triyajı `likely_fp`** — yerel Ollama, verdict+confidence+reason, **asla silmez**, fallback `unreviewed` | p1-triage | ✅ | ~4s | LLM opsiyonel | `FpTriager` (`pentestai/triage.py`) — yalnızca CONFIRMED/LIKELY bulguları triyaj eder, `likely_fp` + `triage_reason` yazar; **verdict/severity değişmez**, LLM kapalıyken hiç çağrılmaz, çağrı/parse hatasında `likely_fp=None` (unreviewed) kalır. Testler: `tests/test_triage.py` |
 | **R-C3** | **MCP tool-server** — Replayer + oracle'ları tipli MCP araçları olarak aç → diğer ajanlar (Claude Code) Sentinel'i "hâkim" olarak çağırır | appsecsanta, strix | ✅ | ~6s | — | `sentinel-mcp` (`pentestai/mcpserver.py`, `pip install sentinel-agent[mcp]`) — `ActionExecutor`'ı sarmalayan `list_actors`/`list_endpoints`/`probe`/`run_oracle`/`reverify` araçları; authorize→replay→oracle, verdict yalnızca Oracle'dan, sonuçlar redaction'lı |
 
 ### Eksen D — Rapor / olgunluk

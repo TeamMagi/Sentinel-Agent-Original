@@ -54,7 +54,8 @@ async def test_list_actors_and_endpoints():
     store, tools = _build()
     actors = tools.list_actors()
     assert {a["name"] for a in actors} == {"user_A", "user_B"}
-    assert any(a["own_object_ids"] == ["orders"] for a in actors)
+    # Anahtarlar kanonik (tekil, küçük harf) saklanır: config'teki "orders" → "order".
+    assert any(a["own_object_ids"] == ["order"] for a in actors)
 
     eps = tools.list_endpoints()
     assert eps == [{"method": "GET", "path_template": "/api/orders/{id}",

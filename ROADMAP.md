@@ -38,18 +38,18 @@ Durum: ✅ var · 🟡 kısmi · ⬜ yok (hedef)
 | Write-verb (mass-assign / state-change / stored-XSS) | ✅ | ⬜ (read-only) | 🟡 (manuel) | ✅ | 🟡 | ✅ |
 | **Verdict'i KOD verir (LLM oy kullanamaz)** | ✅✅ | ✅ | ✅ | 🟡 (AI classification) | ✅ | 🟡 ("zero-FP garanti edemeyiz") |
 | Leaked-marker / kanıtlı ispat | ✅ | ✅ (identifier match) | 🟡 (fingerprint) | ✅ | 🟡 | 🟡 |
-| **Canary planting (aktif işaret ekme)** | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ (MAPTA "gelecek iş") |
+| **Canary planting (aktif işaret ekme)** | ✅ (R-A1) | ⬜ | ⬜ | ⬜ | ⬜ | ⬜ (MAPTA "gelecek iş") |
 | LLM-opsiyonel (kural-only çalışır) | ✅ | — | ✅ | ⬜ | ✅ | ⬜ |
 | Yerel model (Ollama) | ✅ | — | — | ⬜ | ⬜ | 🟡 |
 | Çıktıda PII/sır redaction | ✅ | 🟡 | ⬜ | 🟡 | 🟡 | ⬜ |
 | OpenAPI/GraphQL-güdümlü keşif | ✅ | ✅ | ⬜ | ✅ | ✅ (zorunlu) | 🟡 |
 | Çok-hedefli benchmark + precision/recall | 🟡 (Q3) | ✅ | ⬜ | 🟡 | ⬜ | ✅✅ |
-| Replay edilebilir PoC/kanıt paketi | 🟡 (repro-curl) | 🟡 | 🟡 | ✅ (graf/ekran) | 🟡 | ✅✅ |
+| Replay edilebilir PoC/kanıt paketi | ✅ (R-A2, imzalı bundle) | 🟡 | 🟡 | ✅ (graf/ekran) | 🟡 | ✅✅ |
 | SARIF / CI entegrasyonu | ✅ (Q2) | ⬜ | ⬜ | ✅ | ✅ | 🟡 |
-| Baseline / diff (yalnız yeni bulgu) | ⬜ | ⬜ | ⬜ | ✅ | ✅ | 🟡 |
-| Per-role coverage raporu | ⬜ | ⬜ | 🟡 | ✅ | 🟡 | ⬜ |
-| Dedup + agreement-based confidence | 🟡 | ⬜ | ⬜ | ✅ | 🟡 | 🟡 |
-| MCP tool-server (ajan-entegre) | ⬜ | ⬜ | ⬜ | 🟡 (IDE-MCP) | ⬜ | ✅ (strix, en hızlı büyüyen kalıp) |
+| Baseline / diff (yalnız yeni bulgu) | ✅ (R-C1) | ⬜ | ⬜ | ✅ | ✅ | 🟡 |
+| Per-role coverage raporu | ✅ (R-D1) | ⬜ | 🟡 | ✅ | 🟡 | ⬜ |
+| Dedup + agreement-based confidence | ✅ (R-D2) | ⬜ | ⬜ | ✅ | 🟡 | 🟡 |
+| MCP tool-server (ajan-entegre) | ✅ (R-C3) | ⬜ | ⬜ | 🟡 (IDE-MCP) | ⬜ | ✅ (strix, en hızlı büyüyen kalıp) |
 
 ### 1.3 Sentinel'in kenarı — **koru ve vurgula**
 
@@ -85,7 +85,7 @@ Durum: ✅ var · 🟡 kısmi · ⬜ yeni. Efor kabaca adam-saat.
 | ID | Görev | Kaynak | Durum | Efor | Bağımlılık | Kabul kriteri |
 |---|---|---|---|---|---|---|
 | **R-A1** | **Canary planting** — tarama öncesi kurban hesabına benzersiz işaret verisi ek; saldırgan cevabında belirirse tartışmasız leaked-marker | MAPTA, AuthProbe | ✅ | ~7s | B1 write kapısı | `CanaryPlanter` (`oracle/canary.py`) + `IdorOracle.run(canary=...)` + Scanner'da `state_change_authz` hipotezinden eşleşen PUT/PATCH ile otomatik planting. Yazma yolu/hedef yoksa sessizce None (davranış değişmez) |
-| **R-A2** | **Replay edilebilir kanıt paketi** — her CONFIRMED bulguya tam istek/yanıt fixture'ı + çevrimdışı yeniden-ispat scripti | XBOW, Shannon, MAPTA | 🟡 | ~5s | — | `runs/<id>/proof/<fid>.json` + `replay.py` bulguyu ağsız yeniden ispatlıyor |
+| **R-A2** | **Replay edilebilir kanıt paketi** — her CONFIRMED bulguya tam istek/yanıt fixture'ı + çevrimdışı yeniden-ispat scripti | XBOW, Shannon, MAPTA | ✅ | ~5s | — | `runs/<id>/proof/<fid>.json` + imzalı/hash'li `<fid>.bundle.json` (`evidence/proof.py`) + `scripts/replay.py`. Canlı doğrulama (Juice Shop, 2026-11-24): 5 CONFIRMED bulgunun (idor×3, jwt, sqli) hepsi ağsız PROVEN; tek alan tahrifinde FAILED + exit 1. Testler: `tests/test_proof.py`, `tests/test_proof_bundle.py` |
 | **R-A3** | **Çok-hedefli benchmark** — VAmPI + crAPI + Juice Shop; AuthProbe'un "vulnerable↔hardened ikiz, 0-FP" metodolojisi; advisory metnini gizle | AuthProbe, appsecsanta | 🟡 | ~8s | Q3 harness | ≥3 hedef, ≥30 etiketli vaka, koşulan precision/recall/FP tablosu README'de |
 
 ### Eksen B — Kapsam / derinlik *(erişim kontrolünde ileri)*

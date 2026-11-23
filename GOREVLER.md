@@ -187,15 +187,22 @@ Kaynak: ChainBreak · katman: oracle.
 Veri hassasiyeti + köken + hedef izleyen nedensel köken grafiği; çok-adımlı BOLA ve
 `UntrustedToActionOracle` için güçlü temel. En büyük P2 kalemi.
 
-### [ ] #10. Entropy-temelli sır detektörü (yeni detector) · *(Görkem · efor: Düşük-Orta)*
+### [~] #10. Entropy-temelli sır detektörü (yeni detector) · *(Görkem · efor: Düşük-Orta)*
 Kaynak: SentinelZero · katman: detector.
 Shannon entropy ile sır/token tespiti — ucuz, deterministik, mevcut detector ailesine bir alt sınıf
 olarak oturur (Open/Closed).
+**Durum (2026-11-24, kısmi):** entropy yardımcısı var (`agent/entropy.py`, `tests/test_entropy.py`) ve
+agent tarafında kullanılıyor: `SensitiveDisclosureOracle` (display/log'a sır sızması) + ATO token
+zayıflık analizi. **Eksik:** HTTP yanıtlarını tarayan `Detector` alt sınıfı yok. Eklenirse
+session-id/hash/UUID gürültüsü yüzünden LIKELY-tavanlı (experimental) olmalı — tek başına CONFIRMED değil.
 
-### [ ] #11. MCP tool-manifest tarama (hedefin MCP'sini denetle) · *(Görkem · efor: Orta)*
+### [x] #11. MCP tool-manifest tarama (hedefin MCP'sini denetle) · *(Görkem · efor: Orta)*
 Kaynak: SentinelZero/Pramaan · katman: detector/oracle.
 Biz MCP'yi *sunucu* olarak sunuyoruz; *hedefin* MCP tool şemasındaki tehlikeli execution
 örüntülerini tarayan detektör, ajan-güvenliği kapsamımızı genişletir.
+**Durum (2026-11-24):** `McpManifestScanner` (`detector/mcp_manifest.py`, `tests/test_mcp_manifest.py`),
+`agent-scan --manifest <json>` ile bağlı. Not: manifest yerel JSON olarak verilir; hedef MCP
+sunucusundan canlı `tools/list` çekimi yok (gerekirse ayrı madde).
 
 ### [x] #12. manifest-deviation gate (ajan-izi: bildirilen ↔ gözlemlenen akış) · *(Serhat · efor: Orta-Yüksek)*
 Kaynak: HIVE · katman: policy/oracle.

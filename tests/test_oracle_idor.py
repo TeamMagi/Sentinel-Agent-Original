@@ -152,6 +152,20 @@ async def test_inconclusive_when_oracle_blind():
     await store.aclose_all()
 
 
+@pytest.mark.asyncio
+async def test_inconclusive_when_victim_cannot_read_own_object():
+    """Kurbanın own-id'si yanlışsa (ör. bootstrap var olmayan bir kayıt çıkardı) iki baseline aynı
+    404 olur ve 'kararlı' görünür; saldırganın 404'ü yetki reddi DEĞİL, kaydın yokluğudur.
+    Hedef gerçekten açık olsa bile verdict INCONCLUSIVE — REJECTED ("güvenli") sahte negatif olurdu."""
+    store, oracle, A, B = _setup(vulnerable_handler)
+    A.actor.own_object_ids["order"] = "Z-404"          # kurbanda var olmayan kayıt
+    f = await oracle.run(ENDPOINT, A, B, resource_key="order")
+    assert f.verdict == base.INCONCLUSIVE
+    assert f.evidence.baseline_response.status == 404
+    assert f.evidence.attack_response is None          # geçersiz deney → saldırı hiç koşmadı
+    await store.aclose_all()
+
+
 # ---- public-by-design anon kapısı (DESIGN.md §12, bug düzeltmesi) ----
 
 USERS = {

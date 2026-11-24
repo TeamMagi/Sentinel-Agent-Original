@@ -8,7 +8,7 @@ import pytest
 from pentestai.models import Actor, AuthState, Endpoint, Scope
 from pentestai.net import Replayer, SessionStore
 from pentestai.oracle import base
-from pentestai.oracle.bopla import BoplaOracle, SensitiveFieldScanner
+from pentestai.oracle.bopla import BoplaOracle, ForeignPiiScanner, SensitiveFieldScanner
 from pentestai.policy import PolicyEngine
 
 ENDPOINT = Endpoint(method="GET", path_template="/api/users/{id}", id_param="id")
@@ -80,3 +80,57 @@ def test_scanner_keeps_exact_match_hard_regardless_of_value_shape():
     hard, soft = SensitiveFieldScanner().scan({"password": "hunter2"})
     assert hard == {"password"}
     assert soft == set()
+
+
+# --- ForeignPiiScanner: başka kullanıcıların PII'si (koleksiyon) ---
+
+_FEED = [
+    {"id": "p1", "body": "ilk", "author": {"nickname": "ada", "email": "ada@crapi.local"}},
+    {"id": "p2", "body": "iki", "author": {"nickname": "bob", "email": "bob@crapi.local"}},
+]
+
+
+def test_pii_scanner_flags_multiple_foreign_emails():
+    markers = ForeignPiiScanner().scan(_FEED)
+    assert any(m.startswith("email:") for m in markers)
+    # yalnız tip + sayı; ham e-posta ASLA
+    assert all("@crapi.local" not in m for m in markers)
+
+
+def test_pii_scanner_ignores_single_shared_email():
+    # her kayıtta AYNI iletişim e-postası → tek farklı değer → ifşa değil
+    feed = [{"id": "p1", "contact": "support@site.local"},
+            {"id": "p2", "contact": "support@site.local"}]
+    assert ForeignPiiScanner().scan(feed) == []
+
+
+def test_pii_scanner_ignores_distinct_nicknames():
+    # ayrı takma adlar bol ama PII BİÇİMİ yok (herkese açık feed'de kullanıcı adı normal)
+    feed = [{"id": "p1", "author": {"nickname": "ada"}},
+            {"id": "p2", "author": {"nickname": "bob"}}]
+    assert ForeignPiiScanner().scan(feed) == []
+
+
+def test_pii_scanner_ignores_single_record():
+    # tek kayıt = kullanıcının kendi PII'si olabilir → çoklu-kayıt şartı sağlanmaz
+    assert ForeignPiiScanner().scan([_FEED[0]]) == []
+
+
+def test_pii_scanner_detects_distinct_vins():
+    feed = [{"car": {"vin": "1HGBH41JXMN109186"}}, {"car": {"vin": "2FTRX18W1XCA12345"}}]
+    markers = ForeignPiiScanner().scan(feed)
+    assert any(m.startswith("vin:") for m in markers)
+
+
+@pytest.mark.asyncio
+async def test_oracle_confirmed_on_foreign_pii_collection():
+    ep = Endpoint(method="GET", path_template="/community/posts/recent")
+    scope = Scope(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/"])
+    store = SessionStore(base_url=BASE, transport=httpx.MockTransport(_handler(_FEED)))
+    a = store.create(Actor(name="user_A", auth=AuthState(headers={"Authorization": "Bearer A"})))
+    oracle = BoplaOracle(Replayer(PolicyEngine(scope)), BASE)
+    f = await oracle.run(ep, a, a)
+    assert f.verdict == base.CONFIRMED and f.confidence == "high"
+    assert any(m.startswith("email:") for m in f.evidence.leaked_markers)
+    assert all("@crapi.local" not in m for m in f.evidence.leaked_markers)
+    await store.aclose_all()

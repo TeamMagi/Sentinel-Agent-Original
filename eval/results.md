@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 217 · **TP/FP/FN/TN:** 76/0/0/141
+**Vaka:** 220 · **TP/FP/FN/TN:** 77/0/0/143
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -32,6 +32,9 @@
 | bopla-exposure:vulnerable | excessive_data_exposure | positive | CONFIRMED | CONFIRMED | ✅ |
 | bopla-exposure:hardened | excessive_data_exposure | negative | not:CONFIRMED | REJECTED | ✅ |
 | bopla-exposure:near-miss | excessive_data_exposure | near_miss | not:CONFIRMED | LIKELY | ✅ |
+| bopla-pii-collection:vulnerable | excessive_data_exposure | positive | CONFIRMED | CONFIRMED | ✅ |
+| bopla-pii-collection:hardened | excessive_data_exposure | negative | not:CONFIRMED | REJECTED | ✅ |
+| bopla-pii-collection:near-miss | excessive_data_exposure | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | method-bypass-delete:vulnerable | method_bypass | positive | CONFIRMED | CONFIRMED | ✅ |
 | method-bypass-delete:hardened | method_bypass | negative | not:CONFIRMED | REJECTED | ✅ |
 | mass-assignment-isadmin:vulnerable | mass_assignment | positive | CONFIRMED | CONFIRMED | ✅ |

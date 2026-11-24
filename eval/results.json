@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 76,
+    "tp": 77,
     "fp": 0,
     "fn": 0,
-    "tn": 141,
-    "total": 217
+    "tn": 143,
+    "total": 220
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -194,6 +194,30 @@
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "LIKELY",
+      "passed": true
+    },
+    {
+      "name": "bopla-pii-collection:vulnerable",
+      "vuln_type": "excessive_data_exposure",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "bopla-pii-collection:hardened",
+      "vuln_type": "excessive_data_exposure",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "bopla-pii-collection:near-miss",
+      "vuln_type": "excessive_data_exposure",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
       "passed": true
     },
     {

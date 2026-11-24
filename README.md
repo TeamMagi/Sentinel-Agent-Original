@@ -268,17 +268,20 @@ A claim like "proven, deterministic, low false-positive" is worthless unless it 
 against **labelled ground truth**. Labels are set by observing the target's real HTTP behaviour,
 never by reading the tool's own output — otherwise the measurement is circular.
 
-**Two targets, 19 labelled cases, run on 2026-09-20 with a local LLM (Ollama `qwen3.8:27b`, so no
-target data leaves the machine):**
+**Three targets, 31 labelled cases.** Juice Shop and VAmPI were run on 2026-09-20 with a local LLM
+(Ollama `qwen3.8:27b`, so no target data leaves the machine); crAPI was run on 2026-11-24
+**rule-only** (`--llm none`):
 
 | Target | Stack | Cases | Precision | Recall | FP-rate | TP/FN/FP/TN |
 |---|---|---|---|---|---|---|
 | OWASP Juice Shop | Node/Express | 7 (4 pos / 3 neg) | **100%** | **100%** | **0%** | 4/0/0/3 |
 | VAmPI | Python/Flask | 12 (4 pos / 8 neg) | **100%** | 50% | **0%** | 2/2/0/8 |
+| OWASP crAPI | Java/Python/Go microservices | 12 (5 pos / 7 neg) | **100%** | 20% | **0%** | 1/4/0/7 |
 
 Each target's committed reference run and exact reproduction commands are in
-**[`benchmarks/juiceshop.result.md`](benchmarks/juiceshop.result.md)** and
-**[`benchmarks/vampi.result.md`](benchmarks/vampi.result.md)**; the labelled ground truth is in
+**[`benchmarks/juiceshop.result.md`](benchmarks/juiceshop.result.md)**,
+**[`benchmarks/vampi.result.md`](benchmarks/vampi.result.md)** and
+**[`benchmarks/crapi.result.md`](benchmarks/crapi.result.md)**; the labelled ground truth is in
 **[`benchmarks/*.expected.yaml`](benchmarks/)**.
 
 **Read those numbers carefully** — the point of this project is honest measurement:
@@ -296,9 +299,16 @@ Each target's committed reference run and exact reproduction commands are in
   `GET /users/v1/{username}`, which is public-by-design (an anonymous request returns the same
   email). We fixed it by adding an **anonymous-access gate** — if the "leaked" data is reachable
   without auth, there is no authorization boundary, so it is no longer a finding.
+- **crAPI is the hardest of the three and shows the largest honest gap.** The
+  cross-user BOLA on `posts/{postId}` is proven in both directions and all 7 traps are cleared,
+  but four cases are missed: the SSRF probe only tries cloud metadata without an OOB collector,
+  the excessive-data oracle looks for secrets rather than other users' PII, the rule-only planner
+  never tries NoSQL operator injection on the coupon body, and the `alg=none` JWT bypass *is*
+  confirmed but under the `jwt_privilege_escalation` type, so it does not match the `jwt` label.
+  We did not relabel after seeing the output.
 - **FP-rate is measured against the negative "trap" cases**, not the tool's whole output; a 0% here
   means no trap was wrongly confirmed, not a guarantee the tool never errs.
-- Both targets are **calibrated, not holdout**. True generalization needs an untouched holdout
+- All three targets are **calibrated, not holdout**. True generalization needs an untouched holdout
   target, which this suite still lacks and the reports say so rather than pretending otherwise.
 
 The methodology follows AuthProbe's **vulnerable ↔ hardened twin** approach: every target carries

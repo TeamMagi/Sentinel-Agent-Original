@@ -94,8 +94,8 @@ iş-mantığı). Bu karar şimdilik ertelendi.
   - [x] **VAmPI** koşuldu + belgelendi (`vampi.result.md`, 2026-09-20; README %100 precision / %50 recall / %0 FP).
   - [x] Her iki hedef için commit'li config örnekleri (`config/{crapi,vampi}.*.example.yaml`) + runbook
         (`benchmarks/README.md`) + HTTP-doğrulanmış yer-gerçeği (`*.expected.yaml`) + suite.
-  - [ ] **crAPI canlı koşum** (`crapi.result.md`) — kullanıcı ortamında üretilir (çok-servisli compose
-        + yerel LLM). Yer-gerçeği + config + runbook hazır; kalan tek adım koşum.
+  - [x] **crAPI canlı koşum** (`benchmarks/crapi.result.md`, 2026-11-24, `--llm none`): precision %100,
+        recall %20, FP %0 (1/4/0/7) — 2026-11-23 koşumuyla birebir aynı. FN'ler ve nedenleri dosyada.
 
 ### P3 — B (injection) ve C (altyapı): fırsatçı, en sona
 - [~] Emtia alan; önden gitme. "Tamamlayıcı kapsam" olarak konumlandır, çekirdek iddiaya karıştırma.

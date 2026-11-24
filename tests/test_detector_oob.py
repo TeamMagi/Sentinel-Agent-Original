@@ -76,6 +76,16 @@ async def test_ssrf_rejected_when_no_fetch():
     assert fs[0].verdict == base.REJECTED
 
 
+@pytest.mark.asyncio
+async def test_ssrf_inconclusive_without_collector_when_inband_misses():
+    # OOB kanalı yoksa yalnız bulut-metadata in-band probu denenmiş olur; bunun ıskalaması
+    # "güvenli" kanıtı değildir (ör. crAPI loopback'ten çekip yansıtıyor) → REJECTED değil.
+    store, s, replayer = _store(lambda r: httpx.Response(200, json={"ok": True}))
+    fs = await SsrfDetector(replayer, BASE).run(GET_EP, s)
+    await store.aclose_all()
+    assert fs[0].verdict == base.INCONCLUSIVE
+
+
 # --- RFI (blind OOB) ---
 
 @pytest.mark.asyncio

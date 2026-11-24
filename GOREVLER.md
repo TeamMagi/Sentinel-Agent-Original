@@ -167,9 +167,8 @@ Bir kol şu üçü sağlanınca "amiral/olgun" sayılır: (1) kayıtlı her tipi
 
 ### [ ] crAPI recall artığı · *(efor: Orta)*
 `benchmarks/crapi.result.md` (2026-11-24, kural-only 1/4/0/7) kaçan dört vakayı nedenleriyle listeler:
-- SSRF: in-band prob yalnız bulut metadata'yı dener; OOB collector yoksa doğrudan REJECTED döner
-  (`detector/oob_probes.py`). Kanıt yokken REJECTED "güvenli" iddiasıdır → INCONCLUSIVE olmalı mı
-  kararı + loopback yansıma probu.
+- SSRF: in-band prob yalnız bulut metadata'yı dener. ✅ Verdict düzeltildi (2026-11-24): OOB
+  collector yoksa artık INCONCLUSIVE (önceden kanıtsız REJECTED). Kalan: loopback yansıma kapsamı.
 - excessive_data_exposure: BOPLA sır alanlarını arar; başka kullanıcının PII'si (email/vehicleid)
   için aktöre-özel sızıntı kontrolü yok.
 - NoSQLi: kural-only planlayıcı POST gövdesine operatör enjeksiyonu hipotezi üretmiyor.

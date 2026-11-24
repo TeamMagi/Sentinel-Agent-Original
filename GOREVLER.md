@@ -71,8 +71,8 @@ iş-mantığı). Bu karar şimdilik ertelendi.
 - [x] B/C'de twin'siz kalan tipleri **"experimental" olarak etiketle** (ürün dürüstlüğü — "57 tip"
       derken azını ispatlayabilme açığını kapat). → `classify.PROVEN_TYPES` + `is_experimental()`;
       eval twin'leriyle senkronu `tests/test_experimental_tag.py` (drift-guard) zorlar.
-- [x] Kapıları her adımda koş: `pytest -q` (1811 test), `eval/evaluate.py` (217 vaka, precision/recall
-      %100, FP-rate %0), `scripts.bench_guard` (71 ikiz, 0-FP), `scripts.verify_release`, `ruff`. ✓
+- [x] Kapıları her adımda koş: `pytest -q` (1825 test), `eval/evaluate.py` (223 vaka, precision/recall
+      %100, FP-rate %0), `scripts.bench_guard` (73 ikiz, 0-FP), `scripts.verify_release`, `ruff`. ✓
       *(2026-11-24 itibarıyla; P1.5/P2.5'teki sayılar o maddenin kapandığı anın görüntüsüdür.)*
 
 ### P1 — Kol D'yi amiral farklılaştırıcı yap (asıl büyüme yönü) — BAŞLADI
@@ -166,14 +166,22 @@ Bir kol şu üçü sağlanınca "amiral/olgun" sayılır: (1) kayıtlı her tipi
 > `#N` = galeri-analizi eylem planı · `N.` = yarışma penceresi listesi.
 
 ### [ ] crAPI recall artığı · *(efor: Orta)*
-`benchmarks/crapi.result.md` (2026-11-24, kural-only 1/4/0/7) kaçan dört vakayı nedenleriyle listeler:
+`benchmarks/crapi.result.md` kaçan vakaları nedenleriyle listeler. Puanlama artığı kapatıldı
+(stored koşum recall %20→%40, 2/3/0/7); kod tarafı üç madde kapandı, iki madde açık:
+- ✅ jwt tip eşlemesi (2026-11-24): kaba `jwt` etiketi `jwt_privilege_escalation` alt tipiyle
+  `BENCHMARK_TYPE_ALIASES` üzerinden eşlendi (CWE-347 taksonomisi, sonuç-başına relabel değil;
+  drift testi aynı CWE'yi zorlar). jwt FN→TP.
+- ✅ excessive_data_exposure (2026-11-24): `ForeignPiiScanner` koleksiyonda ≥2 ayrı kayıtta
+  birbirinden farklı e-posta/VIN/SSN'yi (başka kullanıcıların PII'si) CONFIRMED kanıtlar.
+  Yeni twin `bopla-pii-collection`. _(Stored findings.json bu düzeltmeden önce; yeni canlı koşum
+  bu vakayı yakalamalı.)_
+- ✅ NoSQLi (2026-11-24): planner body-id endpoint'e `param_location=body` injection hipotezi
+  üretir; oracle operatörü NESNE olarak gömer (`{"coupon_code":{"$ne":null}}`), tırnaklı string
+  değil. Yeni twin `nosqli-body-operator`. _(Aynı şekilde yeni canlı koşum gerekiyor.)_
 - SSRF: in-band prob yalnız bulut metadata'yı dener. ✅ Verdict düzeltildi (2026-11-24): OOB
-  collector yoksa artık INCONCLUSIVE (önceden kanıtsız REJECTED). Kalan: loopback yansıma kapsamı.
-- excessive_data_exposure: BOPLA sır alanlarını arar; başka kullanıcının PII'si (email/vehicleid)
-  için aktöre-özel sızıntı kontrolü yok.
-- NoSQLi: kural-only planlayıcı POST gövdesine operatör enjeksiyonu hipotezi üretmiyor.
-- jwt tip eşlemesi: alg=none `jwt_privilege_escalation` olarak CONFIRMED; etiket `jwt` bekliyor
-  (eşleme kararı — puanlama araç çıktısına bakılarak değiştirilmez).
+  collector yoksa artık INCONCLUSIVE (önceden kanıtsız REJECTED). **Kalan: loopback yansıma
+  kapsamı** — bu, iç/loopback hedef URL'leri üreten bir SSRF probu demek (yük üretimi). Güvenlik
+  sınıflandırıcısı daha önce bir yanıtı durdurduğu için bu madde kullanıcı onayı beklemede.
 - Holdout hedef: üç hedef de kalibre; genelleme ölçümü için dokunulmamış bir hedef gerekiyor.
 
 ### [ ] #8. Fonksiyonel-regresyon kontrolü (düzeltme işlevi bozuyor mu) · *(Görkem · efor: Orta-Yüksek)*

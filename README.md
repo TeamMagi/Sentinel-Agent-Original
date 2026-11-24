@@ -305,11 +305,15 @@ Each target's committed reference run and exact reproduction commands are in
   `jwt_privilege_escalation` type, which the coarse `jwt` label now matches through a fixed
   CWE-347 alias taxonomy (`BENCHMARK_TYPE_ALIASES`) — defined independently of the output, not a
   per-result relabel, and a drift test forces each subtype to share the coarse label's CWE. That
-  leaves three honest misses in the stored run: the SSRF probe only tried cloud metadata without an
-  OOB collector (since changed to return INCONCLUSIVE rather than REJECTED), the excessive-data
-  oracle looked only for secret-named fields rather than other users' PII (since extended with a
-  `ForeignPiiScanner`), and the rule-only planner never tries NoSQL operator injection on the
-  coupon body. The code fixes land after this stored run, so a fresh live run is needed to re-measure.
+  leaves three honest misses in the stored run, each now addressed in code after the run (so a fresh
+  live run is needed to re-measure): the SSRF probe only tried cloud metadata without an OOB collector
+  — now it returns INCONCLUSIVE rather than REJECTED and carries a benign loopback connection-error
+  differential (points the sink at a closed `127.0.0.1` port and reads the server's own
+  connection-refused signature against a clean control — in-band, exfiltrates nothing); the
+  excessive-data oracle looked only for secret-named fields rather than other users' PII — now
+  extended with a `ForeignPiiScanner`; and the rule-only planner never routed NoSQL operator
+  injection to the coupon body — now it emits a `param_location=body` injection hypothesis and the
+  oracle embeds the operator as a structured object rather than a quoted string.
 - **FP-rate is measured against the negative "trap" cases**, not the tool's whole output; a 0% here
   means no trap was wrongly confirmed, not a guarantee the tool never errs.
 - All three targets are **calibrated, not holdout**. True generalization needs an untouched holdout

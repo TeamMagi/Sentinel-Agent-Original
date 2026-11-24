@@ -86,6 +86,58 @@ async def test_ssrf_inconclusive_without_collector_when_inband_misses():
     assert fs[0].verdict == base.INCONCLUSIVE
 
 
+# --- SSRF (loopback bağlantı-hatası differential'ı, OOB collector GEREKMEZ) ---
+
+# crAPI sınıfı: URL gövdedeki `mechanic_api` alanında, sunucu çekip `response_from_mechanic_api`'de yansıtır.
+CONTACT_EP = Endpoint(method="POST", path_template="/workshop/api/merchant/contact_mechanic",
+                      id_param="mechanic_api", id_location="body")
+
+
+@pytest.mark.asyncio
+async def test_ssrf_confirmed_loopback_connection_error():
+    # Sunucu iç/loopback adrese server-side istek yapar; kapalı porta bağlantı REDDEDİLİR ve sunucu
+    # kendi istemci hatasını yansıtır (echo değil) → kontrol temizken CONFIRMED.
+    def handler(request):
+        body = (request.content or b"").decode("utf-8", "replace")
+        if "127.0.0.1:1" in body:          # sunucu bu iç adrese bağlanmayı denedi
+            return httpx.Response(200, json={"response_from_mechanic_api":
+                "ConnectionError: Failed to establish a new connection: [Errno 111] Connection refused"})
+        return httpx.Response(200, json={"status": "sent"})   # kontrol (URL olmayan değer)
+
+    store, s, replayer = _store(handler)
+    fs = await SsrfDetector(replayer, BASE).run(CONTACT_EP, s)
+    await store.aclose_all()
+    assert fs[0].verdict == base.CONFIRMED
+    assert fs[0].evidence.negative_control is True and fs[0].evidence.leaked_markers
+
+
+@pytest.mark.asyncio
+async def test_ssrf_loopback_not_confirmed_on_mere_echo():
+    # Sunucu yalnız yükü ECHO'lar, bağlantı-hatası imzası YOK → server-side fetch kanıtlanmadı.
+    def handler(request):
+        body = (request.content or b"").decode("utf-8", "replace")
+        if "127.0.0.1" in body:
+            return httpx.Response(200, json={"response_from_mechanic_api": "fetched http://127.0.0.1:1/ ok"})
+        return httpx.Response(200, json={"status": "sent"})
+
+    store, s, replayer = _store(handler)
+    fs = await SsrfDetector(replayer, BASE).run(CONTACT_EP, s)   # collector yok
+    await store.aclose_all()
+    assert fs[0].verdict == base.INCONCLUSIVE
+
+
+@pytest.mark.asyncio
+async def test_ssrf_loopback_not_confirmed_when_control_also_errors():
+    # Her girdi (kontrol dahil) aynı hatayı veriyorsa sinyal saldırıya özgü değildir → CONFIRMED yok.
+    def handler(request):
+        return httpx.Response(200, json={"response_from_mechanic_api": "Connection refused"})
+
+    store, s, replayer = _store(handler)
+    fs = await SsrfDetector(replayer, BASE).run(CONTACT_EP, s)   # collector yok
+    await store.aclose_all()
+    assert fs[0].verdict == base.INCONCLUSIVE
+
+
 # --- RFI (blind OOB) ---
 
 @pytest.mark.asyncio

@@ -80,16 +80,21 @@ python -m scripts.benchmark --run runs/crapi/run-*     --expected benchmarks/cra
     aynı CWE'yi taşıdığını zorlar.
 - **Kaçan 3 vaka, nedenleriyle:**
   - `ssrf @ contact_mechanic` — **REJECTED.** In-band prob yalnız bulut metadata adresini
-    (`169.254.169.254`) ve imzalarını dener; crAPI'nin loopback'ten çekip
-    `response_from_mechanic_api` ile yansıttığı içerik denenmiyor. _(Kod o günden beri değişti:
-    OOB collector yokken artık REJECTED değil INCONCLUSIVE dönülüyor — `65b9aef`; bu stored
-    `findings.json` o düzeltmeden önce üretildi, yeni canlı koşum gerekiyor.)_
+    (`169.254.169.254`) ve imzalarını deniyordu; crAPI'nin loopback'ten çekip
+    `response_from_mechanic_api` ile yansıttığı içerik denenmiyordu. _(Kod o günden beri değişti:
+    (1) OOB collector yokken artık REJECTED değil INCONCLUSIVE — `65b9aef`; (2) gövde-id sink'ine
+    kapalı bir loopback portu (`http://127.0.0.1:1/`) gönderip sunucunun KENDİ bağlantı-hatası
+    imzasını kontrol-differential'ıyla yakalayan loopback probu eklendi — zararsız, veri çekmeyen,
+    OOB gerektirmeyen in-band kanıt. Bu stored `findings.json` bu eklerden önce üretildi; yeni
+    canlı koşum bu vakayı yakalamalı.)_
   - `excessive_data_exposure @ posts/recent` — **REJECTED.** BOPLA oracle'ı o koşumda yalnız
     sır/kimlik bilgisi alanlarını (password, secret, apikey…) arıyordu; başka kullanıcıların
     `author.email`/`vehicleid` PII'si (sır değil) bu kümede yoktu. _(Kod o günden beri değişti:
     `ForeignPiiScanner` koleksiyonda başka kullanıcıların PII'sini de kanıtlıyor — `38b3fef`; yeni
     canlı koşum bu vakayı yakalamalı.)_
   - `nosqli @ validate-coupon` — **denenmedi.** Kural-only planlayıcı bu POST gövdesine
-    operatör enjeksiyonu hipotezi üretmedi. Bu koşumda LLM kapalıydı; LLM'li koşum ayrıca ölçülmeli.
+    operatör enjeksiyonu hipotezi üretmedi. _(Kod o günden beri değişti: planner body-id endpoint'e
+    `param_location=body` injection hipotezi üretiyor ve oracle operatörü NESNE olarak gömüyor
+    (`{"coupon_code":{"$ne":null}}`) — `e8c20ce`; yeni canlı koşum gerekiyor.)_
 - crAPI **kalibre** bir hedeftir (etiketler 2026-09-16'da canlı HTTP ile doğrulandı). Metrikler
   genellemeyi ölçmez; o yalnızca holdout hedefte ölçülür (bkz. [`suite.yaml`](suite.yaml)).

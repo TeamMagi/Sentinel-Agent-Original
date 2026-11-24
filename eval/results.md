@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 205 · **TP/FP/FN/TN:** 72/0/0/133
+**Vaka:** 217 · **TP/FP/FN/TN:** 76/0/0/141
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -214,3 +214,15 @@
 | sqli-second-order:near-miss | sqli | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | sqli-second-order:near-miss-sanitize | sqli | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | sqli-second-order:near-miss-persistent-error | sqli | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| idor-body-id:vulnerable | idor | positive | CONFIRMED | CONFIRMED | ✅ |
+| idor-body-id:hardened | idor | negative | not:CONFIRMED | REJECTED | ✅ |
+| idor-body-id:near-miss | idor | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| idor-uuid:vulnerable | idor | positive | CONFIRMED | CONFIRMED | ✅ |
+| idor-uuid:hardened | idor | negative | not:CONFIRMED | REJECTED | ✅ |
+| idor-uuid:near-miss | idor | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| idor-nested-body:vulnerable | idor | positive | CONFIRMED | CONFIRMED | ✅ |
+| idor-nested-body:hardened | idor | negative | not:CONFIRMED | REJECTED | ✅ |
+| idor-nested-body:near-miss | idor | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| idor-second-order:vulnerable | idor | positive | CONFIRMED | CONFIRMED | ✅ |
+| idor-second-order:hardened | idor | negative | not:CONFIRMED | REJECTED | ✅ |
+| idor-second-order:near-miss | idor | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |

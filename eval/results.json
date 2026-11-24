@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 72,
+    "tp": 76,
     "fp": 0,
     "fn": 0,
-    "tn": 133,
-    "total": 205
+    "tn": 141,
+    "total": 217
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -1647,6 +1647,102 @@
     {
       "name": "sqli-second-order:near-miss-persistent-error",
       "vuln_type": "sqli",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "idor-body-id:vulnerable",
+      "vuln_type": "idor",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "idor-body-id:hardened",
+      "vuln_type": "idor",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "idor-body-id:near-miss",
+      "vuln_type": "idor",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "idor-uuid:vulnerable",
+      "vuln_type": "idor",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "idor-uuid:hardened",
+      "vuln_type": "idor",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "idor-uuid:near-miss",
+      "vuln_type": "idor",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "idor-nested-body:vulnerable",
+      "vuln_type": "idor",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "idor-nested-body:hardened",
+      "vuln_type": "idor",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "idor-nested-body:near-miss",
+      "vuln_type": "idor",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "idor-second-order:vulnerable",
+      "vuln_type": "idor",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "idor-second-order:hardened",
+      "vuln_type": "idor",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "idor-second-order:near-miss",
+      "vuln_type": "idor",
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "INCONCLUSIVE",

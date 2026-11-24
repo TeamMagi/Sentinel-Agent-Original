@@ -141,7 +141,9 @@ iş-mantığı). Bu karar şimdilik ertelendi.
 - [x] `IdorOracle`: kurbanın kendi baseline'ı 200 değilse INCONCLUSIVE (önceden yanlış/var olmayan
       own-id'de iki aynı 404 "kararlı" sayılıp REJECTED — sahte "güvenli" — dönüyordu).
 - [x] Canlı kabul: `own_object_ids` silinmiş config ile Juice Shop'ta `/api/Users/{id}` IDOR iki
-      yönde CONFIRMED. Kısıt: sepet id'si yalnız login `bid`'inde → config gerekir.
+      yönde CONFIRMED.
+- [x] Login yanıtından own-id: `auth.own_ids_from` ipucu (`basket: json:authentication.bid`) →
+      `AuthState.login_ids` → feedback bootstrap. Canlı: `own_object_ids`'siz sepet IDOR CONFIRMED.
 - [x] Kapılar: 1803 test, eval 205 vaka FP-rate %0, bench-guard 67 ikiz / 0 yanlış CONFIRMED,
       verify_release + ruff temiz.
 

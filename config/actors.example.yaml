@@ -8,7 +8,11 @@ actors:
       login_url: "http://localhost:3000/rest/user/login"
       credentials: { email: "a@test.local", password: "REDACTED" }
       token_location: { kind: "bearer", from: "json:authentication.token" }
-    own_object_ids: { basket: "1", basketitem: "1" }   # basket=login yanıtındaki bid; basketitem=sepete eklenen BasketItem.id
+      # Sepet id'si login yanıtındaki `bid` alanında gelir → DEĞER değil YOL ver; her aktörde aynı.
+      own_ids_from: { basket: "json:authentication.bid" }
+    # own_object_ids artık opsiyonel: kullanıcı id'si JWT'den, sepet login'den, diğerleri crawl'den
+    # çıkarılır. Verilirse daima önceliklidir. basketitem=sepete eklenen BasketItem.id (çıkarılamaz).
+    own_object_ids: { basketitem: "1" }
 
   - name: user_B
     role: user

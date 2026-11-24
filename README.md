@@ -276,7 +276,7 @@ never by reading the tool's own output — otherwise the measurement is circular
 |---|---|---|---|---|---|---|
 | OWASP Juice Shop | Node/Express | 7 (4 pos / 3 neg) | **100%** | **100%** | **0%** | 4/0/0/3 |
 | VAmPI | Python/Flask | 12 (4 pos / 8 neg) | **100%** | 50% | **0%** | 2/2/0/8 |
-| OWASP crAPI | Java/Python/Go microservices | 12 (5 pos / 7 neg) | **100%** | 20% | **0%** | 1/4/0/7 |
+| OWASP crAPI | Java/Python/Go microservices | 12 (5 pos / 7 neg) | **100%** | 40% | **0%** | 2/3/0/7 |
 
 Each target's committed reference run and exact reproduction commands are in
 **[`benchmarks/juiceshop.result.md`](benchmarks/juiceshop.result.md)**,
@@ -300,12 +300,16 @@ Each target's committed reference run and exact reproduction commands are in
   email). We fixed it by adding an **anonymous-access gate** — if the "leaked" data is reachable
   without auth, there is no authorization boundary, so it is no longer a finding.
 - **crAPI is the hardest of the three and shows the largest honest gap.** The
-  cross-user BOLA on `posts/{postId}` is proven in both directions and all 7 traps are cleared,
-  but four cases are missed: the SSRF probe only tries cloud metadata without an OOB collector,
-  the excessive-data oracle looks for secrets rather than other users' PII, the rule-only planner
-  never tries NoSQL operator injection on the coupon body, and the `alg=none` JWT bypass *is*
-  confirmed but under the `jwt_privilege_escalation` type, so it does not match the `jwt` label.
-  We did not relabel after seeing the output.
+  cross-user BOLA on `posts/{postId}` is proven in both directions and all 7 traps are cleared. The
+  `alg=none` JWT bypass is also confirmed: the tool reports it under the more specific
+  `jwt_privilege_escalation` type, which the coarse `jwt` label now matches through a fixed
+  CWE-347 alias taxonomy (`BENCHMARK_TYPE_ALIASES`) — defined independently of the output, not a
+  per-result relabel, and a drift test forces each subtype to share the coarse label's CWE. That
+  leaves three honest misses in the stored run: the SSRF probe only tried cloud metadata without an
+  OOB collector (since changed to return INCONCLUSIVE rather than REJECTED), the excessive-data
+  oracle looked only for secret-named fields rather than other users' PII (since extended with a
+  `ForeignPiiScanner`), and the rule-only planner never tries NoSQL operator injection on the
+  coupon body. The code fixes land after this stored run, so a fresh live run is needed to re-measure.
 - **FP-rate is measured against the negative "trap" cases**, not the tool's whole output; a 0% here
   means no trap was wrongly confirmed, not a guarantee the tool never errs.
 - All three targets are **calibrated, not holdout**. True generalization needs an untouched holdout

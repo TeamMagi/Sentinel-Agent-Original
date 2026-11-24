@@ -2,7 +2,8 @@
 
 Kural: yalnızca CONFIRMED "tespit" sayılır (LIKELY/INCONCLUSIVE değil) — CLAUDE.md §5 ruhu.
 """
-from pentestai.bench import Benchmark, ExpectedCase
+from pentestai.bench import BENCHMARK_TYPE_ALIASES, Benchmark, ExpectedCase
+from pentestai.classify import TYPE_META
 from pentestai.models import Evidence, Finding
 
 
@@ -98,6 +99,31 @@ def test_shipped_expected_file_loads_and_evaluates():
     assert r.tp == len(positives) and r.fn == 0
     assert r.fp == 0 and r.tn == len(negatives)
     assert r.precision == 1.0 and r.recall == 1.0 and r.fp_rate == 0.0
+
+
+def test_specific_subtype_satisfies_coarse_benchmark_label():
+    # crAPI "jwt" etiketi kaba; araç aynı zafiyeti `jwt_privilege_escalation` (CWE-347) raporlar.
+    bench = Benchmark([_case("jwt", "/identity/api/v2/user/dashboard", "CONFIRMED", method="GET")])
+    r = bench.evaluate([_f("jwt_privilege_escalation", "/identity/api/v2/user/dashboard",
+                           "CONFIRMED", method="GET")])
+    assert r.tp == 1 and r.fn == 0
+    # alt tip kaba etikete sayıldığından etiketsiz CONFIRMED listesine DÜŞMEZ
+    assert r.uncovered_confirmed == []
+
+
+def test_unrelated_type_does_not_satisfy_label():
+    bench = Benchmark([_case("jwt", "/dash", "CONFIRMED")])
+    r = bench.evaluate([_f("idor", "/dash", "CONFIRMED")])
+    assert r.fn == 1 and r.tp == 0
+
+
+def test_type_aliases_share_cwe_with_coarse_label():
+    # Drift kapısı: her alias alt tipi, kaba etiketle AYNI CWE'yi taşımalı — eşleme yalnız
+    # taksonomik olarak aynı zafiyeti birleştirir, keyfi tipleri değil (döngüsellik savunması).
+    for coarse, subtypes in BENCHMARK_TYPE_ALIASES.items():
+        base_cwe = TYPE_META[coarse].cwe
+        for st in subtypes:
+            assert TYPE_META[st].cwe == base_cwe, f"{st} CWE'si {coarse} ile aynı değil"
 
 
 def test_to_dict_and_markdown_smoke():

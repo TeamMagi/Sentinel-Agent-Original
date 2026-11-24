@@ -110,6 +110,64 @@ async def test_nosql_rejected_without_error():
     assert f.verdict == base.REJECTED
 
 
+# --- NoSQL (JSON GÖVDESİNDE yapısal operatör — crAPI coupon_code sınıfı) ---
+
+_BODY_EP = Endpoint(method="POST", path_template="/api/coupon/validate",
+                    id_param="coupon_code", id_location="body")
+
+
+def _body_field(request):
+    import json
+    try:
+        return json.loads((request.content or b"").decode("utf-8", "replace")).get("coupon_code")
+    except Exception:
+        return None
+
+
+@pytest.mark.asyncio
+async def test_nosql_injects_structured_operator_object_in_json_body():
+    # Enjeksiyon isteği operatörü NESNE olarak gömmeli ({"$ne": null}), tırnaklı string DEĞİL —
+    # aksi halde Mongo değeri literal sayar ve enjeksiyon hiç tetiklenmez.
+    seen: list = []
+
+    def handler(request):
+        if request.method == "POST":
+            seen.append(_body_field(request))
+            v = _body_field(request)
+            if isinstance(v, dict) and "$ne" in v:
+                return httpx.Response(500, text="MongoServerError: unknown operator: $ne")
+        return httpx.Response(200, json={"valid": False})
+
+    scope = Scope(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/"],
+                  allowed_methods=["GET", "HEAD", "POST"], destructive_tests=True)
+    store = SessionStore(base_url=BASE, transport=httpx.MockTransport(handler))
+    s = store.create(Actor(name="user_A", auth=AuthState(headers={"Authorization": "Bearer A"})))
+    oracle = InjectionOracle(Replayer(PolicyEngine(scope)), BASE)
+    fs = await oracle.test_param(_BODY_EP, s, param="coupon_code", location="body")
+    await store.aclose_all()
+    f = next(x for x in fs if x.type == "nosqli")
+    assert f.verdict == base.CONFIRMED and f.evidence.negative_control is True
+    # gövdeye en az bir kez yapısal operatör nesnesi gönderildi (tırnaklı string değil)
+    assert any(isinstance(v, dict) and "$ne" in v for v in seen)
+
+
+@pytest.mark.asyncio
+async def test_nosql_body_rejected_when_value_coerced_to_string():
+    def handler(request):
+        if request.method == "POST" and isinstance(_body_field(request), dict):
+            return httpx.Response(400, json={"error": "coupon_code must be a string"})
+        return httpx.Response(200, json={"valid": False})
+
+    scope = Scope(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/"],
+                  allowed_methods=["GET", "HEAD", "POST"], destructive_tests=True)
+    store = SessionStore(base_url=BASE, transport=httpx.MockTransport(handler))
+    s = store.create(Actor(name="user_A", auth=AuthState(headers={"Authorization": "Bearer A"})))
+    oracle = InjectionOracle(Replayer(PolicyEngine(scope)), BASE)
+    fs = await oracle.test_param(_BODY_EP, s, param="coupon_code", location="body")
+    await store.aclose_all()
+    assert next(x for x in fs if x.type == "nosqli").verdict == base.REJECTED
+
+
 # --- SSTI (aritmetik değerlendirme kanıtı) ---
 
 _MUL = re.compile(r"(\d{3,})\D{1,3}(\d{3,})")  # {{a*b}} / ${a*b} / #{a*b} içinden a,b

@@ -61,6 +61,16 @@ def test_emits_nested_idor_for_dotted_body_id():
     assert not any(h.type == "nested_idor" for h in HypothesisGenerator().deterministic([flat]))
 
 
+def test_injection_hypothesis_targets_json_body_field():
+    # crAPI coupon sınıfı: gövde alanı için injection hipotezi param_location="body" taşımalı
+    # (oracle NoSQL operatörünü nesne olarak gömsün diye).
+    ep = Endpoint(method="POST", path_template="/community/api/v2/coupon/validate-coupon",
+                  id_param="coupon_code", id_location="body")
+    inj = [h for h in HypothesisGenerator().deterministic([ep]) if h.type == "injection"]
+    assert len(inj) == 1
+    assert inj[0].param == "coupon_code" and inj[0].param_location == "body"
+
+
 @pytest.mark.asyncio
 async def test_generate_merges_llm_and_dedupes():
     canned = [Hypothesis(type="idor", endpoint=Endpoint(path_template="/api/carts/{id}"))]

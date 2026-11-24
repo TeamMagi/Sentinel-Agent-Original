@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 77,
+    "tp": 78,
     "fp": 0,
     "fn": 0,
-    "tn": 143,
-    "total": 220
+    "tn": 145,
+    "total": 223
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -446,6 +446,30 @@
     },
     {
       "name": "nosqli-operator:near-miss",
+      "vuln_type": "nosqli",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "nosqli-body-operator:vulnerable",
+      "vuln_type": "nosqli",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "nosqli-body-operator:hardened",
+      "vuln_type": "nosqli",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "nosqli-body-operator:near-miss",
       "vuln_type": "nosqli",
       "category": "near_miss",
       "expected": "not:CONFIRMED",

@@ -268,13 +268,12 @@ A claim like "proven, deterministic, low false-positive" is worthless unless it 
 against **labelled ground truth**. Labels are set by observing the target's real HTTP behaviour,
 never by reading the tool's own output — otherwise the measurement is circular.
 
-**Three targets, 31 labelled cases.** Juice Shop was run on 2026-09-20 with a local LLM
-(Ollama `qwen3.8:27b`, so no target data leaves the machine); VAmPI and crAPI were re-run on
-2026-11-26 **rule-only** (`--llm none`):
+**Three targets, 32 labelled cases.** All three were re-run on 2026-11-26 **rule-only**
+(`--llm none`, so no target data goes to any model):
 
 | Target | Stack | Cases | Precision | Recall | FP-rate | TP/FN/FP/TN |
 |---|---|---|---|---|---|---|
-| OWASP Juice Shop | Node/Express | 7 (4 pos / 3 neg) | **100%** | **100%** | **0%** | 4/0/0/3 |
+| OWASP Juice Shop | Node/Express | 8 (4 pos / 4 neg) | **100%** | **100%** | **0%** | 4/0/0/4 |
 | VAmPI | Python/Flask | 12 (4 pos / 8 neg) | **100%** | **100%** | **0%** | 4/0/0/8 |
 | OWASP crAPI | Java/Python/Go microservices | 12 (5 pos / 7 neg) | **100%** | **100%** | **0%** | 5/0/0/7 |
 
@@ -290,9 +289,9 @@ Each target's committed reference run and exact reproduction commands are in
 **Read those numbers carefully** — the point of this project is honest measurement:
 
 - **Juice Shop is the *calibrated* target** — the labels were written while looking at it, so the
-  numbers are optimistic and **do not measure generalization**. The local LLM reproduces the same
-  `4/0/0/3` as the committed `--llm none` reference; the LLM only widens coverage, it does not
-  manufacture the verdicts.
+  numbers are optimistic and **do not measure generalization**. An earlier local-LLM run
+  (Ollama `qwen3.8:27b`, 2026-09-20) gave the same TP/FN as rule-only; the LLM only widens
+  coverage, it does not manufacture the verdicts.
 - **VAmPI is a second, differently-stacked target.** The tool proves a cross-user BOLA (one user
   reads another's private book secret), an error-based SQLi, the anonymous `_debug` data exposure
   and the registration-time mass assignment (`admin: true` accepted on `POST /users/v1/register`).

@@ -284,8 +284,13 @@ misses* — so these are calibrated numbers, not a generalization claim (see the
 measured with the endpoint list supplied. The Faz 0 baseline (2026-11-26, URL-only, automatic
 discovery only — [`benchmarks/kesif.result.md`](benchmarks/kesif.result.md)) found 15% of VAmPI's
 endpoints and 0% of crAPI's and Juice Shop's, so end-to-end vulnerability recall was **0%** on all
-three. Discovery, not detection, is the current bottleneck; it is measured against
-`benchmarks/*.surface.yaml` ground truth from now on.
+three. After Faz 1 (eight discovery sources, 2026-11-27, same URL-only method, no endpoint list):
+discovery recall is **100%** on VAmPI (end-to-end recall 50%), and **70.5%** on crAPI and **33.3%** on
+Juice Shop when the scope allows the site root (end-to-end recall 40% / 0%; 0 false positives
+throughout); with crAPI's path-prefix-restricted scope the root and its JS bundle are out of scope
+and recall stays at 0%. The remaining bottlenecks (scope prefixes, request budget, parameter-route
+look-alikes) are diagnosed in `kesif.result.md`; discovery is measured against
+`benchmarks/*.surface.yaml` ground truth.
 
 Each target's committed reference run and exact reproduction commands are in
 **[`benchmarks/juiceshop.result.md`](benchmarks/juiceshop.result.md)**,

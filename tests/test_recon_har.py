@@ -33,12 +33,27 @@ def test_templatizes_and_dedupes_ids():
     assert sum(1 for e in eps if e.path_template == "/api/orders/{id}") == 1
 
 
-def test_filters_static_write_and_foreign_host():
+def test_filters_static_and_foreign_host():
+    """Yazma methodları artık elenmez (güvenlik scope kapısında); statik ve 3. parti host elenir."""
     eps = HarRecon().parse(HAR, allowed_hosts=["localhost"])
     paths = {e.path_template for e in eps}
     assert "/main.js" not in paths                 # JSON değil → elendi
-    assert not any(e.method == "POST" for e in eps)  # read-only
     assert "/collect/{id}" not in paths            # host allowlist dışı
+
+
+def test_write_methods_loaded_but_not_options_trace():
+    har = {"log": {"entries": [
+        _entry("POST", "http://localhost:3000/api/orders"),
+        _entry("PUT", "http://localhost:3000/api/orders/5"),
+        _entry("DELETE", "http://localhost:3000/api/orders/6"),
+        _entry("OPTIONS", "http://localhost:3000/api/orders"),
+        _entry("TRACE", "http://localhost:3000/api/trace"),
+    ]}}
+    t = _triples(HarRecon().parse(har))
+    assert ("POST", "/api/orders") in t
+    assert ("PUT", "/api/orders/{id}") in t
+    assert ("DELETE", "/api/orders/{id}") in t
+    assert not any(m in ("OPTIONS", "TRACE") for m, _ in t)
 
 
 def test_with_id_on_har_endpoint():

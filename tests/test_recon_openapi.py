@@ -10,14 +10,16 @@ SPEC = {
 }
 
 
-def test_parse_discovers_read_endpoints_and_named_id():
+def test_parse_discovers_endpoints_and_named_id():
+    """Varsayılan tüm methodları kapsar (eskiden yalnız GET/HEAD; yazma güvenliği scope'ta)."""
     eps = OpenApiRecon().parse(SPEC)
     triples = {(e.method, e.path_template, e.id_param) for e in eps}
     assert ("GET", "/api/orders/{orderId}", "orderId") in triples
     assert ("GET", "/api/users", "id") in triples
     assert ("GET", "/api/admin/config", "id") in triples
-    # v0 read-only: POST toplanmaz
-    assert all(e.method in ("GET", "HEAD") for e in eps)
+    # Varsayılan artık yazma methodlarını da toplar (güvenlik scope kapısında) → POST da var
+    assert ("POST", "/api/orders/{orderId}", "orderId") in triples
+    assert all(e.method in ("GET", "HEAD", "POST", "PUT", "PATCH", "DELETE") for e in eps)
 
 
 def test_named_param_substituted_by_with_id():

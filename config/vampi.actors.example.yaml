@@ -13,6 +13,9 @@ actors:
       login_url: "http://localhost:5000/users/v1/login"
       credentials: { username: "name1", password: "REDACTED" }
       token_location: { kind: "bearer", from: "json:auth_token" }
+      # VAmPI JSON login bekler; varsayılan "auto" önce JSON dener ve burada form'a düşmez.
+      # OAuth2 password flow gibi form bekleyen uçlar için "auto" yeterlidir (bkz. actors.example.yaml).
+      body_format: "auto"
     own_object_ids: { books: "<name1-güncel-kitap-başlığı>", users: "name1" }
 
   - name: name2

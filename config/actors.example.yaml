@@ -8,6 +8,13 @@ actors:
       login_url: "http://localhost:3000/rest/user/login"
       credentials: { email: "a@test.local", password: "REDACTED" }
       token_location: { kind: "bearer", from: "json:authentication.token" }
+      # Login gövde biçimi: json | form | auto (varsayılan "auto"). "auto" önce JSON dener;
+      # yalnızca 415/422 yanıtında aynı isteği bir kez form (x-www-form-urlencoded) olarak
+      # tekrarlar. FastAPI/Django REST/Spring Security OAuth2 password akışları form bekler —
+      # bu yüzden çoğu hedefte elle ayar gerekmez. 401/403'te form denenmez (kilitlenme riski).
+      body_format: "auto"
+      # Yalnızca form modunda gövdeye eklenir (ör. OAuth2 grant_type/scope). JSON modunda yok sayılır.
+      # extra_form_fields: { grant_type: "password", scope: "read" }
       # Sepet id'si login yanıtındaki `bid` alanında gelir → DEĞER değil YOL ver; her aktörde aynı.
       own_ids_from: { basket: "json:authentication.bid" }
     # own_object_ids artık opsiyonel: kullanıcı id'si JWT'den, sepet login'den, diğerleri crawl'den

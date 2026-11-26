@@ -105,3 +105,78 @@ python -m scripts.benchmark --run runs/f1-<hedef>/run-* --expected benchmarks/<h
 # Juice Shop: python -m scripts.bootstrap_demo --base-url http://localhost:3000 --out <dizin>
 #   (a) <dizin>/scope.yaml  (b) aynı dosyada allowed_path_prefixes: ["/"]; --endpoints verilmez
 ```
+
+---
+
+# Faz 1 — yanlış uç düzeltmesi sonrası (T10)
+
+| | |
+|---|---|
+| **Tarih** | 2026-11-27 |
+| **Mod** | URL-only (`--endpoints/--openapi/--har` YOK) · `--mode active --llm none` · yer-gerçeği DEĞİŞTİRİLMEDİ · çıktılar `runs/f1b-<hedef>/` |
+| **Değişiklikler** | (1) `CatchAllGuard` yanıt-şablonu karşılaştırması: aynı status + (JSON ise aynı anahtar kümesi / değilse aday yolun yansıması çıkarıldıktan sonra benzer uzunluk); (2) türev/tahmin üreten `smart-wordlist` için `strict` mod: ek rastgele-harf ve rastgele-sayı baseline'ı, kök sayfa (SPA kabuğu) ile aynı gövde elenir, bilinen parametreli route'a (`/x/{id}`) düşen tek-segment türev alınmaz; (3) JS'ten gelen `GET {id}` adayı örnek id ile 405 veriyorsa gerçek method `Allow`'dan alınır; (4) Scanner, harf duyarsız kopyayı (`/api/products` ↔ `/api/Products`) wordlist çıktısından eler; (5) keşif toplam istek tavanı (bütçenin %30'u, en çok 600) ve scope önek uyarısı. |
+| **Koşum notu** | Juice Shop (b) için kopya scope'ta `max_wall_clock_sec` 300 → **900** yapıldı (`max_total_requests` 2000 aynı); bütçe yine de doldu (test kapsamı %10.9). crAPI/VAmPI scope'ları önceki tabloyla aynı. |
+
+## Sonuç
+
+"Ham" = metriğin ürettiği oran. "Doğrulanmış" = aşağıdaki listede HTTP ile gerçekten var olduğu doğrulanan uçlar (yer-gerçeğinde eksik) ve tohum `GET /` paydadan ve yanlışlardan çıkarılınca.
+
+| Hedef | Gerçek uç | Bulunan (doğru) | Uç-recall | Yanlış uç — ham | Yanlış uç — doğrulanmış hariç | Test kapsamı | Uçtan uca açık recall |
+|---|---|---|---|---|---|---|---|
+| VAmPI | 13 | 13 | **%100** (öncesi %100) | **%7.1** (1/14) (öncesi %13.3) | **%0** (0/13) | %69.2 | %50 (2/4) |
+| crAPI (b) kök önek | 44 | 32 | **%72.7** (öncesi %70.5) | **%27.3** (12/44) (öncesi %39.2) | **%3.0** (1/33) | %34.1 | %40 (2/5) |
+| Juice Shop (b) kök önek | 138 | 46 | **%33.3** | **%16.4** (9/55) (öncesi %51.1) | **%0** (0/46) | %10.9 (öncesi %2.9) | %0 (0/4; bütçe doldu) |
+
+(a) varyantları (mevcut dar scope) yeniden koşulmadı: kök kapsam dışı olduğundan sonuçları değişmez (crAPI %0, Juice %0). FP: tüm koşumlarda **0** (VAmPI TN 8/8, crAPI 7/7, Juice 4/4).
+
+## Elenen sahte uç sınıfları
+
+| Sınıf | Örnek | Neden geçiyordu | Nasıl elendi |
+|---|---|---|---|
+| Parametreli route'a düşen türev (hata yanıtı) | crAPI `/identity/api/v2/user/videos/{admin,all,count,export,list,me,search}` (gerçek route `/videos/{video_id}`: sayısal olmayan değere 400 JSON + değeri yansıtan `detail`) | Baseline (`sentinel-nonexistent-<hex>`) daha uzun ad yansıttığından gövde uzunluk farkı eşiği (48) bazen aşılıyordu | Aynı status + aynı JSON anahtar kümesi = aynı şablon (uzunluktan bağımsız) |
+| Yolu yansıtan hata sayfası | Juice `/rest/2fa/status/*`, `/rest/languages/*`, `/rest/memories/*`, `/rest/user/authentication-details/*`, `/rest/chats`, `/api/Card`, `/rest/chat`, `/rest/user`, `/rest/web3` ... (Express 500 "Unexpected path: <yol>", ~2.4 KB, yolla birlikte uzar) | Uzunluk farkı >48 → "farklı" sanılıyordu | Yolun/son segmentin yansıması karşılaştırmadan önce çıkarılır; ek harf/sayı baseline'ı |
+| Kayıt var olduğu için 200 veren parametre değeri | VAmPI `/users/v1/admin` (gerçek route `/users/v1/{username}`; `admin` kullanıcısı var) | Yanıt şekli 404 baseline'ından farklı | Bilinen `/users/v1/{username}` şablonuna düşen tek-segment türev alınmaz |
+| SPA kabuğu | Juice `/ftp/quarantines` (200, kök sayfayla birebir aynı HTML) | 403 baseline'ından farklıydı | Gövdesi kök sayfayla aynı olan 200 alınmaz |
+| Harf duyarsız kopya | Juice `/api/products`, `/api/users` (bilinen `/api/Products`, `/api/Users`) | Metrik ve known kümesi harf duyarlı | Scanner, bilinenin küçük-harf eşini wordlist çıktısından eler |
+| JS'ten yanlış method | crAPI `GET .../posts/{id}/comment` (gerçek yalnız POST) | `{id}`'li aday probe edilmiyordu | Örnek id'yle GET'e 405 gelirse `Allow`'daki gerçek method yazılır → `POST` (yer-gerçeğiyle eşleşti, recall +1) |
+
+Kaybedilen gerçek uç YOK: VAmPI 13/13; crAPI 31 → 32; Juice 46 → 46 (`/identity/api/auth/v2/check-otp` ve `/workshop/api/mechanic/service_request` korundu; ikisinin de gerçek olduğu HTTP ile doğrulandı: check-otp GET→405 `Allow: POST`, service_request GET→200).
+
+## Yer-gerçeği eksikleri (HTTP ile doğrulandı)
+
+Bunlar metrikte "yanlış" sayılır ama hedefte GERÇEKTEN vardır; yer-gerçeği dosyaları değiştirilmedi.
+
+**crAPI (10):**
+- `GET /.well-known/jwks.json` → 200
+- `GET /workshop/api/mechanic/download_report` → 400 `Parameter 'filename' is required` (route var)
+- `GET /workshop/api/mechanic/service_request` → 200 (liste)
+- `GET /workshop/api/mechanic/service_request/{id}` → 200 (id=1)
+- `GET /workshop/api/mechanic/service_request/{id}/comment` → 200 (`GET, POST`)
+- `GET /workshop/api/merchant/service_requests/{id}` → 200 (herhangi bir değere)
+- `POST /identity/api/auth/unlock`, `POST /identity/api/auth/verify`, `POST /identity/api/v2/user/change-phone-number`, `POST /identity/api/v2/user/verify-phone-otp` → GET'e 405 `Allow: POST` (yalnız GET ile doğrulandı)
+
+Kalan gerçek yanlış (1): `GET /workshop/api/shop/orders` — yol var ama GET 500 veriyor (gerçek method POST; JS'te GET görünüyor, 405 vermediği için method düzeltilemedi). Tohum `GET /` kök sayfadır (var).
+
+**Juice Shop (9):** `GET /` (tohum), `/.well-known/security.txt` (200), `/ftp` (200), `/ftp/{acquisitions,announcement_encrypted,legal}.md` (200), `/ftp/incident-support.kdbx` (200), `/ftp/quarantine` (200), `/ftp/quarantine/{id}` (örn. `juicy_malware_linux_amd_64.url` 200). JS'ten gelen 3 "yanlış" (`/rest/chat`, `/rest/user`, `/rest/web3`) GERÇEKTEN YOK (500 "Unexpected path") — artık elendi.
+
+**VAmPI (1):** `GET /createdb` spec'te var (GET → 200 "Database populated"; scope `*/createdb*` yasakladığı için tarama bunu test etmez). Not: bu doğrulama sırasında tek bir referans GET atıldı (kalibrasyon hedefi, veritabanını yeniden doldurur).
+
+## Keşif bütçesi ve scope uyarısı
+
+- `SurfaceDiscovery` toplam istek tavanı: tarama bütçesi `max_total_requests`'in %30'u, en çok 600, en az 20. `probe` tavandan sonra istek göndermez; kalan kaynaklar atlanır ve `[keşif] keşif istek tavanına (N) ulaşıldı; kalan kaynaklar atlandı: ...` yazılır. Bu koşumlarda (2000 bütçe) tavan 600. Juice'ta test aşaması yine 2000'i doldurdu (test kapsamı %2.9 → %10.9; bulunan uç sayısı 94 → 55).
+- Scope `allowed_path_prefixes` kök `/`'yi içermiyorsa `[keşif] uyarı: ...` basılır (scope genişletilmez).
+
+## Kalan yanlış uçlar ve nedenleri
+
+- crAPI `GET /workshop/api/shop/orders`: gerçek method POST; GET 500 döndüğü için 405'e dayalı düzeltme tetiklenmedi.
+- Diğer tüm "yanlışlar" (ham oranı şişiren) gerçek ama yer-gerçeğinde eksik uçlardır; yer-gerçeklerinin genişletilmesi ayrı iştir.
+- Ölçüm her hedef için bir kez yapıldı (tekrar koşum varyansı ölçülmedi). Ek baseline'lar rastgele olduğundan çok nadir bir çakışma kuramsal olarak mümkündür.
+
+## Yeniden üretme
+
+```bash
+python -m scripts.run_scan --scope <scope.yaml> --actors <actors.yaml> --mode active --llm none --out runs/f1b-<hedef>
+python -m scripts.benchmark --run runs/f1b-<hedef>/run-* --expected benchmarks/<hedef>.expected.yaml \
+    --surface benchmarks/<hedef>.surface.yaml --target "<hedef> (URL-only, Faz 1 düzeltme)"
+# crAPI (b): scope kopyasında allowed_path_prefixes: ["/"]; Juice (b): aynı + max_wall_clock_sec: 900
+```

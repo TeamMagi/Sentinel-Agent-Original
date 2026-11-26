@@ -21,6 +21,11 @@ endpoints:
     id_param: id
     id_location: path
     resource_key: users
+    body:
+      username: "snt_{rand}"
+      password: "Snt!{rand}9"
+      email: "snt_{rand}@example.com"
+    readback: ["/users/v1/_debug"]
 
   - method: GET                       # sqli: string-format sorgu → error-based (tek tırnak)
     path_template: "/users/v1/{username}"

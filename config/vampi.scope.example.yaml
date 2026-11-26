@@ -10,6 +10,7 @@ scope:
   denied_path_patterns: ["*/createdb*"]   # seed endpoint'i — taranırsa test verisini sıfırlar
   allowed_methods: ["GET", "HEAD", "POST", "PUT"]   # DELETE YOK: yıkıcı BFLA testi test kullanıcılarını silebilir
   destructive_tests: false
+  safe_write_paths: ["/users/v1/register"]   # test kullanıcısı oluşturur (silinmez)
   external_network: false
 
 budget:

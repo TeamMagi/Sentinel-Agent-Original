@@ -6,11 +6,13 @@
 
 | | |
 |---|---|
-| **Tarih** | 2026-09-20 |
+| **Tarih** | 2026-11-26 |
 | **Hedef** | erev0s/VAmPI ("vulnerable" mod) @ `http://localhost:5000` |
-| **Kod sürümü** | `b13e33c` (anon public-by-design kapısı + recon scope dayanıklılığı dahil) |
-| **LLM** | `--llm ollama --llm-model qwen3.8:27b` — **yerel model**, hedef verisi buluta çıkmaz |
+| **Kod sürümü** | `0665c8d` |
+| **LLM** | `--llm none` — **kural-only** |
+| **Scope** | `destructive_tests: false` + `safe_write_paths: ["/users/v1/register"]` (test kullanıcısı oluşturur, silinmez) |
 | **Vaka seti** | [`vampi.expected.yaml`](vampi.expected.yaml) — 12 etiketli vaka (4 pozitif / 8 negatif) |
+| **Önceki** | 2026-09-20 `b13e33c` (Ollama qwen3.8:27b): recall %50 (2/4) |
 
 ## Yeniden üretme
 
@@ -31,33 +33,36 @@ curl -s http://localhost:5000/createdb
 
 # 3) tara (seed'i TEKRAR çalıştırma — kitap başlıkları değişir)
 python -m scripts.run_scan --scope vampi/scope.yaml --actors vampi/actors.yaml \
-    --endpoints vampi/endpoints.yaml --mode active --llm ollama --llm-model qwen3.8:27b \
+    --endpoints vampi/endpoints.yaml --mode active --llm none \
     --out runs/vampi/
 
 # 4) ölç
 python -m scripts.benchmark --run runs/vampi/run-* \
-    --expected benchmarks/vampi.expected.yaml --target "VAmPI (Ollama qwen3.8:27b)"
+    --expected benchmarks/vampi.expected.yaml --target "VAmPI (--llm none)"
 ```
+
+> Hazır örnekler: `config/vampi.*.example.yaml` — register girdisi `body` (`snt_{rand}`) +
+> `readback` (`/users/v1/_debug`) taşır; scope `safe_write_paths` register POST'una izin verir.
 
 ---
 
-**Hedef:** `VAmPI (Ollama qwen3.8:27b)`
+**Hedef:** `VAmPI (--llm none)`
 
 | Metrik | Değer |
 |---|---|
 | Precision | **100.0%** |
-| Recall | **50.0%** |
+| Recall | **100.0%** |
 | False-positive oranı | **0.0%** |
-| F1 | 66.7% |
-| TP / FN / FP / TN | 2 / 2 / 0 / 8 |
+| F1 | 100.0% |
+| TP / FN / FP / TN | 4 / 0 / 0 / 8 |
 
 ## Vakalar
 
 | Vaka | Beklenen | Gerçek | Sonuç |
 |---|---|---|---|
-| `excessive_data_exposure @ GET /users/v1/_debug` | CONFIRMED | absent | ❌ FN |
+| `excessive_data_exposure @ GET /users/v1/_debug` | CONFIRMED | CONFIRMED | ✅ TP |
 | `idor @ GET /books/v1/{book_title}` | CONFIRMED | CONFIRMED | ✅ TP |
-| `mass_assignment @ POST /users/v1/register` | CONFIRMED | absent | ❌ FN |
+| `mass_assignment @ POST /users/v1/register` | CONFIRMED | CONFIRMED | ✅ TP |
 | `sqli @ GET /users/v1/{username}` | CONFIRMED | CONFIRMED | ✅ TP |
 | `idor @ GET /users/v1/{username}` | not_vulnerable | REJECTED | ✅ TN |
 | `state_change_authz @ PUT /users/v1/{username}/email` | not_vulnerable | absent | ✅ TN |
@@ -71,6 +76,9 @@ python -m scripts.benchmark --run runs/vampi/run-* \
 ## Etiketsiz CONFIRMED bulgular (metriklere katılmaz)
 
 - `excessive_data_exposure @ GET /books/v1/{book_title}`
+- `excessive_data_exposure @ GET /users/v1`
+- `exposure @ GET /openapi.json`
+- `info_leak @ GET /`
 - `info_leak @ GET /users/v1/{username}`
 - `jwt @ GET /users/v1/_debug`
 - `rate_limit @ GET /users/v1/_debug`
@@ -80,18 +88,15 @@ python -m scripts.benchmark --run runs/vampi/run-* \
 
 ## Bu sayı ne demek, ne demek DEĞİL
 
-- **Precision/recall etiketli 12 vaka ÜZERİNDEDİR** — aracın tüm çıktısı üzerinde değil. Koşum
-  toplam 70 bulgu üretti; 17'si CONFIRMED, bunların 5'i etiket setinde yok (yukarıda listeli) ve
-  metriklere **katılmaz**.
-- **FP-rate %0:** 8 negatif vakanın ("FP kapanı") hiçbirinde yanlış CONFIRMED çıkmadı. Özellikle
-  `idor @ /users/v1/{username}` (e-postayı anonim de dönen public-by-design endpoint) doğru şekilde
-  **REJECTED** oldu — bu, benchmark sırasında bulunup düzeltilen bir hataydı (IdorOracle'a
-  **anonim erişim kapısı** eklendi: "sızan" veri auth'suz da erişilebiliyorsa yetki sınırı yoktur).
-- **Recall %50:** 2 gerçek zafiyet kanıtlandı (cross-user BOLA `books/{book_title}`; error-based
-  SQLi `users/{username}`). Kaçan 2 vaka (`_debug` aşırı-veri ifşası, `register` mass-assignment)
-  **id'siz endpoint**lerdir; deterministik planlayıcı bu tür endpoint'lere IDOR/edx/mass-assignment
-  hipotezi üretmez (bkz. planner.py — hipotezler `has_id` endpoint'lere bağlı) ve LLM de explicit-
-  endpoint modunda bu boşluğu kapatmadı. Bu bir **kapsama** sınırı, doğruluk sınırı değil.
-- VAmPI **kalibre** bir hedeftir (etiketler 2026-09-16'da canlı HTTP ile doğrulandı, bkz.
-  `vampi.expected.yaml` başlığı) → metrikler iyimserdir ve **genellemeyi ölçmez**. Genelleme
-  yalnızca holdout hedefte ölçülür (bkz. [`suite.yaml`](suite.yaml)).
+- **Precision/recall etiketli 12 vaka ÜZERİNDEDİR.** Koşum toplam 76 bulgu üretti, 17'si CONFIRMED;
+  etiket setinde olmayanlar (yukarıda) metriklere **katılmaz**.
+- **%50 → %100 değişimini getirenler:**
+  - `excessive_data_exposure @ _debug` — id'siz koleksiyon endpoint'lerine edx hipotezi üretiliyor.
+  - `mass_assignment @ register` — yeni **create-time** oracle: kontrol kaydı (ayrıcalıksız) ve
+    saldırı kaydı (`admin: true` vb.) oluşturulur, readback'te (`_debug`) karşılaştırılır. Kontrol
+    kaydı da ayrıcalıklıysa (varsayılan) CONFIRMED **verilmez** — near-miss ikiziyle korunur.
+- **FP-rate %0:** 8 negatif vakanın hiçbiri yanlış CONFIRMED almadı (ör. public-by-design
+  `/users/v1/{username}` IDOR kapanı REJECTED).
+- Kural-only koşum artık eski yerel-LLM koşumundan daha yüksek recall veriyor: hipotez kapsamı
+  deterministik planlayıcıya taşındı.
+- VAmPI **kalibre** bir hedeftir → %100 **genelleme kanıtı DEĞİLDİR**; bkz. [`suite.yaml`](suite.yaml).

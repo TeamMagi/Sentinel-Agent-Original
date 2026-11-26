@@ -6,21 +6,23 @@
 
 | | |
 |---|---|
-| **Tarih** | 2026-11-24 |
+| **Tarih** | 2026-11-26 |
 | **Hedef** | OWASP crAPI (resmi compose yığını) @ `http://127.0.0.1:8888` |
-| **Kod sürümü** | `747cbe6` (koşum) · tip-alias puanlaması 2026-11-24 |
+| **Kod sürümü** | `0665c8d` |
 | **LLM** | `--llm none` — **kural-only**; hipotezleri deterministik planlayıcı üretir, verdict'i oracle verir |
+| **Scope** | `destructive_tests: false` + `safe_write_paths` (validate-coupon, contact_mechanic, login — yalnız POST) |
 | **Vaka seti** | [`crapi.expected.yaml`](crapi.expected.yaml) — 12 etiketli vaka (5 pozitif / 7 negatif) |
-| **Tekrar** | Aynı `findings.json`; `jwt` kaba etiketi `jwt_privilege_escalation` alt tipiyle eşlendi (CWE-347 taksonomisi) → bu vaka FN→TP, recall %20→%40 |
+| **Önceki** | 2026-11-24 `747cbe6`: recall %40 (2/5) |
 
 ## Yeniden üretme
 
 ```bash
 # 1) crAPI'yi kaldır (resmi docker-compose) ve iki hesap kaydet: sentinel_c1 / sentinel_c2.
 #    Her hesapla bir topluluk gönderisi oluştur, postId'leri not et.
+#    Önce DB'ler (postgres/mongo) ayağa kalksın; community/workshop "healthy" olmadan taramayın.
 
 # 2) config'leri hazırla (parolalar .secrets/ disiplinine göre)
-cp config/crapi.scope.example.yaml     config/crapi.scope.yaml
+cp config/crapi.scope.example.yaml     config/crapi.scope.yaml   # safe_write_paths dahil
 cp config/crapi.actors.example.yaml    config/crapi.actors.yaml
 cp config/crapi.endpoints.example.yaml config/crapi.endpoints.yaml
 #    actors.own_object_ids.posts → c1/c2'nin postId'leri
@@ -34,27 +36,26 @@ python -m scripts.benchmark --run runs/crapi/run-*     --expected benchmarks/cra
 
 ---
 
-
 **Hedef:** `crAPI (--llm none)`
 
 | Metrik | Değer |
 |---|---|
 | Precision | **100.0%** |
-| Recall | **40.0%** |
+| Recall | **100.0%** |
 | False-positive oranı | **0.0%** |
-| F1 | 57.1% |
-| TP / FN / FP / TN | 2 / 3 / 0 / 7 |
+| F1 | 100.0% |
+| TP / FN / FP / TN | 5 / 0 / 0 / 7 |
 
 ## Vakalar
 
 | Vaka | Beklenen | Gerçek | Sonuç |
 |---|---|---|---|
-| `ssrf @ POST /workshop/api/merchant/contact_mechanic` | CONFIRMED | REJECTED | ❌ FN |
-| `nosqli @ POST /community/api/v2/coupon/validate-coupon` | CONFIRMED | absent | ❌ FN |
-| `excessive_data_exposure @ GET /community/api/v2/community/posts/recent` | CONFIRMED | REJECTED | ❌ FN |
+| `ssrf @ POST /workshop/api/merchant/contact_mechanic` | CONFIRMED | CONFIRMED | ✅ TP |
+| `nosqli @ POST /community/api/v2/coupon/validate-coupon` | CONFIRMED | CONFIRMED | ✅ TP |
+| `excessive_data_exposure @ GET /community/api/v2/community/posts/recent` | CONFIRMED | CONFIRMED | ✅ TP |
 | `idor @ GET /community/api/v2/community/posts/{postId}` | CONFIRMED | CONFIRMED | ✅ TP |
 | `jwt @ GET /identity/api/v2/user/dashboard` | CONFIRMED | CONFIRMED | ✅ TP |
-| `unauthorized_access @ POST /identity/api/auth/login` | not_vulnerable | absent | ✅ TN |
+| `unauthorized_access @ POST /identity/api/auth/login` | not_vulnerable | INCONCLUSIVE | ✅ TN |
 | `idor @ POST /identity/api/auth/signup` | not_vulnerable | absent | ✅ TN |
 | `unauthorized_access @ POST /identity/api/auth/v3/check-otp` | not_vulnerable | absent | ✅ TN |
 | `unauthorized_access @ GET /identity/api/v2/user/dashboard` | not_vulnerable | INCONCLUSIVE | ✅ TN |
@@ -62,39 +63,26 @@ python -m scripts.benchmark --run runs/crapi/run-*     --expected benchmarks/cra
 | `bfla @ POST /workshop/api/mechanic/mechanic_report` | not_vulnerable | absent | ✅ TN |
 | `idor @ GET /workshop/api/mechanic/receive_report` | not_vulnerable | absent | ✅ TN |
 
+## Etiketsiz CONFIRMED bulgular (metriklere katılmaz)
+
+- `rate_limit @ POST /workshop/api/merchant/contact_mechanic`
+
 ---
 
 ## Bu sayı ne demek, ne demek DEĞİL
 
-- **Precision/recall etiketli 12 vaka ÜZERİNDEDİR.** Koşum toplam 46 bulgu üretti, bunların 4'ü
-  CONFIRMED. Etiket setinde olmayan bulgular metriklere **katılmaz**.
-- **FP-rate %0:** 7 negatif vakanın ("FP kapanı") hiçbiri yanlış CONFIRMED almadı. Bunlara
-  405 dönen `mechanic_report` BFLA kapanı ve obje erişimi olmayan `receive_report` dahil.
-- **TP (2):**
-  - `posts/{postId}` BOLA **iki yönde** kanıtlandı: c2, c1'in gönderisinden c1'in e-postasını
-    okuyabiliyor, c1 de c2'ninkinden (R-B1 çift-yönlü matris).
-  - `jwt @ dashboard` — alg=none imzasız token kabulü iki yönde CONFIRMED. Araç bunu daha spesifik
-    `jwt_privilege_escalation` (CWE-347) tipiyle raporlar; kaba `jwt` etiketi bu alt tiple eşlenir
-    (`BENCHMARK_TYPE_ALIASES`). Eşleme SABİT bir CWE taksonomisidir, araç çıktısından bağımsız
-    tanımlıdır (sonuç-başına relabel değil → döngüsellik yok); bir drift testi alt tipin kaba etiketle
-    aynı CWE'yi taşıdığını zorlar.
-- **Kaçan 3 vaka, nedenleriyle:**
-  - `ssrf @ contact_mechanic` — **REJECTED.** In-band prob yalnız bulut metadata adresini
-    (`169.254.169.254`) ve imzalarını deniyordu; crAPI'nin loopback'ten çekip
-    `response_from_mechanic_api` ile yansıttığı içerik denenmiyordu. _(Kod o günden beri değişti:
-    (1) OOB collector yokken artık REJECTED değil INCONCLUSIVE — `65b9aef`; (2) gövde-id sink'ine
-    kapalı bir loopback portu (`http://127.0.0.1:1/`) gönderip sunucunun KENDİ bağlantı-hatası
-    imzasını kontrol-differential'ıyla yakalayan loopback probu eklendi — zararsız, veri çekmeyen,
-    OOB gerektirmeyen in-band kanıt. Bu stored `findings.json` bu eklerden önce üretildi; yeni
-    canlı koşum bu vakayı yakalamalı.)_
-  - `excessive_data_exposure @ posts/recent` — **REJECTED.** BOPLA oracle'ı o koşumda yalnız
-    sır/kimlik bilgisi alanlarını (password, secret, apikey…) arıyordu; başka kullanıcıların
-    `author.email`/`vehicleid` PII'si (sır değil) bu kümede yoktu. _(Kod o günden beri değişti:
-    `ForeignPiiScanner` koleksiyonda başka kullanıcıların PII'sini de kanıtlıyor — `38b3fef`; yeni
-    canlı koşum bu vakayı yakalamalı.)_
-  - `nosqli @ validate-coupon` — **denenmedi.** Kural-only planlayıcı bu POST gövdesine
-    operatör enjeksiyonu hipotezi üretmedi. _(Kod o günden beri değişti: planner body-id endpoint'e
-    `param_location=body` injection hipotezi üretiyor ve oracle operatörü NESNE olarak gömüyor
-    (`{"coupon_code":{"$ne":null}}`) — `e8c20ce`; yeni canlı koşum gerekiyor.)_
-- crAPI **kalibre** bir hedeftir (etiketler 2026-09-16'da canlı HTTP ile doğrulandı). Metrikler
-  genellemeyi ölçmez; o yalnızca holdout hedefte ölçülür (bkz. [`suite.yaml`](suite.yaml)).
+- **Precision/recall etiketli 12 vaka ÜZERİNDEDİR.** Koşum toplam 64 bulgu üretti, 8'i CONFIRMED;
+  etiket setinde olmayanlar metriklere **katılmaz**.
+- **%40 → %100 değişimini getirenler (2026-11-26):**
+  - `excessive_data_exposure @ posts/recent` — `ForeignPiiScanner` başka kullanıcıların PII'sini kanıtlıyor.
+  - `ssrf @ contact_mechanic` — loopback probu + "could not connect" bağlantı-hatası imzası
+    (kontrol değeri imza taşımaz → differential).
+  - `nosqli @ validate-coupon` — hata-mesajsız **operatör differential'ı**: `$eq` literal ile aynı
+    yanıtı, `$ne` farklı 2xx yanıtı veriyor. crAPI motor hatası basmaz; eski error-based yol bu
+    yüzden kaçırıyordu.
+  - Asıl engel kapsamdı: `destructive_tests` kapalıyken POST'lar sessizce engelleniyordu. Artık
+    operatör `safe_write_paths` ile yalnız POST'u açabiliyor; engellenen uçlar `[kapsam]` uyarısı
+    olarak raporlanıyor (bu koşumda: `POST /workshop/api/mechanic/mechanic_report`).
+- **FP-rate %0:** 7 negatif vakanın hiçbiri yanlış CONFIRMED almadı.
+- crAPI **kalibre** bir hedeftir: düzeltmeler bu hedefteki kaçan vakalara bakılarak yapıldı →
+  %100 **genelleme kanıtı DEĞİLDİR**. Genelleme yalnız holdout hedefte ölçülür (bkz. [`suite.yaml`](suite.yaml)).

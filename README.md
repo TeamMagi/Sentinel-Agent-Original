@@ -268,15 +268,18 @@ A claim like "proven, deterministic, low false-positive" is worthless unless it 
 against **labelled ground truth**. Labels are set by observing the target's real HTTP behaviour,
 never by reading the tool's own output — otherwise the measurement is circular.
 
-**Three targets, 31 labelled cases.** Juice Shop and VAmPI were run on 2026-09-20 with a local LLM
-(Ollama `qwen3.8:27b`, so no target data leaves the machine); crAPI was run on 2026-11-24
-**rule-only** (`--llm none`):
+**Three targets, 31 labelled cases.** Juice Shop was run on 2026-09-20 with a local LLM
+(Ollama `qwen3.8:27b`, so no target data leaves the machine); VAmPI and crAPI were re-run on
+2026-11-26 **rule-only** (`--llm none`):
 
 | Target | Stack | Cases | Precision | Recall | FP-rate | TP/FN/FP/TN |
 |---|---|---|---|---|---|---|
 | OWASP Juice Shop | Node/Express | 7 (4 pos / 3 neg) | **100%** | **100%** | **0%** | 4/0/0/3 |
-| VAmPI | Python/Flask | 12 (4 pos / 8 neg) | **100%** | 50% | **0%** | 2/2/0/8 |
-| OWASP crAPI | Java/Python/Go microservices | 12 (5 pos / 7 neg) | **100%** | 40% | **0%** | 2/3/0/7 |
+| VAmPI | Python/Flask | 12 (4 pos / 8 neg) | **100%** | **100%** | **0%** | 4/0/0/8 |
+| OWASP crAPI | Java/Python/Go microservices | 12 (5 pos / 7 neg) | **100%** | **100%** | **0%** | 5/0/0/7 |
+
+VAmPI and crAPI went from 50% / 40% recall to 100% after fixes made *while looking at their
+misses* — so these are calibrated numbers, not a generalization claim (see the notes below).
 
 Each target's committed reference run and exact reproduction commands are in
 **[`benchmarks/juiceshop.result.md`](benchmarks/juiceshop.result.md)**,
@@ -290,30 +293,25 @@ Each target's committed reference run and exact reproduction commands are in
   numbers are optimistic and **do not measure generalization**. The local LLM reproduces the same
   `4/0/0/3` as the committed `--llm none` reference; the LLM only widens coverage, it does not
   manufacture the verdicts.
-- **VAmPI is a second, differently-stacked target** and shows the honest gap. The tool *proved* a
-  cross-user BOLA (one user reads another's private book secret) and an error-based SQLi, and it
-  cleared every negative trap (0 false positives). It still **misses two** vulnerabilities on
-  id-less endpoints the deterministic planner doesn't generate hypotheses for (excessive-data on
-  `GET /users/v1/_debug`, mass-assignment on `POST /users/v1/register`) — a coverage limit, not a
-  correctness one. Benchmarking here also surfaced a real bug: the IDOR oracle used to confirm
-  `GET /users/v1/{username}`, which is public-by-design (an anonymous request returns the same
-  email). We fixed it by adding an **anonymous-access gate** — if the "leaked" data is reachable
-  without auth, there is no authorization boundary, so it is no longer a finding.
-- **crAPI is the hardest of the three and shows the largest honest gap.** The
-  cross-user BOLA on `posts/{postId}` is proven in both directions and all 7 traps are cleared. The
-  `alg=none` JWT bypass is also confirmed: the tool reports it under the more specific
-  `jwt_privilege_escalation` type, which the coarse `jwt` label now matches through a fixed
-  CWE-347 alias taxonomy (`BENCHMARK_TYPE_ALIASES`) — defined independently of the output, not a
-  per-result relabel, and a drift test forces each subtype to share the coarse label's CWE. That
-  leaves three honest misses in the stored run, each now addressed in code after the run (so a fresh
-  live run is needed to re-measure): the SSRF probe only tried cloud metadata without an OOB collector
-  — now it returns INCONCLUSIVE rather than REJECTED and carries a benign loopback connection-error
-  differential (points the sink at a closed `127.0.0.1` port and reads the server's own
-  connection-refused signature against a clean control — in-band, exfiltrates nothing); the
-  excessive-data oracle looked only for secret-named fields rather than other users' PII — now
-  extended with a `ForeignPiiScanner`; and the rule-only planner never routed NoSQL operator
-  injection to the coupon body — now it emits a `param_location=body` injection hypothesis and the
-  oracle embeds the operator as a structured object rather than a quoted string.
+- **VAmPI is a second, differently-stacked target.** The tool proves a cross-user BOLA (one user
+  reads another's private book secret), an error-based SQLi, the anonymous `_debug` data exposure
+  and the registration-time mass assignment (`admin: true` accepted on `POST /users/v1/register`).
+  The last one needed a new **create-time** oracle: it creates a control record and an attack
+  record from a body template, reads both back, and only confirms when the privileged field differs
+  from the control (a default-admin app is a near-miss twin, not a finding). Benchmarking here
+  earlier surfaced a real bug: the IDOR oracle used to confirm `GET /users/v1/{username}`, which is
+  public-by-design — fixed with an **anonymous-access gate**.
+- **crAPI is the hardest of the three.** BOLA on `posts/{postId}` (both directions), the `alg=none`
+  JWT bypass (reported as `jwt_privilege_escalation`, matched to the coarse `jwt` label via a fixed
+  CWE-347 alias taxonomy), foreign-user PII exposure, SSRF and NoSQLi are all proven; all 7 traps
+  are cleared. The 2026-11-26 re-measure found the main recall loss was **coverage, not
+  correctness**: with `destructive_tests: false` every POST was silently blocked, so the SSRF and
+  NoSQLi sinks were never exercised. Operators can now open specific read-only POSTs with
+  `scope.safe_write_paths` (POST only, matched on both wire and decoded paths), and blocked
+  endpoints are reported as `[kapsam]` coverage warnings instead of disappearing. NoSQLi needed an
+  **operator differential** (`$eq` behaves like the literal, `$ne` returns a different 2xx body),
+  because crAPI never prints a Mongo error; SSRF needed the server's own "could not connect"
+  wording against a clean control.
 - **FP-rate is measured against the negative "trap" cases**, not the tool's whole output; a 0% here
   means no trap was wrongly confirmed, not a guarantee the tool never errs.
 - All three targets are **calibrated, not holdout**. True generalization needs an untouched holdout

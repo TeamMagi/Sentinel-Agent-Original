@@ -138,6 +138,66 @@ async def test_ssrf_loopback_not_confirmed_when_control_also_errors():
     assert fs[0].verdict == base.INCONCLUSIVE
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("msg", [
+    "Could not connect to mechanic api.",
+    "Failed to connect to upstream service",
+    "Unable to connect to 127.0.0.1:1",
+])
+async def test_ssrf_confirmed_on_connect_error_signatures(msg):
+    # crAPI contact_mechanic sınıfı: sunucu 127.0.0.1:1'e bağlanmayı dener ve 400 "Could not
+    # connect ..." döner; URL olmayan kontrol değerinde ise URL şema hatası (imzasız) döner.
+    def handler(request):
+        body = (request.content or b"").decode("utf-8", "replace")
+        if "127.0.0.1:1" in body:
+            return httpx.Response(400, json={"message": msg})
+        return httpx.Response(400, json={"message": "Invalid URL 'sentinel-not-a-url': No scheme supplied"})
+
+    store, s, replayer = _store(handler)
+    fs = await SsrfDetector(replayer, BASE).run(CONTACT_EP, s)
+    await store.aclose_all()
+    assert fs[0].verdict == base.CONFIRMED
+    assert fs[0].evidence.negative_control is True and fs[0].evidence.leaked_markers
+
+
+@pytest.mark.asyncio
+async def test_ssrf_connect_error_hardened_not_confirmed():
+    def handler(request):
+        return httpx.Response(400, json={"message": "mechanic_api must be an allowed host"})
+
+    store, s, replayer = _store(handler)
+    fs = await SsrfDetector(replayer, BASE).run(CONTACT_EP, s)
+    await store.aclose_all()
+    assert fs[0].verdict != base.CONFIRMED
+
+
+@pytest.mark.asyncio
+async def test_ssrf_connect_error_near_miss_control_carries_sig_not_confirmed():
+    # Near-miss: sunucu her girdiye (kontrol dahil) 502 "Could not connect to upstream" döner →
+    # kontrol imza taşıdığı için nokta atlanmalı ve CONFIRMED çıkmamalı.
+    def handler(request):
+        return httpx.Response(502, json={"message": "Could not connect to upstream"})
+
+    store, s, replayer = _store(handler)
+    fs = await SsrfDetector(replayer, BASE).run(CONTACT_EP, s)
+    await store.aclose_all()
+    assert fs[0].verdict != base.CONFIRMED
+
+
+@pytest.mark.asyncio
+async def test_ssrf_connect_error_echo_url_without_signature_not_confirmed():
+    def handler(request):
+        body = (request.content or b"").decode("utf-8", "replace")
+        if "127.0.0.1:1" in body:
+            return httpx.Response(400, json={"message": "rejected url http://127.0.0.1:1/"})
+        return httpx.Response(400, json={"message": "rejected url sentinel-not-a-url"})
+
+    store, s, replayer = _store(handler)
+    fs = await SsrfDetector(replayer, BASE).run(CONTACT_EP, s)
+    await store.aclose_all()
+    assert fs[0].verdict != base.CONFIRMED
+
+
 # --- RFI (blind OOB) ---
 
 @pytest.mark.asyncio

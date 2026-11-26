@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 83,
+    "tp": 84,
     "fp": 0,
     "fn": 0,
-    "tn": 155,
-    "total": 238
+    "tn": 157,
+    "total": 241
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -826,6 +826,30 @@
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "ssrf-connect-error:vulnerable",
+      "vuln_type": "ssrf",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "ssrf-connect-error:hardened",
+      "vuln_type": "ssrf",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "ssrf-connect-error:near-miss",
+      "vuln_type": "ssrf",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
       "passed": true
     },
     {

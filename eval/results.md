@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 238 · **TP/FP/FN/TN:** 83/0/0/155
+**Vaka:** 241 · **TP/FP/FN/TN:** 84/0/0/157
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -111,6 +111,9 @@
 | ssrf-loopback-reflect:vulnerable | ssrf | positive | CONFIRMED | CONFIRMED | ✅ |
 | ssrf-loopback-reflect:hardened | ssrf | negative | not:CONFIRMED | INCONCLUSIVE | ✅ |
 | ssrf-loopback-reflect:near-miss | ssrf | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| ssrf-connect-error:vulnerable | ssrf | positive | CONFIRMED | CONFIRMED | ✅ |
+| ssrf-connect-error:hardened | ssrf | negative | not:CONFIRMED | REJECTED | ✅ |
+| ssrf-connect-error:near-miss | ssrf | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | prototype-pollution-merge:vulnerable | prototype_pollution | positive | CONFIRMED | CONFIRMED | ✅ |
 | prototype-pollution-merge:hardened | prototype_pollution | negative | not:CONFIRMED | REJECTED | ✅ |
 | prototype-pollution-merge:near-miss | prototype_pollution | near_miss | not:CONFIRMED | REJECTED | ✅ |

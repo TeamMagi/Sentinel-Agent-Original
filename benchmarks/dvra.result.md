@@ -33,3 +33,29 @@ Kalibre üç hedefin (Juice Shop, VAmPI, crAPI) üçü de JSON login kullandığ
 Form-login desteği eklenip bu hedefte yeniden ölçülürse o rakam **"holdout-sonrası (düzeltme görmüş)"**
 olarak ayrı raporlanır; resmi holdout rakamı bu dosyadaki ilk koşumdur. Gerçek genelleme ölçümü için
 bir sonraki hiç-bakılmamış hedef ayrılmalıdır.
+
+---
+
+## Holdout-sonrası koşum (form-login eklendikten sonra — resmi holdout rakamı DEĞİL)
+
+| | |
+|---|---|
+| **Tarih / kod** | 2026-11-26 · `5fcc12e` + OAuth2 form-login (`body_format: auto`, hedefe özel ayar yok) |
+
+| Koşum | Giriş | Uç-recall (21 uç) | Test kapsamı | Açık recall | FP |
+|---|---|---|---|---|---|
+| (a) `--openapi` | ✅ | **%42.9** (9/21) | %42.9 | **%0** (0/7) | 0 |
+| (b) URL-only | ✅ | **%9.5** (2/21) | %9.5 | **%0** (0/7) | 0 |
+
+### Holdout'un ortaya çıkardığı genel boşluklar (kalibre hedeflerde görünmüyordu)
+1. **OpenAPI yükleyicisi yalnız GET/HEAD alıyor** (`recon/openapi.py` `READ_METHODS`): spec'teki
+   PUT/POST/DELETE/PATCH uçlarının hiçbiri listeye girmedi → 7 açığın 5'i hiç denenmedi. Yazma
+   güvenliği zaten scope kapısında (`destructive_tests`/`safe_write_paths`); burada ikinci filtre
+   yalnız kapsamı öldürüyor.
+2. **JWT yanlış-alarmı (etiketsiz, metriğe girmedi ama GERÇEK FP):** herkese açık `/healthcheck`
+   (anonim=200) üzerinde `jwt alg=none/signature/weak-secret` **CONFIRMED** verildi. Token'a hiç
+   bakmayan uçta "sahte token kabul edildi" kanıt değildir — anonim kontrol eksik. 0-FP ilkesi
+   ihlali; öncelikli düzeltilecek.
+3. **`X-Powered-By` sürüm ifşası** `security_headers` LIKELY olarak raporlandı; deterministik
+   sürüm dizgisi `info_leak` CONFIRMED kanıtı olmalı.
+4. **`idor @ /orders/{order_id}`** LIKELY'de kaldı (sahiplik kanıtı CONFIRMED eşiğine ulaşmadı) — incelenecek.

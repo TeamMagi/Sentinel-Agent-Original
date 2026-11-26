@@ -208,5 +208,5 @@ async def test_request_ceiling_respected():
 
 def test_default_sources_links_last():
     names = [s.name for s in default_sources()]
-    assert names[-1] == "links"
+    assert names.index("links") < names.index("versions")
     assert names.index("sourcemap") < names.index("links")

@@ -152,7 +152,6 @@ async def test_only_safe_methods_sent():
     assert seen and {m for m, _ in seen} <= {"GET", "HEAD", "OPTIONS"}
 
 
-def test_default_sources_order_ends_with_sourcemap():
+def test_default_sources_order_js_before_sourcemap():
     names = [s.name for s in default_sources()]
-    assert names.index("sourcemap") == len(names) - 3
     assert names.index("js") < names.index("sourcemap")

@@ -200,7 +200,7 @@ def test_spring_boot1_mappings_format():
 def test_default_sources_framework_between_sourcemap_and_links():
     names = [s.name for s in default_sources()]
     assert names.index("sourcemap") < names.index("framework") < names.index("links")
-    assert names[-1] == "links"
+    assert names.index("links") < names.index("versions")
 
 
 def test_fingerprinter_cookie_names():

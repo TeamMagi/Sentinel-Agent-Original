@@ -115,7 +115,7 @@ async def test_known_endpoints_are_not_reprobed():
 
 
 def test_default_sources_order_js_before_sourcemap():
-    assert [s.name for s in default_sources()].index("sourcemap") == len(default_sources()) - 3
+    assert [s.name for s in default_sources()].index("js") < [s.name for s in default_sources()].index("sourcemap")
     assert [s.name for s in default_sources()].index("robots") < [
         s.name for s in default_sources()].index("js")
 

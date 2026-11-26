@@ -9,6 +9,7 @@ import pytest
 
 from pentestai.auth.browser import BrowserAuthProvider
 from pentestai.auth.provider import (
+    AuthError,
     StorageStateAuthProvider,
     TokenAuthProvider,
     build_auth_provider,
@@ -258,3 +259,69 @@ async def test_token_provider_non_bearer_kind_defaults_header_name():
     )
     state = await provider.acquire()
     assert state.headers == {"X-Api-Key": "v"}
+
+
+# --------------------------- TokenAuthProvider: anlaşılır login hataları ---------------------------
+
+@pytest.mark.asyncio
+async def test_token_provider_missing_token_field_raises_auth_error_without_leaking_body():
+    def handler(request):
+        return httpx.Response(200, json={"message": "gizli-detay-degeri", "status": "fail"})
+
+    provider = TokenAuthProvider(
+        f"{BASE}/identity/api/auth/login",
+        {"email": "a@test.local", "password": "SuperSecretPassword123"},
+        {"kind": "bearer", "from": "json:auth_token"},
+        transport=httpx.MockTransport(handler),
+        actor_name="user_A",
+    )
+    with pytest.raises(AuthError) as exc_info:
+        await provider.acquire()
+    msg = str(exc_info.value)
+    assert "user_A" in msg
+    assert "json:auth_token" in msg
+    assert "message" in msg and "status" in msg
+    assert "gizli-detay-degeri" not in msg
+    assert "SuperSecretPassword123" not in msg
+
+
+@pytest.mark.asyncio
+async def test_token_provider_nested_type_error_raises_auth_error():
+    def handler(request):
+        return httpx.Response(200, json={"auth": None, "error_code": "E_BAD"})
+
+    provider = TokenAuthProvider(
+        f"{BASE}/login", {"email": "a@test.local", "password": "pw-secret"},
+        {"kind": "bearer", "from": "json:auth.token"},
+        transport=httpx.MockTransport(handler),
+    )
+    with pytest.raises(AuthError) as exc_info:
+        await provider.acquire()
+    msg = str(exc_info.value)
+    assert "json:auth.token" in msg
+    assert "auth" in msg and "error_code" in msg
+    assert "E_BAD" not in msg
+    assert "pw-secret" not in msg
+
+
+@pytest.mark.asyncio
+async def test_token_provider_non_json_response_raises_auth_error_without_raw_body():
+    def handler(request):
+        return httpx.Response(
+            200, text="<html><body>Bad Gateway SecretBodyXYZ</body></html>",
+            headers={"content-type": "text/html"},
+        )
+
+    provider = TokenAuthProvider(
+        f"{BASE}/login", {"email": "a@test.local", "password": "pw-secret"},
+        {"kind": "bearer", "from": "json:token"},
+        transport=httpx.MockTransport(handler),
+        actor_name="user_A",
+    )
+    with pytest.raises(AuthError) as exc_info:
+        await provider.acquire()
+    msg = str(exc_info.value)
+    assert "user_A" in msg
+    assert "JSON" in msg
+    assert "SecretBodyXYZ" not in msg
+    assert "pw-secret" not in msg

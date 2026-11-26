@@ -590,3 +590,25 @@ async def test_quick_mode_budget_actually_stops_early_end_to_end():
     with pytest.raises(BudgetExceeded):   # quick modun 40 istek eşiği aşıldı
         await replayer.replay(CapturedRequest(method="GET", url="http://localhost:3000/x"), s)
     await store.aclose_all()
+
+
+@pytest.mark.asyncio
+async def test_run_auth_error_prints_single_line_and_exits_2(tmp_path, monkeypatch, capsys):
+    from pentestai.auth.provider import AuthError
+
+    class _AuthFailScanner(_FakeScanner):
+        async def build_sessions(self, actor_pairs):
+            raise AuthError(
+                "'user_A' için login yanıtında token bulunamadı (token_location.from=json:auth_token)."
+            )
+
+    monkeypatch.setattr(cli, "Scanner", _AuthFailScanner)
+    _FakeScanner.instances.clear()
+    scope, actors, endpoints = _write_min_config(tmp_path)
+    args = _full_args(scope, actors, endpoints, out=str(tmp_path / "out"))
+    rc = await cli._run(args)
+    assert rc == 2
+    assert _FakeScanner.instances[-1].closed is True
+    out = capsys.readouterr().out.strip()
+    assert len(out.splitlines()) == 1
+    assert "user_A" in out and "json:auth_token" in out

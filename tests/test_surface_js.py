@@ -114,8 +114,8 @@ async def test_known_endpoints_are_not_reprobed():
     assert not any(u.endswith("/rest/products/search") for _, u in seen)
 
 
-def test_default_sources_order_ends_with_js():
-    assert [s.name for s in default_sources()][-1] == "js"
+def test_default_sources_order_js_before_sourcemap():
+    assert [s.name for s in default_sources()][-1] == "sourcemap"
     assert [s.name for s in default_sources()].index("robots") < [
         s.name for s in default_sources()].index("js")
 

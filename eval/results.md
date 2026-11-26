@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 226 · **TP/FP/FN/TN:** 79/0/0/147
+**Vaka:** 229 · **TP/FP/FN/TN:** 80/0/0/149
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -235,3 +235,6 @@
 | idor-second-order:vulnerable | idor | positive | CONFIRMED | CONFIRMED | ✅ |
 | idor-second-order:hardened | idor | negative | not:CONFIRMED | REJECTED | ✅ |
 | idor-second-order:near-miss | idor | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| rls-misconfig:vulnerable | rls_misconfig | positive | CONFIRMED | CONFIRMED | ✅ |
+| rls-misconfig:hardened | rls_misconfig | negative | not:CONFIRMED | REJECTED | ✅ |
+| rls-misconfig:near-miss | rls_misconfig | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |

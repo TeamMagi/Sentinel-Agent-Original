@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 79,
+    "tp": 80,
     "fp": 0,
     "fn": 0,
-    "tn": 147,
-    "total": 226
+    "tn": 149,
+    "total": 229
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -1815,6 +1815,30 @@
     {
       "name": "idor-second-order:near-miss",
       "vuln_type": "idor",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "rls-misconfig:vulnerable",
+      "vuln_type": "rls_misconfig",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "rls-misconfig:hardened",
+      "vuln_type": "rls_misconfig",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "rls-misconfig:near-miss",
+      "vuln_type": "rls_misconfig",
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "INCONCLUSIVE",

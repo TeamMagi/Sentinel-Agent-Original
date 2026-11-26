@@ -154,5 +154,5 @@ async def test_only_safe_methods_sent():
 
 def test_default_sources_order_ends_with_sourcemap():
     names = [s.name for s in default_sources()]
-    assert names[-2] == "sourcemap"
+    assert names.index("sourcemap") == len(names) - 3
     assert names.index("js") < names.index("sourcemap")

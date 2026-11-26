@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 82,
+    "tp": 83,
     "fp": 0,
     "fn": 0,
-    "tn": 153,
-    "total": 235
+    "tn": 155,
+    "total": 238
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -1890,6 +1890,30 @@
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "client-side-auth:vulnerable",
+      "vuln_type": "client_side_auth",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "client-side-auth:hardened",
+      "vuln_type": "client_side_auth",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "client-side-auth:near-miss",
+      "vuln_type": "client_side_auth",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "INCONCLUSIVE",
       "passed": true
     }
   ]

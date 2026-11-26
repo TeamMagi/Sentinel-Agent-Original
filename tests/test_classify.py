@@ -32,6 +32,8 @@ PRODUCED_TYPES = [
     # Dalga 5 — agent-security predicate'leri (agent/*.py vuln_type'ları)
     "exfiltration", "destructive_write", "confused_deputy", "untrusted_to_action", "prompt_injection",
     "tool_shadowing", "memory_poisoning", "insecure_output_handling", "excessive_agency",
+    # İstemci-tarafı gizlenen ayrıcalıklı uç noktalar (client_side_auth)
+    "client_side_auth",
 ]
 
 

@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 235 · **TP/FP/FN/TN:** 82/0/0/153
+**Vaka:** 238 · **TP/FP/FN/TN:** 83/0/0/155
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -244,3 +244,6 @@
 | mass-assignment-nested:vulnerable | mass_assignment | positive | CONFIRMED | CONFIRMED | ✅ |
 | mass-assignment-nested:hardened | mass_assignment | negative | not:CONFIRMED | REJECTED | ✅ |
 | mass-assignment-nested:near-miss | mass_assignment | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| client-side-auth:vulnerable | client_side_auth | positive | CONFIRMED | CONFIRMED | ✅ |
+| client-side-auth:hardened | client_side_auth | negative | not:CONFIRMED | REJECTED | ✅ |
+| client-side-auth:near-miss | client_side_auth | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |

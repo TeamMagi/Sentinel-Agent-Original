@@ -236,6 +236,9 @@
     {"name": "rls-misconfig:near-miss", "vuln_type": "rls_misconfig", "category": "near_miss", "expected": "not:CONFIRMED"},
     {"name": "rbac-matrix:vulnerable", "vuln_type": "rbac_violation", "category": "positive", "expected": "CONFIRMED"},
     {"name": "rbac-matrix:hardened", "vuln_type": "rbac_violation", "category": "negative", "expected": "not:CONFIRMED"},
-    {"name": "rbac-matrix:near-miss", "vuln_type": "rbac_violation", "category": "near_miss", "expected": "not:CONFIRMED"}
+    {"name": "rbac-matrix:near-miss", "vuln_type": "rbac_violation", "category": "near_miss", "expected": "not:CONFIRMED"},
+    {"name": "client-side-auth:vulnerable", "vuln_type": "client_side_auth", "category": "positive", "expected": "CONFIRMED"},
+    {"name": "client-side-auth:hardened", "vuln_type": "client_side_auth", "category": "negative", "expected": "not:CONFIRMED"},
+    {"name": "client-side-auth:near-miss", "vuln_type": "client_side_auth", "category": "near_miss", "expected": "not:CONFIRMED"}
   ]
 }

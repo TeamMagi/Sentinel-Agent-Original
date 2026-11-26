@@ -18,8 +18,52 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 
 from pentestai.bench import Benchmark  # noqa: E402
 from pentestai.bench.suite import BenchmarkSuite, load_suite_findings  # noqa: E402
+from pentestai.bench.surface import (  # noqa: E402
+    combine_surface_metrics,
+    console_line,
+    evaluate_surface,
+    load_surface_entries,
+    load_surface_truth,
+)
 
 _DEFAULT_EXPECTED = "benchmarks/juiceshop.expected.yaml"
+
+
+def _surface_for_run(args, findings_path: pathlib.Path):
+    """`--surface` verildiyse koşum dizinindeki surface.json ile metrikleri hesaplar."""
+    if not args.surface:
+        return None
+    run_root = pathlib.Path(args.run) if args.run else findings_path.parent
+    surface_json = run_root / "surface.json"
+    if not surface_json.exists():
+        print(f"[benchmark] HATA: {surface_json} yok — tarama bu sürümden önce mi koşuldu?",
+              file=sys.stderr)
+        return False
+    metrics = evaluate_surface(
+        load_surface_entries(surface_json), load_surface_truth(args.surface))
+    return metrics
+
+
+def _suite_surface(meta: list[dict], base: pathlib.Path):
+    """suite.yaml hedeflerinde opsiyonel `surface:` varsa metrikleri toplar (yoksa atlanır)."""
+    metrics = []
+    for target in meta:
+        surface_yaml = target.get("surface")
+        if not surface_yaml:
+            continue
+        findings = target.get("findings")
+        run_root = (base / findings).parent if findings else base
+        surface_json = run_root / "surface.json"
+        if not surface_json.exists():
+            print(f"[suite] UYARI: {target.get('name')} surface.json yok — atlandı",
+                  file=sys.stderr)
+            continue
+        truth_path = pathlib.Path(surface_yaml)
+        if not truth_path.is_absolute():
+            truth_path = base / truth_path
+        metrics.append(evaluate_surface(
+            load_surface_entries(surface_json), load_surface_truth(truth_path)))
+    return combine_surface_metrics(metrics)
 
 
 def _run_suite(suite_path: str, out: str | None) -> int:
@@ -30,9 +74,16 @@ def _run_suite(suite_path: str, out: str | None) -> int:
     result = suite.evaluate(findings_by_target)
     out_dir = pathlib.Path(out) if out else base
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "benchmark_suite.md").write_text(result.to_markdown(), encoding="utf-8")
+    markdown = result.to_markdown()
+    payload = result.to_dict()
+    surface = _suite_surface(meta, base)
+    if surface is not None:   # opsiyonel alan yoksa çıktı BİREBİR eskisi gibi kalır
+        markdown = markdown.rstrip() + "\n\n" + surface.to_markdown()
+        payload["surface"] = surface.to_dict()
+        print(console_line(surface))
+    (out_dir / "benchmark_suite.md").write_text(markdown, encoding="utf-8")
     (out_dir / "benchmark_suite.json").write_text(
-        json.dumps(result.to_dict(), indent=2, ensure_ascii=False), encoding="utf-8")
+        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     have = sorted(findings_by_target)
     print(f"[suite] {len(suite.targets)} hedef · findings yüklendi: {have or 'yok (tümü FN/TN)'}")
     print(f"[suite] TOPLAM precision={result.precision:.1%} · recall={result.recall:.1%} · "
@@ -63,6 +114,9 @@ def main(argv=None) -> int:
     src.add_argument("--findings", help="doğrudan findings.json yolu")
     src.add_argument("--suite", help="çok-hedefli takım (benchmarks/suite.yaml) — R-A3")
     p.add_argument("--target", default="", help="rapora yazılacak hedef etiketi")
+    p.add_argument("--surface",
+                   help="hedefin GERÇEK uç listesi (benchmarks/<hedef>.surface.yaml) — keşif "
+                        "(yüzey) metriklerini de üretir; verilmezse çıktı değişmez")
     p.add_argument("--out", help="benchmark.md/json çıktı dizini (varsayılan: --run dizini)")
     p.add_argument("--min-precision", type=float, default=None,
                    help="regresyon kapısı: precision bu değerin altındaysa çıkış kodu 2")
@@ -81,13 +135,24 @@ def main(argv=None) -> int:
     findings = Benchmark.load_findings(findings_path)
     result = bench.evaluate(findings, target=args.target)
 
+    surface = _surface_for_run(args, findings_path)
+    if surface is False:   # --surface verildi ama surface.json yok → anlaşılır hata
+        return 2
+
     out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "benchmark.md").write_text(result.to_markdown(), encoding="utf-8")
+    markdown = result.to_markdown()
+    payload = result.to_dict()
+    if surface is not None:   # --surface yoksa çıktı BİREBİR eskisi gibi kalır
+        markdown = markdown.rstrip() + "\n\n" + surface.to_markdown()
+        payload["surface"] = surface.to_dict()
+    (out_dir / "benchmark.md").write_text(markdown, encoding="utf-8")
     (out_dir / "benchmark.json").write_text(
-        json.dumps(result.to_dict(), indent=2, ensure_ascii=False), encoding="utf-8")
+        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
     print(f"[benchmark] precision={result.precision:.1%} · recall={result.recall:.1%} · "
           f"FP-rate={result.fp_rate:.1%} · TP/FN/FP/TN={result.tp}/{result.fn}/{result.fp}/{result.tn}")
+    if surface is not None:
+        print(console_line(surface))
     print(f"[benchmark] yazıldı: {out_dir / 'benchmark.md'}")
 
     if args.min_precision is not None and result.precision < args.min_precision:

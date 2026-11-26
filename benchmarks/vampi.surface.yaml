@@ -1,0 +1,33 @@
+# VAmPI — keşif YER-GERÇEĞİ (Faz 0.1). Kaynak: hedefin kendi /openapi.json'ı (erev0s/vampi:latest,
+# 2026-11-26). Kapsam: config/vampi.scope.example.yaml — `/createdb` scope'ta yasak olduğu için HARİÇ.
+# Etiketler araç çıktısından DEĞİL hedefin kendi spesifikasyonundan gelir (döngüsellik yok).
+endpoints:
+  - "GET /"
+  - "GET /books/v1"
+  - method: POST
+    path: "/books/v1"
+    params: [book_title, secret]
+  - method: GET
+    path: "/books/v1/{book_title}"
+    params: [book_title]
+  - "GET /me"
+  - "GET /users/v1"
+  - "GET /users/v1/_debug"
+  - method: POST
+    path: "/users/v1/login"
+    params: [password, username]
+  - method: POST
+    path: "/users/v1/register"
+    params: [email, password, username]
+  - method: DELETE
+    path: "/users/v1/{username}"
+    params: [username]
+  - method: GET
+    path: "/users/v1/{username}"
+    params: [username]
+  - method: PUT
+    path: "/users/v1/{username}/email"
+    params: [username, email]
+  - method: PUT
+    path: "/users/v1/{username}/password"
+    params: [username, password]

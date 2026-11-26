@@ -280,6 +280,13 @@ never by reading the tool's own output — otherwise the measurement is circular
 VAmPI and crAPI went from 50% / 40% recall to 100% after fixes made *while looking at their
 misses* — so these are calibrated numbers, not a generalization claim (see the notes below).
 
+**Without a hand-given endpoint list the picture is very different.** The numbers above are
+measured with the endpoint list supplied. The Faz 0 baseline (2026-11-26, URL-only, automatic
+discovery only — [`benchmarks/kesif.result.md`](benchmarks/kesif.result.md)) found 15% of VAmPI's
+endpoints and 0% of crAPI's and Juice Shop's, so end-to-end vulnerability recall was **0%** on all
+three. Discovery, not detection, is the current bottleneck; it is measured against
+`benchmarks/*.surface.yaml` ground truth from now on.
+
 Each target's committed reference run and exact reproduction commands are in
 **[`benchmarks/juiceshop.result.md`](benchmarks/juiceshop.result.md)**,
 **[`benchmarks/vampi.result.md`](benchmarks/vampi.result.md)** and

@@ -1,0 +1,123 @@
+# crAPI — keşif YER-GERÇEĞİ (Faz 0.1). Kaynak: OWASP/crAPI resmi openapi-spec (main, 2026-11-26),
+# çalışan imaja karşı doğrulandı: token'lı GET'lerin hiçbiri route-404 vermedi (var olmayan yol = 404;
+# `videos/{video_id}` 404'ü obje yokluğundan). DELETE uçları gönderilmeden spec'ten alındı.
+# params: path/query parametreleri + JSON requestBody alanları.
+endpoints:
+  - method: POST
+    path: "/community/api/v2/community/posts"
+    params: [content, title]
+  - method: GET
+    path: "/community/api/v2/community/posts/recent"
+    params: [limit, offset]
+  - method: GET
+    path: "/community/api/v2/community/posts/{postId}"
+    params: [postId]
+  - method: POST
+    path: "/community/api/v2/community/posts/{postId}/comment"
+    params: [postId, content]
+  - method: POST
+    path: "/community/api/v2/coupon/new-coupon"
+    params: [amount, coupon_code]
+  - method: POST
+    path: "/community/api/v2/coupon/validate-coupon"
+    params: [coupon_code]
+  - method: POST
+    path: "/identity/api/auth/forget-password"
+    params: [email]
+  - method: POST
+    path: "/identity/api/auth/login"
+    params: [email, password]
+  - method: POST
+    path: "/identity/api/auth/signup"
+    params: [email, name, number, password]
+  - method: POST
+    path: "/identity/api/auth/v2.7/user/login-with-token"
+    params: [email, token]
+  - method: POST
+    path: "/identity/api/auth/v2/check-otp"
+    params: [email, otp, password]
+  - method: POST
+    path: "/identity/api/auth/v3/check-otp"
+    params: [email, otp, password]
+  - method: POST
+    path: "/identity/api/auth/v4.0/user/login-with-token"
+    params: [email, token]
+  - method: DELETE
+    path: "/identity/api/v2/admin/videos/{video_id}"
+    params: [video_id]
+  - method: POST
+    path: "/identity/api/v2/user/change-email"
+    params: [new_email, old_email]
+  - "GET /identity/api/v2/user/dashboard"
+  - "POST /identity/api/v2/user/pictures"
+  - method: POST
+    path: "/identity/api/v2/user/reset-password"
+    params: [email, password]
+  - method: POST
+    path: "/identity/api/v2/user/verify-email-token"
+    params: [new_email, old_email, token]
+  - "POST /identity/api/v2/user/videos"
+  - method: GET
+    path: "/identity/api/v2/user/videos/convert_video"
+    params: [video_id]
+  - method: DELETE
+    path: "/identity/api/v2/user/videos/{video_id}"
+    params: [video_id]
+  - method: GET
+    path: "/identity/api/v2/user/videos/{video_id}"
+    params: [video_id]
+  - method: PUT
+    path: "/identity/api/v2/user/videos/{video_id}"
+    params: [video_id, conversion_params, id, videoName, video_url]
+  - method: POST
+    path: "/identity/api/v2/vehicle/add_vehicle"
+    params: [pincode, vin]
+  - "POST /identity/api/v2/vehicle/resend_email"
+  - "GET /identity/api/v2/vehicle/vehicles"
+  - method: GET
+    path: "/identity/api/v2/vehicle/{vehicleId}/location"
+    params: [vehicleId]
+  - method: GET
+    path: "/workshop/api/management/users/all"
+    params: [limit, offset]
+  - "GET /workshop/api/mechanic/"
+  - method: GET
+    path: "/workshop/api/mechanic/mechanic_report"
+    params: [report_id]
+  - method: GET
+    path: "/workshop/api/mechanic/receive_report"
+    params: [mechanic_code, problem_details, vin]
+  - method: GET
+    path: "/workshop/api/mechanic/service_requests"
+    params: [limit, offset]
+  - method: POST
+    path: "/workshop/api/mechanic/signup"
+    params: [email, mechanic_code, name, number, password]
+  - method: POST
+    path: "/workshop/api/merchant/contact_mechanic"
+    params: [mechanic_api, mechanic_code, number_of_repeats, problem_details, repeat_request_if_failed, vin]
+  - method: POST
+    path: "/workshop/api/shop/apply_coupon"
+    params: [amount, coupon_code]
+  - method: POST
+    path: "/workshop/api/shop/orders"
+    params: [product_id, quantity]
+  - method: GET
+    path: "/workshop/api/shop/orders/all"
+    params: [limit, offset]
+  - method: POST
+    path: "/workshop/api/shop/orders/return_order"
+    params: [order_id]
+  - method: GET
+    path: "/workshop/api/shop/orders/{order_id}"
+    params: [order_id]
+  - method: PUT
+    path: "/workshop/api/shop/orders/{order_id}"
+    params: [order_id, product_id, quantity]
+  - "GET /workshop/api/shop/products"
+  - method: POST
+    path: "/workshop/api/shop/products"
+    params: [image_url, name, price]
+  - method: GET
+    path: "/workshop/api/shop/return_qr_code"
+    params: [Accept]

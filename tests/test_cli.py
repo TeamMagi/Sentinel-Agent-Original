@@ -187,10 +187,17 @@ def test_fail_exit_known_baseline_finding_is_exempt():
 
 # --------------------------- _resolve_endpoints ---------------------------
 
-def test_resolve_endpoints_requires_a_source():
+def test_resolve_endpoints_without_source_enters_url_only_discovery():
+    """Faz 0 / A3: uç listesi verilmemesi artık HATA DEĞİL.
+
+    Eskiden `SystemExit("--openapi, --har veya --endpoints ver.")` atılıyordu; URL-only
+    başlatma için boş liste + `discovery_only` bayrağı dönmeli (çağıran kök tohumu ekler ve
+    keşfi zorla açar).
+    """
     args = argparse.Namespace(openapi=None, har=None, endpoints=None)
-    with pytest.raises(SystemExit):
-        _resolve_endpoints(args, ["localhost"])
+    assert _resolve_endpoints(args, ["localhost"]) == []
+    assert args.discovery_only is True
+    assert args.surface_source is None
 
 
 def test_resolve_endpoints_from_yaml_file(tmp_path):
@@ -296,8 +303,14 @@ class _FakeScanner:
         self.bootstrap_called = False
         self.saved = None
         self.closed = False
+        self.surface_calls = []
+        self.recon_endpoints = None
+        self.recon_kw = None
         self.findings_to_return = [_confirmed_finding()]
         _FakeScanner.instances.append(self)
+
+    def register_surface(self, endpoints, source):
+        self.surface_calls.append((list(endpoints), source))
 
     async def build_sessions(self, actor_pairs):
         return [_FakeSession(a.name) for a, _ in actor_pairs]
@@ -312,6 +325,8 @@ class _FakeScanner:
         self.passive_called = True
 
     async def run_recon_scan(self, sessions, endpoints, **kw):
+        self.recon_endpoints = list(endpoints)
+        self.recon_kw = dict(kw)
         return list(self.findings_to_return)
 
     def save(self, findings, mode, *, trace=None, sessions=None, anon_handles=False):
@@ -390,6 +405,67 @@ async def test_run_standard_active_mode_saves_and_prints_done(tmp_path, monkeypa
     assert fs.closed is True
     out = capsys.readouterr().out
     assert "[done]" in out and "CONFIRMED" in out
+
+
+def _url_only_args(scope, actors, **flags):
+    p = argparse.ArgumentParser()
+    add_scan_arguments(p)
+    argv = ["--scope", str(scope), "--actors", str(actors)]
+    for k, v in flags.items():
+        flag = "--" + k.replace("_", "-")
+        if v is True:
+            argv.append(flag)
+        elif v is False:
+            continue
+        else:
+            argv += [flag, str(v)]
+    return p.parse_args(argv)
+
+
+@pytest.mark.asyncio
+async def test_run_url_only_seeds_root_and_forces_discovery(tmp_path, monkeypatch, capsys):
+    """Faz 0 / A3: uç listesi yoksa kök GET / tohumu eklenir, keşif zorla açılır ve mesaj basılır."""
+    monkeypatch.setattr(cli, "Scanner", _FakeScanner)
+    _FakeScanner.instances.clear()
+    scope, actors, _ = _write_min_config(tmp_path)
+    args = _url_only_args(scope, actors, out=str(tmp_path / "out"))
+    rc = await cli._run(args)
+    assert rc == 0
+    fs = _FakeScanner.instances[-1]
+    assert any(ep.method == "GET" and ep.path_template == "/" for ep in fs.recon_endpoints)
+    assert fs.recon_kw["enumerate_more"] is True
+    assert any(source == "seed" for _eps, source in fs.surface_calls)
+    out = capsys.readouterr().out
+    assert "[keşif] uç listesi verilmedi" in out
+
+
+@pytest.mark.asyncio
+async def test_run_url_only_agent_uses_seed_and_discovered_endpoints(tmp_path, monkeypatch, capsys):
+    """--agent + URL-only: boş liste + keşif ekleri agentic döngüye ulaşmalı."""
+    import pentestai.orchestrator as orch_mod
+
+    class _DiscoveringScanner(_FakeScanner):
+        async def discover_more(self, session, endpoints, *, sessions=None):
+            from pentestai.models import Endpoint
+            return [Endpoint(method="GET", path_template="/api/users")], []
+
+    class _CapturingAgent(_FakeAgent):
+        endpoints_seen = None
+
+        def __init__(self, executor, endpoints, **kw):
+            _CapturingAgent.endpoints_seen = list(endpoints)
+            super().__init__(executor, endpoints, **kw)
+
+    monkeypatch.setattr(cli, "Scanner", _DiscoveringScanner)
+    monkeypatch.setattr(orch_mod, "AgenticOrchestrator", _CapturingAgent)
+    _FakeScanner.instances.clear()
+    scope, actors, _ = _write_min_config(tmp_path)
+    args = _url_only_args(scope, actors, out=str(tmp_path / "out"), agent=True)
+    rc = await cli._run(args)
+    assert rc == 0
+    paths = {(ep.method, ep.path_template) for ep in _CapturingAgent.endpoints_seen}
+    assert ("GET", "/") in paths and ("GET", "/api/users") in paths
+    assert "[keşif] uç listesi verilmedi" in capsys.readouterr().out
 
 
 @pytest.mark.asyncio

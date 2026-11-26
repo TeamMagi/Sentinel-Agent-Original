@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 86,
+    "tp": 87,
     "fp": 0,
     "fn": 0,
-    "tn": 161,
-    "total": 247
+    "tn": 163,
+    "total": 250
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -1334,6 +1334,30 @@
     },
     {
       "name": "info-leak-stacktrace:near-miss",
+      "vuln_type": "info_leak",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "info-leak-header-version:vulnerable",
+      "vuln_type": "info_leak",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "info-leak-header-version:hardened",
+      "vuln_type": "info_leak",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "info-leak-header-version:near-miss",
       "vuln_type": "info_leak",
       "category": "near_miss",
       "expected": "not:CONFIRMED",

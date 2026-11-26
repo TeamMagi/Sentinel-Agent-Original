@@ -101,3 +101,69 @@ async def test_error_trigger_no_findings_when_clean():
     findings = await detector.scan_error_triggers(session, [ep])
     assert findings == []
     await store.aclose_all()
+
+
+def _headers_handler(headers):
+    return lambda request: httpx.Response(200, text="ok", headers=headers)
+
+
+@pytest.mark.asyncio
+async def test_versioned_x_powered_by_confirmed():
+    store, detector, session = _setup(_headers_handler({"X-Powered-By": "Python 3.10, FastAPI ^0.103.0"}))
+    findings = await detector.scan(session)
+    assert len(findings) == 1 and findings[0].verdict == "CONFIRMED"
+    marker = findings[0].evidence.leaked_markers[0]
+    assert "x-powered-by" in marker and "FastAPI ^0.103.0" in marker   # başlık adı + sürüm kanıtta
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
+async def test_versioned_server_apache_confirmed():
+    store, detector, session = _setup(_headers_handler({"Server": "Apache/2.4.41"}))
+    findings = await detector.scan(session)
+    assert [f.verdict for f in findings] == ["CONFIRMED"]
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
+async def test_hardened_no_header_not_confirmed():
+    store, detector, session = _setup(_headers_handler({}))
+    assert await detector.scan(session) == []
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("headers", [
+    {"X-Powered-By": "Express"}, {"Server": "nginx"}, {"X-Runtime": "0.0123"},
+])
+async def test_versionless_header_not_confirmed(headers):
+    """Sürümsüz banner (ve Rails X-Runtime süresi) deterministik kanıt değildir."""
+    store, detector, session = _setup(_headers_handler(headers))
+    assert not [f for f in await detector.scan(session) if f.verdict == "CONFIRMED"]
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
+async def test_version_header_found_on_non_root_endpoint_once():
+    """Kök sürüm başlığı basmıyor ama /healthcheck basıyor → TEK info_leak CONFIRMED (tekrar yok)."""
+    from pentestai.detector.info_leak import InfoLeakDetector
+    from pentestai.models import Actor, AuthState, Scope
+    from pentestai.net import Replayer, SessionStore
+    from pentestai.policy import PolicyEngine
+
+    def handler(request):
+        if request.url.path in ("/healthcheck", "/status"):
+            return httpx.Response(200, json={"ok": True},
+                                  headers={"X-Powered-By": "Python 3.10, FastAPI ^0.103.0"})
+        return httpx.Response(200, json={"ok": True})
+
+    scope = Scope(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/"])
+    store = SessionStore(transport=httpx.MockTransport(handler))
+    session = store.create(Actor(name="u", auth=AuthState()))
+    det = InfoLeakDetector(Replayer(PolicyEngine(scope)), "http://localhost:3000")
+    try:
+        findings = await det.scan(session, extra_paths=("/menu", "/healthcheck", "/status"))
+    finally:
+        await store.aclose_all()
+    confirmed = [f for f in findings if f.verdict == "CONFIRMED" and f.type == "info_leak"]
+    assert len(confirmed) == 1 and confirmed[0].endpoint == "/healthcheck"

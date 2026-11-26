@@ -352,6 +352,7 @@ fake transport and run the whole pipeline without a network. Dependencies point 
 
 Architecture in full: **[DESIGN.md](DESIGN.md)**. Development environment and the WSL2/Docker
 rationale: **[docs/gelistirme-ortami.md](docs/gelistirme-ortami.md)**.
+The 11 access-control categories and how each is tested/enabled: **[docs/ERISIM_KONTROLU_KATEGORILERI.md](docs/ERISIM_KONTROLU_KATEGORILERI.md)**.
 
 ### Reports
 

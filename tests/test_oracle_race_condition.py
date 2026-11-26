@@ -297,6 +297,18 @@ async def test_confirmed_lost_update_unlimited():
 
 
 @pytest.mark.asyncio
+async def test_lost_update_finding_marks_atomic_parameter():
+    probe = RaceStateProbe(path="/counter/K-1", field="value", unit=Decimal("1"))
+    oracle, store, session = _setup(_lost_update_counter_handler(),
+                                    own_object_ids={"counters": "K-1"})
+    f = await oracle.run(COUNTER_EP, session, resource_key="counters", finding_id="F-1",
+                         limit=None, state=probe)
+    assert f.verdict == base.CONFIRMED
+    assert f.parameter == "(concurrency:atomic)"
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
 async def test_rejected_atomic_increment_unlimited():
     probe = RaceStateProbe(path="/counter/K-1", field="value", unit=Decimal("1"))
     oracle, store, session = _setup(_atomic_counter_handler(),

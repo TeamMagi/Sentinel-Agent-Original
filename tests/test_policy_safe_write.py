@@ -160,3 +160,14 @@ def test_blocked_write_warnings_truncated_to_ten():
     lines = scanner.blocked_write_warnings()
     assert len(lines) == 11
     assert lines[-1] == "... ve 3 uç daha"
+
+
+def test_blocked_put_warning_does_not_suggest_safe_write_paths():
+    # safe_write_paths yalnız POST'u açar → PUT için yanıltıcı öneri verilmemeli.
+    scanner = Scanner(BASE, _scope(), BudgetConfig())
+    scanner.blocked_writes = [("PUT", "/api/users/{id}/email", "injection"),
+                              ("POST", "/api/validate", "injection")]
+    by_method = {line.split()[0]: line for line in scanner.blocked_write_warnings()}
+    assert "safe_write_paths" not in by_method["PUT"]
+    assert "destructive_tests: true" in by_method["PUT"]
+    assert "safe_write_paths" in by_method["POST"]

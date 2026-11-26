@@ -17,8 +17,10 @@
 # DÜRÜSTLÜK NOTU: aşağıdaki üç hedefin üçü de kalibre edilmiştir (etiketleri canlı HTTP ile
 # doğrulanıp düzeltildi, bkz. *.expected.yaml başlıkları) → hiçbiri bugün holdout SAYILAMAZ;
 # birini sonradan "holdout" diye işaretlemek yanlış bir genelleme iddiası olurdu.
-# Suite'e eklenecek BİR SONRAKİ hedef holdout olarak ayrılmalıdır: etiketlerini koy, araçta
-# ona özel hiçbir ayar yapma, `holdout: true` ver ve metriklerini asla geri besleme.
+# İlk holdout: dvra (Damn Vulnerable RESTaurant, 2026-11-26) — etiketler araç çalıştırılmadan kondu;
+# ilk koşum (benchmarks/dvra.result.md) resmi holdout rakamıdır. O hedefte görülen bir boşluk
+# düzeltilirse sonraki rakamı "holdout-sonrası" diye ayrı raporla; gerçek genelleme için bir
+# sonraki hiç-bakılmamış hedefi ayır.
 
 targets:
   - name: juiceshop
@@ -38,3 +40,9 @@ targets:
     expected: crapi.expected.yaml
     findings: ../runs/crapi/findings.json
     holdout: false        # kalibre (2026-09-16 canlı doğrulama)
+
+  - name: dvra
+    target: "http://127.0.0.1:8091"
+    expected: dvra.expected.yaml
+    findings: ../runs/holdout-openapi/findings.json
+    holdout: true         # HOLDOUT (2026-11-26): etiketler araç çalıştırılmadan kondu; ilk koşum = resmi rakam

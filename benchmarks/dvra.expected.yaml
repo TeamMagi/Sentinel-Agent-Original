@@ -1,0 +1,91 @@
+# Damn Vulnerable RESTaurant API — HOLDOUT vaka seti (theowni/Damn-Vulnerable-RESTaurant-API-Game, main).
+#
+# HOLDOUT DİSİPLİNİ: etiketler araç HİÇ çalıştırılmadan konmuştur. Kaynak: hedefin kendi açık testleri
+# (app/tests/vulns/level_0..5) + kaynak kod + 2026-11-26 elle HTTP doğrulaması (iki müşteri hesabı).
+# Araçta bu hedefe özel HİÇBİR ayar yapılmaz; ilk koşum sonucu resmi holdout rakamıdır.
+#
+# HTTP doğrulama (2026-11-26, ayrıcalıksız konteyner, 127.0.0.1:8091):
+#   info_leak healthcheck  : GET /healthcheck → X-Powered-By: "Python 3.10, FastAPI ^0.103.0" (anonim).
+#   bfla menu delete       : müşteri DELETE /menu/{id} → 204, öğe silindi (deneme öğesi üzerinde).
+#   write-IDOR profile     : müşteri A, PUT /profile {"username":"<B>",...} → 200; B'nin first_name'i değişti.
+#   priv-esc update_role   : müşteri PUT /users/update_role {"username":"<kendisi>","role":"Employee"} → 200.
+#   idor orders            : müşteri A, GET /orders/<B'nin siparişi> → 200 (user_id dahil); anonim → 401.
+#   ssrf menu image_url    : PUT /menu image_url sunucuda indiriliyor (level_4 testi; çalışan rolü gerekir).
+#   cmd-injection disk     : GET /admin/stats/disk?parameters=&&echo.. → çıktıda (level_5 testi; şef rolü).
+# Tuzaklar (HTTP): müşteri PUT /menu/{id} = 403 · müşteri GET /admin/stats/disk = 403 · anonim GET /profile
+#   = 401 · anonim GET /orders/{id} = 401 · GET /menu anonim 200 = tasarım gereği public.
+#
+# expect: CONFIRMED → gerçekten zafiyetli (etmezse FN) · not_vulnerable → FP kapanı
+
+cases:
+  - type: info_leak
+    endpoint: "/healthcheck"
+    method: GET
+    expect: CONFIRMED
+    note: "X-Powered-By başlığı Python/FastAPI sürümünü ifşa ediyor (level 0)."
+
+  - type: bfla
+    endpoint: "/menu/{item_id}"
+    method: DELETE
+    expect: CONFIRMED
+    note: "Rol kontrolü yok: müşteri menü öğesi silebiliyor (level 1)."
+
+  - type: state_change_authz
+    endpoint: "/profile"
+    method: PUT
+    expect: CONFIRMED
+    note: "Gövdedeki username ile başkasının profili değiştirilebiliyor — yazma-IDOR (level 2)."
+
+  - type: bfla
+    endpoint: "/users/update_role"
+    method: PUT
+    expect: CONFIRMED
+    note: "Müşteri kendi rolünü Employee yapabiliyor — fonksiyon-seviyesi yetki yok (level 3)."
+
+  - type: idor
+    endpoint: "/orders/{order_id}"
+    method: GET
+    expect: CONFIRMED
+    note: "Sahiplik kontrolü yok: müşteri başka müşterinin siparişini okuyabiliyor (kaynak + HTTP)."
+
+  - type: ssrf
+    endpoint: "/menu"
+    method: PUT
+    expect: CONFIRMED
+    note: "image_url sunucuda indiriliyor (level 4); yalnız çalışan rolüyle erişilebilir."
+
+  - type: command_injection
+    endpoint: "/admin/stats/disk"
+    method: GET
+    expect: CONFIRMED
+    note: "parameters query'si df komutuna shell ile ekleniyor (level 5); yalnız şef rolüyle."
+
+  - type: bfla
+    endpoint: "/menu/{item_id}"
+    method: PUT
+    expect: not_vulnerable
+    note: "Güncelleme rol kontrollü: müşteri = 403."
+
+  - type: bfla
+    endpoint: "/admin/stats/disk"
+    method: GET
+    expect: not_vulnerable
+    note: "Müşteri = 403 (rol kontrolü çalışıyor)."
+
+  - type: unauthorized_access
+    endpoint: "/profile"
+    method: GET
+    expect: not_vulnerable
+    note: "Anonim = 401."
+
+  - type: unauthorized_access
+    endpoint: "/orders/{order_id}"
+    method: GET
+    expect: not_vulnerable
+    note: "Anonim = 401 (sorun yetkisiz erişim değil, kimlikli IDOR — ayrı vaka)."
+
+  - type: unauthorized_access
+    endpoint: "/menu"
+    method: GET
+    expect: not_vulnerable
+    note: "Menü tasarım gereği public."

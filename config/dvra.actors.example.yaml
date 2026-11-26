@@ -1,0 +1,20 @@
+# Damn Vulnerable RESTaurant (HOLDOUT) aktörleri — kopyala: cp ... config/dvra.actors.yaml
+# İki MÜŞTERİ hesabı (POST /register; telefon numarası benzersiz olmalı). Her biri bir sipariş oluşturur;
+# own_object_ids.orders = o hesabın sipariş id'si. Parola örnekte REDACTED.
+actors:
+  - name: snt_cust1
+    role: user
+    auth:
+      type: token
+      login_url: "http://127.0.0.1:8091/token"
+      credentials: { username: "snt_cust1", password: "REDACTED" }
+      token_location: { kind: "bearer", from: "json:access_token" }
+    own_object_ids: { orders: "<cust1-siparis-id>" }
+  - name: snt_cust2
+    role: user
+    auth:
+      type: token
+      login_url: "http://127.0.0.1:8091/token"
+      credentials: { username: "snt_cust2", password: "REDACTED" }
+      token_location: { kind: "bearer", from: "json:access_token" }
+    own_object_ids: { orders: "<cust2-siparis-id>" }

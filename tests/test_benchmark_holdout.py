@@ -81,7 +81,10 @@ def test_metricset_empty_is_neutral():
 
 
 def test_real_suite_yaml_exposes_holdout_field():
-    # Depodaki suite.yaml `holdout` alanını taşıyor; bugün üçü de kalibre (dürüstlük notu).
+    # Depodaki suite.yaml `holdout` alanını taşıyor. Juice Shop/VAmPI/crAPI kalibre (onlara bakılarak
+    # düzeltildi) → ASLA holdout işaretlenemez; dvra (2026-11-26) araç çalıştırılmadan etiketlenen
+    # tek holdout hedeftir.
     suite, meta = BenchmarkSuite.from_yaml(REPO / "benchmarks" / "suite.yaml")
     assert all("holdout" in t for t in meta), "suite.yaml'da holdout alanı eksik"
-    assert suite.holdout == set(), "kalibre edilmiş hedef holdout olarak işaretlenemez"
+    assert not ({"juiceshop", "vampi", "crapi"} & suite.holdout),         "kalibre edilmiş hedef holdout olarak işaretlenemez"
+    assert suite.holdout == {"dvra"}

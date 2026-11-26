@@ -5,9 +5,11 @@
   "files": {
     "benchmarks/crapi.expected.yaml": "c41dafc33fb082dcc5b9624e5c074a63065a08a019732c9e23abc181ac477da0",
     "benchmarks/crapi.surface.yaml": "4e4e61dee2ac8145de0ec86ca70e48d86388352ddf268d9facef56dad51fa955",
+    "benchmarks/dvra.expected.yaml": "f82a48e0c23a2e196cb3e02b30b4705fdfc85e24e70cc8d76900d068fb729979",
+    "benchmarks/dvra.surface.yaml": "7985c7b2f7ca5c70ecf06749bf27b20553864ad8227a33e1e7bcaf5bf6ffe6e1",
     "benchmarks/juiceshop.expected.yaml": "59feea10d17065dd1604736988c50c1a503c922c9c1ac31f37efdf3130bd3506",
     "benchmarks/juiceshop.surface.yaml": "2f963ec8a48e1a2498a52550304fccc02caf31b927a16809f74d42175b85bdb1",
-    "benchmarks/suite.yaml": "9b176dd0b5ddd17ef489859814eeabf440b6774561ed32bd039ef52191677062",
+    "benchmarks/suite.yaml": "d4812fc5f14205b90a920fb12d1e86e6db345a85d5cc9781c099f94f97aefe03",
     "benchmarks/vampi.expected.yaml": "ad4750f30a23326427ffaa48a93688bdc2979eb55a630ee9b0b8b438a8483f7b",
     "benchmarks/vampi.surface.yaml": "5755f397b55b8dc32b1f52053c2eabb28e9c7b3f816a404629b2fe1aa4666c58",
     "templates/actuator-env-exposure.yaml": "463f50a7254d990d264d71c256d476c53019a21b6d2efc9fabe045bad35f9a3e",

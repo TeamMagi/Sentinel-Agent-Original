@@ -1,0 +1,54 @@
+# Damn Vulnerable RESTaurant API — keşif YER-GERÇEĞİ (HOLDOUT). Kaynak: hedefin kendi /openapi.json'ı
+# (theowni/Damn-Vulnerable-RESTaurant-API-Game, main, 2026-11-26). Araç çıktısına bakılmadan konmuştur.
+endpoints:
+  - method: GET
+    path: "/admin/stats/disk"
+    params: [parameters]
+  - method: POST
+    path: "/apply-referral"
+    params: [referral_code]
+  - "GET /discount-coupons"
+  - "GET /healthcheck"
+  - "GET /menu"
+  - method: PUT
+    path: "/menu"
+    params: [category, description, image_url, name, price]
+  - method: DELETE
+    path: "/menu/{item_id}"
+    params: [item_id]
+  - method: PUT
+    path: "/menu/{item_id}"
+    params: [item_id, category, description, image_url, name, price]
+  - method: GET
+    path: "/orders"
+    params: [limit, skip]
+  - method: POST
+    path: "/orders"
+    params: [coupon_id, delivery_address, items, phone_number]
+  - method: GET
+    path: "/orders/status/{order_id}"
+    params: [order_id]
+  - method: GET
+    path: "/orders/{order_id}"
+    params: [order_id]
+  - "GET /profile"
+  - method: PATCH
+    path: "/profile"
+    params: [first_name, last_name, phone_number]
+  - method: PUT
+    path: "/profile"
+    params: [first_name, last_name, phone_number, username]
+  - "GET /referral-code"
+  - method: POST
+    path: "/register"
+    params: [first_name, last_name, password, phone_number, username]
+  - method: POST
+    path: "/reset-password"
+    params: [username]
+  - method: POST
+    path: "/reset-password/new-password"
+    params: [new_password, reset_password_code, username]
+  - "POST /token"
+  - method: PUT
+    path: "/users/update_role"
+    params: [role, username]

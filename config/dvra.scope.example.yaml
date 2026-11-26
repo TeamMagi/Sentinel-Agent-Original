@@ -1,0 +1,22 @@
+# Damn Vulnerable RESTaurant (HOLDOUT) — kopyala: cp config/dvra.scope.example.yaml config/dvra.scope.yaml
+# Hedef YALNIZ izole laboratuvar konteyneri olmalı (privileged/cap_add KALDIRILMIŞ, 127.0.0.1'e bağlı).
+target:
+  base_url: "http://127.0.0.1:8091"
+
+scope:
+  allowed_hosts: ["127.0.0.1", "localhost"]
+  allowed_ports: [8091]
+  allowed_path_prefixes: ["/"]
+  denied_path_patterns: ["*/reset-password*"]
+  allowed_methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"]
+  destructive_tests: true          # izole, atılabilir lab konteyneri — canlı sistemde KAPALI tutun
+  external_network: false
+
+budget:
+  max_total_requests: 3000
+  max_rps_per_host: 5
+  max_wall_clock_sec: 900
+  max_payload_bytes: 1048576
+
+privacy:
+  no_secrets_in_query: true

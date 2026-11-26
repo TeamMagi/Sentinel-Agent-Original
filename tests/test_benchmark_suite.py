@@ -49,8 +49,9 @@ def test_suite_markdown_has_total_row():
 
 def test_real_suite_yaml_loads_three_targets_and_min_cases():
     suite, meta = BenchmarkSuite.from_yaml(REPO / "benchmarks" / "suite.yaml")
-    assert len(suite.targets) == 3
+    # 3 kalibre hedef + 1 holdout (dvra, 2026-11-26 — araç çalıştırılmadan etiketlendi).
+    assert len(suite.targets) == 4
     names = {n for n, _ in suite.targets}
-    assert names == {"juiceshop", "vampi", "crapi"}
+    assert names == {"juiceshop", "vampi", "crapi", "dvra"}
     total_cases = sum(len(b.cases) for _, b in suite.targets)
     assert total_cases >= 30                     # R-A3 kabul: ≥3 hedef, ≥30 etiketli vaka

@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 241 · **TP/FP/FN/TN:** 84/0/0/157
+**Vaka:** 244 · **TP/FP/FN/TN:** 85/0/0/159
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -67,6 +67,9 @@
 | nosqli-body-operator:vulnerable | nosqli | positive | CONFIRMED | CONFIRMED | ✅ |
 | nosqli-body-operator:hardened | nosqli | negative | not:CONFIRMED | REJECTED | ✅ |
 | nosqli-body-operator:near-miss | nosqli | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| nosqli-boolean-operator:vulnerable | nosqli | positive | CONFIRMED | CONFIRMED | ✅ |
+| nosqli-boolean-operator:hardened | nosqli | negative | not:CONFIRMED | REJECTED | ✅ |
+| nosqli-boolean-operator:near-miss | nosqli | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | ssti-arithmetic:vulnerable | ssti | positive | CONFIRMED | CONFIRMED | ✅ |
 | ssti-arithmetic:hardened | ssti | negative | not:CONFIRMED | REJECTED | ✅ |
 | ssti-arithmetic:near-miss | ssti | near_miss | not:CONFIRMED | REJECTED | ✅ |

@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 81,
+    "tp": 82,
     "fp": 0,
     "fn": 0,
-    "tn": 151,
-    "total": 232
+    "tn": 153,
+    "total": 235
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -1866,6 +1866,30 @@
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "mass-assignment-nested:vulnerable",
+      "vuln_type": "mass_assignment",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "mass-assignment-nested:hardened",
+      "vuln_type": "mass_assignment",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "mass-assignment-nested:near-miss",
+      "vuln_type": "mass_assignment",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
       "passed": true
     }
   ]

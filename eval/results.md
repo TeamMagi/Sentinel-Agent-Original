@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 232 · **TP/FP/FN/TN:** 81/0/0/151
+**Vaka:** 235 · **TP/FP/FN/TN:** 82/0/0/153
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -241,3 +241,6 @@
 | rls-misconfig:vulnerable | rls_misconfig | positive | CONFIRMED | CONFIRMED | ✅ |
 | rls-misconfig:hardened | rls_misconfig | negative | not:CONFIRMED | REJECTED | ✅ |
 | rls-misconfig:near-miss | rls_misconfig | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| mass-assignment-nested:vulnerable | mass_assignment | positive | CONFIRMED | CONFIRMED | ✅ |
+| mass-assignment-nested:hardened | mass_assignment | negative | not:CONFIRMED | REJECTED | ✅ |
+| mass-assignment-nested:near-miss | mass_assignment | near_miss | not:CONFIRMED | REJECTED | ✅ |

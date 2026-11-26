@@ -1,0 +1,18 @@
+# RBAC politika matrisi — operatör "hangi rol hangi uç noktaya erişmeli" bildirir.
+#
+# Rol adları `actors.yaml`'daki `role` alanıyla eşleşir. Anonim aktörün rolü `anonymous`'tur.
+# Araç her aktörle gerçek erişimi ölçer ve bu beyanla karşılaştırır:
+#   - Açık kuralda izinli olmayan rol eriştiyse  → least-privilege ihlali.
+#   - Kuralı olmayan uç nokta + `default: deny` iken bir rol eriştiyse → deny-by-default ihlali.
+#
+# `endpoint` biçimi: "METHOD /path". Path'teki parametre adı önemsizdir ({id} = {userId}).
+# `allow: ["*"]` o uç noktayı tüm rollere (anonymous dahil) açar; ihlal üretilmez.
+
+default: deny            # deny | allow
+rules:
+  - endpoint: "GET /api/admin/users"
+    allow: [admin]
+  - endpoint: "GET /api/users/{id}"
+    allow: [user, admin]
+  - endpoint: "GET /api/products"
+    allow: ["*"]

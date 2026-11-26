@@ -230,6 +230,9 @@
     {"name": "idor-second-order:near-miss", "vuln_type": "idor", "category": "near_miss", "expected": "not:CONFIRMED"},
     {"name": "rls-misconfig:vulnerable", "vuln_type": "rls_misconfig", "category": "positive", "expected": "CONFIRMED"},
     {"name": "rls-misconfig:hardened", "vuln_type": "rls_misconfig", "category": "negative", "expected": "not:CONFIRMED"},
-    {"name": "rls-misconfig:near-miss", "vuln_type": "rls_misconfig", "category": "near_miss", "expected": "not:CONFIRMED"}
+    {"name": "rls-misconfig:near-miss", "vuln_type": "rls_misconfig", "category": "near_miss", "expected": "not:CONFIRMED"},
+    {"name": "rbac-matrix:vulnerable", "vuln_type": "rbac_violation", "category": "positive", "expected": "CONFIRMED"},
+    {"name": "rbac-matrix:hardened", "vuln_type": "rbac_violation", "category": "negative", "expected": "not:CONFIRMED"},
+    {"name": "rbac-matrix:near-miss", "vuln_type": "rbac_violation", "category": "near_miss", "expected": "not:CONFIRMED"}
   ]
 }

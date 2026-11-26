@@ -1,5 +1,9 @@
 """WebUI api_models testleri — scope narrowing, redaction, validation."""
-from pentestai.models import BudgetConfig, Scope
+import pytest
+from pydantic import ValidationError
+
+from pentestai.models import BudgetConfig, CapturedRequest, Scope
+from pentestai.policy import Allow, Deny, PolicyEngine
 from pentestai.webui.api_models import (
     ActorSpec,
     AuthSpec,
@@ -80,7 +84,54 @@ def test_scope_spec_to_scope():
     assert scope.destructive_tests is True
 
 
+def test_scope_spec_safe_write_paths_reach_core_scope():
+    spec = ScopeSpec(allowed_hosts=["localhost"], safe_write_paths=["/api/coupon/validate", "/api/feedbacks*"])
+    assert spec.to_scope().safe_write_paths == ["/api/coupon/validate", "/api/feedbacks*"]
+
+def test_scope_spec_safe_write_paths_default_empty():
+    assert ScopeSpec().safe_write_paths == []
+    assert ScopeSpec().to_scope().safe_write_paths == []
+
+@pytest.mark.parametrize("bad", [[""], ["   "], ["/ok", ""], [None], [5]])
+def test_scope_spec_safe_write_paths_invalid_item_rejected(bad):
+    with pytest.raises(ValidationError) as exc:
+        ScopeSpec(safe_write_paths=bad)
+    assert "safe_write_paths" in str(exc.value)
+
+def test_safe_write_paths_does_not_open_put():
+    spec = ScopeSpec(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/api/"],
+                     allowed_methods=["GET", "HEAD", "POST", "PUT"], safe_write_paths=["/api/coupon/validate"])
+    engine = PolicyEngine(spec.to_scope())
+    url = "http://localhost:3000/api/coupon/validate"
+    assert isinstance(engine.authorize(CapturedRequest(method="POST", url=url)), Allow)
+    assert isinstance(engine.authorize(CapturedRequest(method="PUT", url=url)), Deny)
+
+
 # ===================== narrow_scope =====================
+
+def test_narrow_scope_safe_write_paths_subset_kept():
+    server = _server_scope()
+    server.safe_write_paths = ["/api/coupon/validate"]
+    req = ScopeSpec(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/api/"],
+                    safe_write_paths=["/API/coupon/validate"])
+    result = narrow_scope(server, req)
+    assert isinstance(result, ScopeSpec)
+    assert result.safe_write_paths == ["/API/coupon/validate"]
+
+def test_narrow_scope_safe_write_paths_beyond_server_rejected():
+    req = ScopeSpec(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/api/"],
+                    safe_write_paths=["/api/orders"])
+    result = narrow_scope(_server_scope(), req)
+    assert isinstance(result, str)
+    assert "safe_write_paths" in result
+
+def test_narrow_scope_safe_write_paths_empty_not_inherited():
+    server = _server_scope()
+    server.safe_write_paths = ["/api/coupon/validate"]
+    req = ScopeSpec(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/api/"])
+    result = narrow_scope(server, req)
+    assert isinstance(result, ScopeSpec) and result.safe_write_paths == []
+
 
 def _server_scope():
     return Scope(

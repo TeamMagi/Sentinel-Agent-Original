@@ -325,3 +325,25 @@ async def test_token_provider_non_json_response_raises_auth_error_without_raw_bo
     assert "JSON" in msg
     assert "SecretBodyXYZ" not in msg
     assert "pw-secret" not in msg
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("status", [401, 500])
+async def test_token_provider_http_error_raises_auth_error_without_leaking(status):
+    def handler(request):
+        return httpx.Response(status, json={"detail": "GovdeSirriXYZ"})
+
+    provider = TokenAuthProvider(
+        f"{BASE}/login", {"email": "a@test.local", "password": "pw-secret"},
+        {"kind": "bearer", "from": "json:token"},
+        transport=httpx.MockTransport(handler),
+        actor_name="user_A",
+    )
+    with pytest.raises(AuthError) as exc_info:
+        await provider.acquire()
+    msg = str(exc_info.value)
+    assert "user_A" in msg
+    assert f"status={status}" in msg
+    assert "pw-secret" not in msg
+    assert "GovdeSirriXYZ" not in msg
+    assert isinstance(exc_info.value.__cause__, httpx.HTTPStatusError)

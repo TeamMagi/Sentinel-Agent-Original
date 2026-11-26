@@ -12,6 +12,11 @@ scope:
   denied_path_patterns: ["*/reset*"]
   allowed_methods: ["GET", "HEAD", "POST"]   # SSRF/NoSQLi vakaları POST yüzeyinde
   destructive_tests: false
+  # Yan etkisi kabul edilebilir POST'lar (destructive_tests kapalıyken bile test edilir; yalnız POST)
+  safe_write_paths:
+    - "/community/api/v2/coupon/validate-coupon"
+    - "/workshop/api/merchant/contact_mechanic"
+    - "/identity/api/auth/login"
   external_network: false                    # SSRF testi iç/loopback hedefe yönlendirir (güvenli)
 
 budget:

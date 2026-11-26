@@ -65,6 +65,7 @@ def test_load_scope_config_full(tmp_path):
         "  allowed_ports: [3000]\n"
         "  allowed_path_prefixes: [/rest, /api]\n"
         "  denied_path_patterns: ['^/admin']\n"
+        "  safe_write_paths: ['/api/coupon/validate']\n"
         "  allowed_methods: [GET, POST]\n"
         "  destructive_tests: true\n"
         "  external_network: true\n"
@@ -83,6 +84,7 @@ def test_load_scope_config_full(tmp_path):
     assert scope.allowed_ports == [3000]
     assert scope.allowed_path_prefixes == ["/rest", "/api"]
     assert scope.denied_path_patterns == ["^/admin"]
+    assert scope.safe_write_paths == ["/api/coupon/validate"]
     assert scope.allowed_methods == ["GET", "POST"]
     assert scope.destructive_tests is True
     assert scope.external_network is True
@@ -106,6 +108,7 @@ def test_load_scope_config_defaults(tmp_path):
     assert target == ""
     assert scope.allowed_path_prefixes == ["/"]
     assert scope.denied_path_patterns == []
+    assert scope.safe_write_paths == []
     assert scope.allowed_methods == ["GET", "HEAD"]
     assert scope.destructive_tests is False
     assert scope.external_network is False

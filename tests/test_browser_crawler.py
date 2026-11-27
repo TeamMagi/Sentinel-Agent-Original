@@ -179,7 +179,8 @@ async def test_max_pages_marks_result_truncated(context):
 @pytest.mark.asyncio
 async def test_confirm_dialog_is_dismissed_never_accepted(context):
     html = """<html><body>
-    <button id="check" onclick="if (confirm('Emin misiniz?'))
+    <button id="check" onclick="fetch('/api/clicked');
+      if (confirm('Emin misiniz?')) fetch('/api/confirmed');
       fetch('/api/users/1',{method:'DELETE'})">Check</button>
     <button id="notify" onclick="alert('bilgi')">Notify</button>
     </body></html>"""
@@ -187,6 +188,11 @@ async def test_confirm_dialog_is_dismissed_never_accepted(context):
     await _install_app(context, log, html)
     result = await _crawler(context).crawl(f"{ORIGIN}/")
     assert result.pages_visited == 1
+    # Tıklama gerçekten oldu (aksi halde test hiçbir şey kanıtlamaz) ...
+    assert _count(log, "GET", "/api/clicked") >= 1
+    # ... ama confirm() ASLA onaylanmadı: kapının İZİN VERDİĞİ bir GET bile gitmedi. (Onay sonrası
+    # istek DELETE olsaydı kapı onu zaten keserdi ve accept/dismiss farkı görünmezdi.)
+    assert _count(log, "GET", "/api/confirmed") == 0
     assert _count(log, "DELETE", "/api/users/1") == 0
 
 

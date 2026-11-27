@@ -154,8 +154,10 @@ def test_anonymous_visible_endpoint_is_excluded_from_policy():
                              content_type="application/json")], CONVERTER)
     # Anonim gördüğü uçlar aday/politikaya GİRMEZ; anon erişim unauthorized_access işidir.
     rules = matrix.to_rbac_policy().rules
-    assert [(r.method, r.path) for r in rules] == [("GET", "/api/admin/users")]
-    assert rules[0].allow == ["admin"]
+    # user/admin farkından gelen İKİ aday; anonimin gördüğü hiçbiri görünmez.
+    assert {(r.method, r.path) for r in rules} == {
+        ("GET", "/api/admin/users"), ("GET", "/api/orders")}
+    assert all("anonymous" not in r.allow for r in rules)
     assert not any(r.path == "/api/me" for r in rules)   # yalnız anonim gördü
 
 

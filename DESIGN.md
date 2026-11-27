@@ -184,6 +184,7 @@ pentest-ai/
 │   ├── llm/               # client.py, prompts.py, actions.py       (Stage 1)
 │   ├── orchestrator/      # pipeline.py                             (Stage 2)
 │   ├── evidence/          # store.py
+│   ├── recon/browser/     # traffic, safety, crawler, login, visibility, discovery (Faz 2)
 │   ├── inventory/         # models.py, shape.py, store.py, diff.py, profiler.py,
 │   │                      # priority.py, tracker.py (Faz 5 — otomatik envanter + fark)
 │   └── report/            # render_md.py, render_json.py, inventory_section.py

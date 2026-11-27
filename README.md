@@ -235,6 +235,21 @@ python -m scripts.run_scan ... --inventory runs/inv.sqlite --delta   # sonraki k
 > SQLite dosyası yerelde kalır; token, cookie, PII veya ham yanıt **DEĞERİ** yazılmaz — yalnızca
 > şablon yol, alan adları, status kodları ve verdict'ler saklanır.
 
+### Tarayıcıyla keşif (Faz 2, opt-in)
+
+`--browser-crawl` her aktörü ayrı headless Chromium bağlamında gezdirir (link, buton, menü, form, SPA
+route) ve tarayıcının XHR/fetch trafiğini gövde şablonlu uçlara çevirir. Login gerektiren SPA'lar için
+aktöre `auth.browser_login: {url, username_selector, password_selector, submit_selector,
+success_url_contains}` verilebilir (kimlik bilgileri aktörün `credentials`'ından okunur).
+
+- **Veri bozmaz:** keşif PUT/PATCH/DELETE ve beyan dışı POST'u **göndermez** — yakalayıp keser (yalnız gövde
+  öğrenilir); tek istisna login formu ve operatörün `safe_write_paths` ile beyan ettiği yola POST. "Delete",
+  "Logout", "Buy", "İptal" gibi etiketli eylemler tıklanmaz, `confirm()` diyalogları reddedilir.
+- **Bütçe:** gezintiler paralel koşar, tarayıcıya kalan sürenin en fazla %25'i verilir.
+- **RBAC adayı:** çok rollü uygulamada yalnız bir rolün gördüğü uçlar `--rbac` verilmediyse otomatik
+  aday kural olur; UI görünürlüğü kanıt sayılmadığı için bu kurallar en fazla **LIKELY** üretir.
+- Ölçüm ve sınırlar: `benchmarks/kesif.result.md` (Faz 2 bölümü).
+
 **Authentication types** (`config/actors.yaml` → `auth.type`):
 
 | Type | When | How |
@@ -258,6 +273,7 @@ producing a silently wrong session.
 | `--scan-mode quick\|standard\|deep` | scales budget + breadth (`quick`≈40 requests/300s) |
 | `--inventory <db.sqlite>` | Faz 5: kalıcı envanter (ör. her gece aynı `runs/inv.sqlite`) |
 | `--delta` | Faz 5: yalnız yeni/değişen/bayat uçlar (`--inventory` zorunlu) |
+| `--browser-crawl` | Faz 2: tarayıcıyla keşif (`--crawl-pages`, `--crawl-depth`, `--crawl-seconds`) |
 | `--dry-run` | authorize requests but **don't send** them |
 | `--enumerate` | wordlist endpoint enumeration + GraphQL introspection |
 | `--login-url / --register-url / --logout-url` | enables brute-force, weak-password and session-lifecycle checks |

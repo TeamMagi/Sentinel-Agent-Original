@@ -57,6 +57,17 @@ def test_browser_local_storage_only_for_own_actor():
     assert (crawler.max_pages, crawler.max_depth) == (7, 2)
 
 
+def test_crawler_uses_smaller_of_cli_seconds_and_budget_share():
+    policy = PolicyEngine(Scope(allowed_hosts=["localhost"], allowed_ports=[3000]))
+    discovery = _build_browser_discovery(
+        _args(browser_crawl=True, crawl_seconds=180.0), [], policy)
+    assert isinstance(discovery, BrowserDiscovery)
+    discovery.time_limit_seconds = 30.0   # Scanner: kalan sürenin %25'i
+    assert discovery._factory().max_crawl_seconds == 30.0
+    discovery.time_limit_seconds = 240.0
+    assert discovery._factory().max_crawl_seconds == 180.0   # CLI sınırı kazanır
+
+
 def test_browser_login_from_actor_credentials_without_leaking_password():
     policy = PolicyEngine(Scope(allowed_hosts=["localhost"], allowed_ports=[3000]))
     actor = Actor(name="a")

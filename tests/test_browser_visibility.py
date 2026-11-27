@@ -70,13 +70,27 @@ def test_anonymous_role_never_creates_or_changes_rbac_candidates():
     assert matrix.to_rbac_policy().rules == []
     # Anonimin görüp görmemesi, iki kimlikli rolün farkı hesabını DEĞİŞTİRMEZ.
     matrix.add("admin", [
-        _call("GET", "/api/admin/users", status=200, content_type="application/json"),
+        _call("GET", "/api/orders", status=200, content_type="application/json"),
     ], CONVERTER)
-    candidates = matrix.rbac_candidates()
+    assert matrix.rbac_candidates() == []
+
+    matrix2 = VisibilityMap()
+    matrix2.add("anonymous", [
+        _call("GET", "/api/admin/users", status=200, content_type="application/json"),
+        _call("GET", "/api/orders", status=200, content_type="application/json"),
+    ], CONVERTER)
+    matrix2.add("user", [
+        _call("GET", "/api/orders", status=200, content_type="application/json"),
+    ], CONVERTER)
+    matrix2.add("admin", [
+        _call("GET", "/api/admin/users", status=200, content_type="application/json"),
+        _call("GET", "/api/orders", status=200, content_type="application/json"),
+    ], CONVERTER)
+    candidates = matrix2.rbac_candidates()
     assert [(c.method, c.path_template) for c in candidates] == [("GET", "/api/admin/users")]
     assert candidates[0].visible_to == ["admin"]
     assert candidates[0].hidden_from == ["user"]
-    assert matrix.to_rbac_policy().rules[0].allow == ["admin"]
+    assert matrix2.to_rbac_policy().rules[0].allow == ["admin"]
 
 
 def test_two_same_role_actors_do_not_produce_candidates():

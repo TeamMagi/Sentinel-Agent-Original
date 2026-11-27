@@ -223,3 +223,35 @@ Keşif yerine uç listesi doğrudan `run_recon_scan`'e verilir (gerçek senaryod
 Toplam kapı: `python -m pytest -q` → **2299 passed, 2 skipped** (~100 s). 7 kategorinin tamamı
 uçtan-uca doğrulandı; `CONFIRMED` yalnızca mevcut oracle'lardan geldi, yetki profili farkı tek
 başına bulgu üretmedi.
+
+---
+
+# Faz 2 — tarayıcıyla otonom gezinme (2026-11-27)
+
+`--browser-crawl` (opt-in): aktör başına ayrı headless Chromium bağlamı, arayüzden gerçek login
+(`actors.yaml auth.browser_login`), BFS (link/buton/menü/form/SPA route), XHR/fetch yakalama → gövde
+şablonlu uçlar, rol görünürlüğü → RBAC ADAYI (en fazla LIKELY), kimlik uçlarından own-id.
+URL-only, `--mode active --llm none`; crAPI gerçek dar scope + `discovery_path_prefixes: ["/"]` (+ ölçüm
+kopyasında `safe_write_paths`'e `/identity/api/auth/verify`), Juice kök önekli scope. Yer-gerçeği değiştirilmedi.
+
+| Hedef | Uç-recall (tarayıcısız → tarayıcılı) | Tarayıcının yeni uçları | Test kapsamı | Uçtan uca recall | FP |
+|---|---|---|---|---|---|
+| crAPI | %72.7 → %72.7 | 0 (9 uç, hepsi JS keşfinde zaten vardı) | %34.1 → %34.1 | %40 → %40 | 0 |
+| Juice Shop | %33.3 → %35.5 | 4 | %10.9 → %6.5 | %0 → %0 | 0 |
+
+**Yıkıcı eylem kontrolü (çıkış kriteri):** her koşumdan önce/sonra hedef veri sayımları alındı (crAPI: aktör
+başına post/araç/sipariş, dashboard; Juice: sepet, adres, kart, ürün, geri bildirim, yorum) — **tüm
+koşumlarda birebir aynı**. Juice'ta 417, crAPI'de 6 yazma isteği gönderilmeden kesildi; "Logout", "Buy",
+"Cancel" gibi yıkıcı eylemler tıklanmadı.
+
+**Dürüst değerlendirme:** tarayıcı bu iki hedefte yeni uç açısından az katkı verdi (crAPI'nin tüm çağrıları
+JS bundle'ında zaten görünüyor; Juice'ta +4 uç). Uçtan uca darboğaz değişmedi: test bütçesi (2000 istek)
+ve parametre/gövde derinliği → Faz 3/6. Tarayıcının asıl değeri: gerçek gövde şablonları (yazma uçları),
+login gerektiren SPA'larda görünür olan uçlar, çok rollü uygulamalarda otomatik RBAC adayı (bu iki hedefte
+tek rol olduğu için aday üretilmedi). Bu yüzden `--browser-crawl` varsayılan KAPALI kalır.
+
+Canlıda bulunup düzeltilen hatalar (hepsi testli): yolsuz hedefte scope reddi; SPA menüsünün geç çizilmesi;
+kök yolun /login'e dönmesi; oturumun gecikmeli yazılması; hoş geldin katmanının login'i örtmesi; action'sız
+SPA login formu; sıralı gezintilerin süre bütçesini bitirmesi; anonim-kullanıcı farkından gereksiz RBAC
+adayları. Bağımsız kod incelemesi (12 bulgu) ayrıca UI görünürlüğünden çıkarılan RBAC kuralının sahte
+CONFIRMED üretebildiğini yakaladı — düzeltildi (en fazla LIKELY/Medium).

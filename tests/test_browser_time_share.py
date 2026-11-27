@@ -79,22 +79,14 @@ async def test_one_failing_crawl_does_not_stop_others(capsys):
 @pytest.mark.asyncio
 async def test_time_limit_returns_finished_crawls_and_warns(capsys):
     store = SessionStore(base_url=BASE)
-    discovery = _discovery(_SleepyCrawler(0.1, hang_for="admin"))
-    discovery.time_limit_seconds = 0.01   # +15 sn tolerans yerine testte kısalt
-    import pentestai.recon.browser.discovery as mod
-    original = mod.asyncio.wait
-
-    async def short_wait(tasks, timeout=None):
-        return await original(tasks, timeout=1.0)
-
-    mod.asyncio.wait = short_wait
-    try:
-        res = await discovery.run(BASE, _sessions(store), ["localhost"])
-    finally:
-        mod.asyncio.wait = original
-        await store.aclose_all()
+    discovery = BrowserDiscovery(
+        PolicyEngine(_scope()), crawler_factory=lambda: _SleepyCrawler(0.01, hang_for="admin"),
+        timeout_grace_seconds=0.05)   # varsayılan +15 sn yerine testte kısalt
+    res = await discovery.run(BASE, _sessions(store), ["localhost"], time_limit_seconds=0.05)
+    await store.aclose_all()
     assert {e.path_template for e in res.endpoints} == {"/api/user/info", "/api/anonymous/info"}
-    assert "süre payı dolduğu için kesildi" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert "UYARI" in out and "iptal edildi" in out and "root" in out
 
 
 def _visibility(roles: dict[str, list[str]]) -> VisibilityMap:
@@ -126,8 +118,10 @@ class _RecordingDiscovery(BrowserDiscovery):
         self.budget = None
         self.seen_limit: float | None = None
 
-    async def run(self, start_url, sessions, allowed_hosts) -> BrowserDiscoveryResult:
-        self.seen_limit = self.time_limit_seconds
+    async def run(self, start_url, sessions, allowed_hosts, *,
+                  time_limit_seconds: float | None = None) -> BrowserDiscoveryResult:
+        self.seen_limit = time_limit_seconds if time_limit_seconds is not None \
+            else self.time_limit_seconds
         return BrowserDiscoveryResult()
 
 

@@ -43,6 +43,16 @@ def test_seconds_left_clamps_to_zero():
     assert BudgetTracker(10, 900).seconds_left > 800
 
 
+def test_remaining_seconds_reports_limit_zero_and_unlimited():
+    budget = BudgetTracker(10, 900)
+    value = budget.remaining_seconds()
+    assert value is not None and 890 < value <= 900
+    time.sleep(0.01)
+    assert BudgetTracker(10, 0).remaining_seconds() == 0.0
+    assert BudgetTracker(10, None).remaining_seconds() is None
+    assert BudgetTracker(10, None).seconds_left == float("inf")
+
+
 @pytest.mark.asyncio
 async def test_retry_after_is_capped(monkeypatch):
     slept: list[float] = []

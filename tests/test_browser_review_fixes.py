@@ -1,4 +1,4 @@
-"""Bağımsız kod incelemesinin tarayıcı/RBAC bulguları için regresyon testleri (Faz 2)."""
+"""Bağımsız kod incelemesinin tarayıcı/RBAC bulguları için regresyon testleri (Faz 2).
 
 Ağ YOK: oracle/HTTP yolları `httpx.MockTransport`, tarayıcı yolları gerçek headless
 Chromium + `context.route()` ile sahte origin. Ham sır/PII değeri testlere yazılmaz.

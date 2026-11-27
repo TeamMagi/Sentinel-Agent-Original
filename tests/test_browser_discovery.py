@@ -6,7 +6,9 @@ tek istek atılmaz.
 """
 from __future__ import annotations
 
+import asyncio
 import json
+import time
 from collections.abc import Callable
 from urllib.parse import urlsplit
 
@@ -18,7 +20,7 @@ from playwright.async_api import Browser, BrowserContext, async_playwright
 from pentestai.models import Actor, AuthState, Scope
 from pentestai.net import BudgetExceeded, Session, SessionStore
 from pentestai.policy import PolicyEngine
-from pentestai.recon.browser import BrowserCrawler, SafeActionPolicy
+from pentestai.recon.browser import BrowserCrawler, CapturedCall, CrawlResult, SafeActionPolicy
 from pentestai.recon.browser.discovery import BrowserDiscovery
 
 ORIGIN = "http://app.test.local"
@@ -202,6 +204,105 @@ async def test_budget_exceeded_propagates(browser):
     finally:
         await store.aclose_all()
         await context.close()
+
+
+class _ClockCrawler:
+    """Gerçek tarayıcı açmadan süre/sonuç/iptal davranışını taklit eden sahte crawler."""
+
+    def __init__(self, delay: float, path: str, closed: list[str] | None = None) -> None:
+        self.delay = delay
+        self.path = path
+        self.closed = closed if closed is not None else []
+        self.label = path.rsplit("/", 1)[-1]
+
+    async def crawl(self, start_url: str, *, role: str, auth: object,
+                    local_storage: object, login: object) -> CrawlResult:
+        try:
+            await asyncio.sleep(self.delay)
+        except asyncio.CancelledError:
+            self.closed.append(self.label)
+            raise
+        return CrawlResult(
+            calls=[CapturedCall(method="GET", url=f"{ORIGIN}{self.path}", status=200,
+                                content_type="application/json", role=role)],
+            pages_visited=1)
+
+    async def aclose(self) -> None:
+        if self.label not in self.closed:
+            self.closed.append(self.label)
+
+
+@pytest.mark.asyncio
+async def test_all_actor_walks_run_in_parallel_and_merge_in_actor_order():
+    crawlers = [_ClockCrawler(1.0, "/api/admin"), _ClockCrawler(1.0, "/api/user"),
+                _ClockCrawler(1.0, "/api/anon")]
+    pending = iter(crawlers)
+    store = _store()
+    try:
+        sessions = await _sessions(store)
+        started = time.monotonic()
+        result = await BrowserDiscovery(
+            PolicyEngine(Scope(allowed_hosts=[HOST], allowed_ports=[80])),
+            crawler_factory=lambda: next(pending),  # type: ignore[return-value]
+        ).run(f"{ORIGIN}/", sessions, [HOST])
+        elapsed = time.monotonic() - started
+    finally:
+        await store.aclose_all()
+
+    assert elapsed < 2.5   # sıralı olsaydı ~3 sn sürerdi
+    assert [e.path_template for e in result.endpoints] == [
+        "/api/admin", "/api/user", "/api/anon"]   # deterministik: aktör + anon sırası
+    assert result.pages_visited == 3
+    assert sorted(result.visibility.roles()) == ["admin", "anonymous", "user"]
+
+
+@pytest.mark.asyncio
+async def test_one_factory_failure_does_not_stop_other_walks(capsys):
+    crawlers: list[object] = [_ClockCrawler(0.01, "/api/user")]
+
+    def factory():
+        item = crawlers.pop(0)
+        if isinstance(item, RuntimeError):
+            raise item
+        return item
+
+    crawlers.insert(0, RuntimeError("sahte kurulum hatası"))
+    store = _store()
+    try:
+        sessions = await _sessions(store)
+        result = await BrowserDiscovery(
+            PolicyEngine(Scope(allowed_hosts=[HOST], allowed_ports=[80])),
+            crawler_factory=lambda: factory(),  # type: ignore[return-value]
+            include_anonymous=False,
+        ).run(f"{ORIGIN}/", sessions, [HOST])
+    finally:
+        await store.aclose_all()
+
+    assert [e.path_template for e in result.endpoints] == ["/api/user"]
+    assert "UYARI" in capsys.readouterr().out
+
+
+@pytest.mark.asyncio
+async def test_time_limit_keeps_finished_walks_and_cancels_the_rest(capsys):
+    closed: list[str] = []
+    slow = _ClockCrawler(2.0, "/api/slow", closed)
+    fast = _ClockCrawler(0.01, "/api/fast", closed)
+    crawlers = iter([slow, fast])
+    store = _store()
+    try:
+        sessions = await _sessions(store)
+        result = await BrowserDiscovery(
+            PolicyEngine(Scope(allowed_hosts=[HOST], allowed_ports=[80])),
+            crawler_factory=lambda: next(crawlers),  # type: ignore[return-value]
+            include_anonymous=False, timeout_grace_seconds=0.05,
+        ).run(f"{ORIGIN}/", sessions, [HOST], time_limit_seconds=0.1)
+    finally:
+        await store.aclose_all()
+
+    assert [e.path_template for e in result.endpoints] == ["/api/fast"]
+    assert "slow" in " ".join(closed)   # iptal edilen crawl context'ini kapatır
+    out = capsys.readouterr().out
+    assert "UYARI" in out and "iptal" in out
 
 
 def test_resolve_ignores_unknown_cookie_and_keeps_plain_value():

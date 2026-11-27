@@ -57,10 +57,12 @@ class _FakeDiscovery(BrowserDiscovery):
     def __init__(self, result: BrowserDiscoveryResult) -> None:
         self.result = result
         self.runs: list[tuple[str, list[str]]] = []
+        self.time_limits: list[float | None] = []
 
-    async def run(self, start_url: str, sessions: list[Session],
-                  allowed_hosts: list[str]) -> BrowserDiscoveryResult:
+    async def run(self, start_url: str, sessions: list[Session], allowed_hosts: list[str], *,
+                  time_limit_seconds: float | None = None) -> BrowserDiscoveryResult:
         self.runs.append((start_url, list(allowed_hosts)))
+        self.time_limits.append(time_limit_seconds)
         return self.result
 
 
@@ -178,6 +180,37 @@ async def test_user_rbac_policy_is_not_overridden(monkeypatch, capsys):
     assert rbac_seen == [user_policy]
     assert scanner.browser_rbac_candidates == []
     assert "kullanıcı --rbac politikası korundu" in capsys.readouterr().out
+
+
+@pytest.mark.asyncio
+async def test_browser_time_limit_is_wall_clock_share(monkeypatch, capsys):
+    discovery = _FakeDiscovery(_result())
+    scanner = Scanner(
+        BASE, _scope(),
+        BudgetConfig(max_total_requests=50, max_wall_clock_sec=200, max_rps_per_host=1000),
+        browser_discovery=discovery)
+
+    async def fake_generate(endpoints: list[Endpoint]) -> list:
+        return []
+
+    async def fake_rbac(sessions: list[Session], endpoints: list[Endpoint],
+                        policy: RbacPolicy) -> list:
+        return []
+
+    monkeypatch.setattr(scanner.planner, "generate", fake_generate)
+    monkeypatch.setattr(scanner, "run_rbac_scan", fake_rbac)
+    store = _store()
+    try:
+        await scanner.run_recon_scan(
+            list(await _sessions(store)), [], bootstrap=False, exposure_scan=False,
+            info_leak_scan=False, rate_limit_scan=False, cve_scan=False, tls_scan=False,
+            template_scan=False)
+    finally:
+        await store.aclose_all()
+
+    assert scanner.browser_time_share == 0.25
+    assert discovery.time_limits == pytest.approx([50.0], abs=1.0)   # 200 sn × %25
+    assert "sn)" in capsys.readouterr().out   # özet satırında tarayıcı süresi
 
 
 @pytest.mark.asyncio

@@ -142,7 +142,7 @@ def test_auto_policy_emits_only_safe_method_rules():
     assert ("POST", "/api/admin/users/{id}") in matrix.seen_by("admin")
 
 
-def test_anonymous_visible_endpoint_allows_anonymous_in_policy():
+def test_anonymous_visible_endpoint_is_excluded_from_policy():
     matrix = VisibilityMap()
     matrix.add("admin", [_call("GET", "/api/admin/users", status=200,
                               content_type="application/json")], CONVERTER)
@@ -152,8 +152,11 @@ def test_anonymous_visible_endpoint_allows_anonymous_in_policy():
     ], CONVERTER)
     matrix.add("user", [_call("GET", "/api/orders", status=200,
                              content_type="application/json")], CONVERTER)
-    rule = matrix.to_rbac_policy().rules[0]
-    assert "anonymous" in rule.allow and "admin" in rule.allow
+    # Anonim gördüğü uçlar aday/politikaya GİRMEZ; anon erişim unauthorized_access işidir.
+    rules = matrix.to_rbac_policy().rules
+    assert [(r.method, r.path) for r in rules] == [("GET", "/api/admin/users")]
+    assert rules[0].allow == ["admin"]
+    assert not any(r.path == "/api/me" for r in rules)   # yalnız anonim gördü
 
 
 @pytest.mark.asyncio

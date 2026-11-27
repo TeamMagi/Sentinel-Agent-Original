@@ -55,6 +55,45 @@ def test_aborted_admin_post_counts_as_visible():
     assert ("POST", "/api/admin/users/{id}") in matrix.exclusive_to("admin")
 
 
+def test_anonymous_role_never_creates_or_changes_rbac_candidates():
+    """Anonim farkı mevcut unauthorized_access kontrolünün işi — aday/politika BOŞ."""
+    matrix = VisibilityMap()
+    matrix.add("user", [
+        _call("GET", "/api/orders", status=200, content_type="application/json"),
+    ], CONVERTER)
+    matrix.add("anonymous", [
+        _call("GET", "/api/admin/users", status=200, content_type="application/json"),
+        _call("GET", "/api/orders", status=200, content_type="application/json"),
+    ], CONVERTER)
+    assert matrix.roles() == ["anonymous", "user"]
+    assert matrix.rbac_candidates() == []
+    assert matrix.to_rbac_policy().rules == []
+    # Anonimin görüp görmemesi, iki kimlikli rolün farkı hesabını DEĞİŞTİRMEZ.
+    matrix.add("admin", [
+        _call("GET", "/api/admin/users", status=200, content_type="application/json"),
+    ], CONVERTER)
+    candidates = matrix.rbac_candidates()
+    assert [(c.method, c.path_template) for c in candidates] == [("GET", "/api/admin/users")]
+    assert candidates[0].visible_to == ["admin"]
+    assert candidates[0].hidden_from == ["user"]
+    assert matrix.to_rbac_policy().rules[0].allow == ["admin"]
+
+
+def test_two_same_role_actors_do_not_produce_candidates():
+    matrix = VisibilityMap()
+    matrix.add("user", [
+        _call("GET", "/api/orders", status=200, content_type="application/json"),
+    ], CONVERTER)
+    matrix.add("user", [
+        _call("GET", "/api/orders", status=200, content_type="application/json"),
+        _call("GET", "/api/me", status=200, content_type="application/json"),
+    ], CONVERTER)
+    matrix.add("anonymous", [
+        _call("GET", "/api/public/health", status=200, content_type="application/json"),
+    ], CONVERTER)
+    assert matrix.rbac_candidates() == []
+
+
 def test_privileged_filter_drops_candidates_visible_to_unprivileged_roles():
     matrix = _map()
     assert len(matrix.rbac_candidates(privileged=["admin"])) == 2

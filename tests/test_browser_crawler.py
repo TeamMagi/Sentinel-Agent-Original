@@ -149,6 +149,16 @@ async def test_captures_api_calls_and_blocks_destructive_actions(context):
 
 
 @pytest.mark.asyncio
+async def test_start_url_without_path_is_crawled_from_root(context):
+    """Hedef `http://host` (yolsuz) verildiğinde ScopeError değil, `/`'den gezinme (canlı hata)."""
+    log = ServerLog()
+    await _install_app(context, log)
+    result = await _crawler(context).crawl(ORIGIN)
+    assert result.pages_visited >= 1
+    assert _count(log, "GET", "/api/orders/12") >= 1
+
+
+@pytest.mark.asyncio
 async def test_out_of_scope_start_url_raises_scope_error(context):
     with pytest.raises(ScopeError):
         await _crawler(context).crawl(EVIL_URL)

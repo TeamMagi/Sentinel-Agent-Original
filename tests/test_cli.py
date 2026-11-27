@@ -95,6 +95,19 @@ def test_scan_main_rejects_unknown_scan_mode():
         scan_main(["--scope", "x", "--actors", "y", "--scan-mode", "ultra"])
 
 
+def test_scan_main_rejects_delta_without_inventory(capsys):
+    """Faz 5 / T4: --delta tek başına Türkçe hata + çıkış kodu 2 (config'e dokunmadan)."""
+    rc = scan_main(["--scope", "x", "--actors", "y", "--delta"])
+    assert rc == 2
+    assert "--inventory" in capsys.readouterr().out
+
+
+def test_sentinel_main_rejects_delta_without_inventory(capsys):
+    rc = main(["scan", "--scope", "x", "--actors", "y", "--delta"])
+    assert rc == 2
+    assert "HATA" in capsys.readouterr().out
+
+
 def test_sentinel_main_requires_scan_subcommand():
     with pytest.raises(SystemExit):
         main([])   # subparsers required=True → argparse SystemExit(2)

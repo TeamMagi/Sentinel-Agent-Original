@@ -17,6 +17,10 @@ actors:
       # extra_form_fields: { grant_type: "password", scope: "read" }
       # Sepet id'si login yanıtındaki `bid` alanında gelir → DEĞER değil YOL ver; her aktörde aynı.
       own_ids_from: { basket: "json:authentication.bid" }
+      # Faz 2 / T4 (--browser-crawl): SPA token'ı localStorage'a şablonla yazılır.
+      # {bearer} → BU aktörün Authorization Bearer token'ı, {cookie:ad} → BU aktörün cookie'si.
+      # Çözülemeyen yer tutuculu anahtar yazılmaz; aktörler arası değer paylaşımı olmaz.
+      # browser_local_storage: { token: "{bearer}", sid: "{cookie:session}" }
     # own_object_ids artık opsiyonel: kullanıcı id'si JWT'den, sepet login'den, diğerleri crawl'den
     # çıkarılır. Verilirse daima önceliklidir. basketitem=sepete eklenen BasketItem.id (çıkarılamaz).
     own_object_ids: { basketitem: "1" }

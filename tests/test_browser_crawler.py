@@ -143,7 +143,10 @@ async def test_captures_api_calls_and_blocks_destructive_actions(context):
     assert any(method == "POST" and path.endswith("/api/feedback")
                for method, path, _ in result.blocked)
 
-    assert _count(log, "POST", "/api/search") >= 1
+    # Keşif izinli POST'u BİLE göndermez: yalnız gövde şablonu öğrenilir, istek abort edilir.
+    assert _count(log, "POST", "/api/search") == 0
+    assert any(c.aborted and c.method == "POST"
+               and urlsplit(c.url).path == "/api/search" for c in result.calls)
     assert evil_hits == []
     assert any("evil.test" in url for _, url, _ in result.blocked)
 

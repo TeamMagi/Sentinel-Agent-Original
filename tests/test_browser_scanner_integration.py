@@ -178,3 +178,28 @@ async def test_user_rbac_policy_is_not_overridden(monkeypatch, capsys):
     assert rbac_seen == [user_policy]
     assert scanner.browser_rbac_candidates == []
     assert "kullanıcı --rbac politikası korundu" in capsys.readouterr().out
+
+
+@pytest.mark.asyncio
+async def test_discovery_attached_after_init_gets_replayer_budget(monkeypatch):
+    """CLI cepheyi Scanner kurulduktan SONRA bağlar; bütçe yine de çalışma anında bağlanmalı
+    (yalnız __init__'te bağlansaydı gerçek taramada tarayıcı kill-switch'siz kalırdı)."""
+    discovery = _FakeDiscovery(_result())
+    discovery.budget = None
+    scanner = Scanner(BASE, _scope(), BudgetConfig(max_total_requests=50, max_rps_per_host=1000))
+    scanner.browser_discovery = discovery   # cli.py'deki gibi sonradan bağlanır
+
+    async def fake_generate(endpoints: list[Endpoint]) -> list:
+        return []
+
+    monkeypatch.setattr(scanner.planner, "generate", fake_generate)
+    store = _store()
+    try:
+        sessions = await _sessions(store)
+        await scanner.run_recon_scan(
+            list(sessions), [], bootstrap=False, exposure_scan=False, info_leak_scan=False,
+            rate_limit_scan=False, cve_scan=False, tls_scan=False, template_scan=False,
+            rbac_policy=RbacPolicy(default="allow"))
+    finally:
+        await store.aclose_all()
+    assert discovery.budget is scanner.replayer.budget

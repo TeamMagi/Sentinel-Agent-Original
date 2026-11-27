@@ -6,6 +6,7 @@ tek istek atılmaz.
 """
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 from urllib.parse import urlsplit
 
@@ -57,10 +58,13 @@ async def _context(
         request = route.request
         path = urlsplit(request.url).path
         auth = request.headers.get("authorization", "")
-        role = "admin" if "ADMIN-TOKEN" in auth else "user" if "USER-TOKEN" in auth else "anon"
+        role = ("admin" if "ADMIN-TOKEN" in auth else "user" if "USER-TOKEN" in auth
+                else "anonymous")
         seen.append((request.method.upper(), path, dict(request.headers)))
         if path.startswith("/api/"):
-            await route.fulfill(status=200, content_type="application/json", body="{}")
+            # id'siz kimlik yolu TEK NESNE döndürür → own-id hasadı için güvenli kaynak.
+            body = json.dumps({"id": 17}) if path == "/api/me" else "{}"
+            await route.fulfill(status=200, content_type="application/json", body=body)
         else:
             await route.fulfill(status=200, content_type="text/html",
                                 body=html_for_role(role))
@@ -95,7 +99,7 @@ async def _sessions(store: SessionStore) -> list[Session]:
 @pytest.mark.asyncio
 async def test_role_specific_menus_unified_endpoints_rbac_and_local_storage(browser):
     seen: Seen = []
-    html = {"admin": ADMIN_HTML, "user": USER_HTML, "anon": ANON_HTML}
+    html = {"admin": ADMIN_HTML, "user": USER_HTML, "anonymous": ANON_HTML}
     contexts = [await _context(browser, lambda role: html[role], seen) for _ in range(3)]
     pending = iter(contexts)
 
@@ -125,15 +129,15 @@ async def test_role_specific_menus_unified_endpoints_rbac_and_local_storage(brow
                (e.method, e.path_template) == ("GET", "/api/orders/{id}")) == 1
 
     # Görünürlük ROL anahtarlı; own_ids ise AKTÖR adı anahtarlı.
-    assert result.visibility.roles() == ["admin", "anon", "user"]
+    assert result.visibility.roles() == ["admin", "anonymous", "user"]
     candidates = result.visibility.rbac_candidates()
     admin_only = next(c for c in candidates if c.path_template == "/api/admin/users")
     assert admin_only.visible_to == ["admin"]
     assert "user" in admin_only.hidden_from
     assert ("GET", "/api/admin/users") in result.visibility.exclusive_to("admin")
 
-    # Kendi id'leri rol bazlı; anon own-id ÜRETMEZ.
-    assert result.own_ids == {"admin": {"order": "7"}, "user_A": {"order": "8"}}
+    # Path id'si (orders/7) own sayılmaz; yalnız id'siz /api/me yanıtından hasat edilir.
+    assert result.own_ids == {"admin": {"me": "17"}, "user_A": {}}
 
     # localStorage şablonu yalnız admin bağlamında, kendi token/cookie'siyle doldu.
     me = [h for method, path, h in seen if path == "/api/me"]
@@ -173,7 +177,7 @@ async def test_one_actor_failure_does_not_stop_others(capsys, browser):
 
     assert {(e.method, e.path_template) for e in result.endpoints} == {
         ("GET", "/api/orders/{id}")}
-    assert result.own_ids == {"user_A": {"order": "8"}}
+    assert result.own_ids.get("user_A", {}) == {}   # path id'si own değil
     assert "UYARI" in capsys.readouterr().out
 
 

@@ -61,32 +61,41 @@ def test_privileged_filter_drops_candidates_visible_to_unprivileged_roles():
     assert matrix.rbac_candidates(privileged=["user"]) == []
 
     mixed = VisibilityMap()
-    mixed.add("admin", [_call("GET", "/api/reports", content_type="application/json")], CONVERTER)
-    mixed.add("user", [_call("GET", "/api/reports", content_type="application/json")], CONVERTER)
-    mixed.add("manager", [], CONVERTER)
+    shared = _call("GET", "/api/shared", status=200, content_type="application/json")
+    mixed.add("admin", [_call("GET", "/api/reports", status=200,
+                              content_type="application/json"), shared], CONVERTER)
+    mixed.add("user", [_call("GET", "/api/reports", status=200,
+                             content_type="application/json"), shared], CONVERTER)
+    # Başarılı API çağrısı olmayan anonim rol haritaya eklenmez; manager eklenir
+    # ama gördüğü /api/shared herkesçe görüldüğü için ek aday üretmez.
+    mixed.add("anonymous", [shared], CONVERTER)
+    mixed.add("manager", [shared], CONVERTER)
     assert len(mixed.rbac_candidates()) == 1
     assert mixed.rbac_candidates(privileged=["admin"]) == []
 
 
-def test_to_rbac_policy_default_allow_and_explicit_rule():
+def test_to_rbac_policy_default_allow_and_inferred_safe_rules():
     policy = _map().to_rbac_policy()
     assert policy.default == "allow"
-    assert len(policy.rules) == 2
-    rule = next(r for r in policy.rules if r.method == "GET")
+    # Abort edilen POST görünürlükte sayılır ama otomatik kural OLMASIN.
+    assert len(policy.rules) == 1
+    rule = policy.rules[0]
     assert (rule.method, rule.path, rule.allow) == ("GET", "/api/admin/users", ["admin"])
+    assert rule.inferred is True
     # Kuralı olmayan uç: default=allow → None → RBAC taraması test etmez (FP güvenliği).
     assert policy.expected_roles("GET", "/api/orders") is None
     expected = policy.expected_roles("GET", "/api/admin/users")
     assert expected is not None
-    assert expected[0] == frozenset({"admin"}) and expected[1] == "explicit"
+    assert expected[0] == frozenset({"admin"}) and expected[1] == "inferred"
 
 
-def test_harvest_path_id_uses_endpoint_resource_key():
+def test_path_id_is_never_taken_as_own_id():
+    """Başkasının/public nesnesi olabileceğinden path id'si artık hiçbir zaman own değil."""
     calls = [_call("GET", "/api/orders/42", status=200, content_type="application/json")]
-    assert OwnIdHarvester().harvest(calls, CONVERTER) == {"order": "42"}
+    assert OwnIdHarvester().harvest(calls, CONVERTER) == {}
 
     versioned = [_call("GET", "/api/v1/orders/42", status=200, content_type="application/json")]
-    assert OwnIdHarvester().harvest(versioned, CONVERTER) == {"order": "42"}
+    assert OwnIdHarvester().harvest(versioned, CONVERTER) == {}
 
 
 def test_harvest_single_object_response_id_and_resource_id_field():
@@ -100,15 +109,17 @@ def test_harvest_single_object_response_id_and_resource_id_field():
     assert harvested == {"order": "77", "basket": "b-1"}
 
 
-def test_harvest_ignores_list_responses_and_first_seen_wins():
+def test_harvest_ignores_list_responses_and_path_ids():
     calls = [
         _call("GET", "/api/orders", status=200, content_type="application/json",
               response_json=[{"id": "yabancı-1"}, {"id": "yabancı-2"}]),
         _call("GET", "/api/orders/5", status=200, content_type="application/json",
               response_json={"id": "başkası"}),
+        _call("GET", "/api/baskets", status=200, content_type="application/json",
+              response_json={"id": "kendi"}),
     ]
     harvested = OwnIdHarvester().harvest(calls, CONVERTER)
-    assert harvested == {"order": "5"}
+    assert harvested == {"basket": "kendi"}
 
 
 def test_harvest_skips_non_success_and_non_api_calls():

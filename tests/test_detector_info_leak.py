@@ -167,3 +167,35 @@ async def test_version_header_found_on_non_root_endpoint_once():
         await store.aclose_all()
     confirmed = [f for f in findings if f.verdict == "CONFIRMED" and f.type == "info_leak"]
     assert len(confirmed) == 1 and confirmed[0].endpoint == "/healthcheck"
+
+
+def _search_handler(request):
+    q = request.url.params.get("q", "")
+    if "x'" in q:
+        return httpx.Response(500, json={"error": {"message": "SQLITE_ERROR: near \"'\": syntax error"}})
+    return httpx.Response(200, json={"data": []})
+
+
+@pytest.mark.asyncio
+async def test_error_trigger_query_param_on_idless_endpoint():
+    """id'siz uçtaki query parametresine tek tırnak → ham SQL hatası ifşası (eskiden hiç denenmezdi)."""
+    from pentestai.models import Param
+    store, detector, session = _setup(_search_handler)
+    ep = Endpoint(method="GET", path_template="/rest/products/search",
+                  params=[Param(name="q", location="query")])
+    assert not ep.has_id
+    findings = await detector.scan_error_triggers(session, [ep])
+    assert len(findings) == 1 and findings[0].verdict == "CONFIRMED"
+    assert findings[0].endpoint == "/rest/products/search"
+    assert "SQLITE_ERROR" not in findings[0].evidence.leaked_markers[0]   # ham metin yazılmaz
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
+async def test_error_trigger_query_param_clean_no_finding():
+    from pentestai.models import Param
+    store, detector, session = _setup(lambda r: httpx.Response(200, json={"data": []}))
+    ep = Endpoint(method="GET", path_template="/rest/products/search",
+                  params=[Param(name="q", location="query")])
+    assert await detector.scan_error_triggers(session, [ep]) == []
+    await store.aclose_all()

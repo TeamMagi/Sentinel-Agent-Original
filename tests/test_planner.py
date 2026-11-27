@@ -174,3 +174,13 @@ def test_no_role_like_body_param_no_extra_mass_assignment_for_idless_endpoint():
                  params=[Param(name="nickname", location="body", type="string")])
     hyps = HypothesisGenerator().deterministic([ep])
     assert not any(h.type == "mass_assignment" for h in hyps)
+
+
+def test_jwt_hypotheses_on_identity_read_not_only_first_endpoint():
+    """JWT imza testi yalnız i==0'da (ör. kök '/') kalırsa korunan uç (/rest/basket/{id}) hiç test edilmezdi."""
+    eps = [Endpoint(method="GET", path_template="/", id_param="id"),
+           Endpoint(method="GET", path_template="/rest/basket/{id}", id_param="id")]
+    hs = HypothesisGenerator().deterministic(eps)
+    for t in ("jwt", "jwt_algorithm_confusion"):
+        assert (t, "/rest/basket/{id}") in {(h.type, h.endpoint.path_template) for h in hs}
+    assert sum(h.type == "security_headers" for h in hs) == 1   # host-seviyesi hâlâ tek

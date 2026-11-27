@@ -12,6 +12,7 @@ from pentestai.models import (
     Evidence,
     Finding,
     Hypothesis,
+    Param,
     Scope,
 )
 from pentestai.net import ScopeError, SessionStore
@@ -123,3 +124,28 @@ async def test_hypothesis_that_runs_no_oracle_is_not_counted_as_tested():
         await store.aclose_all()
     entry = {e.path_template: e for e in scanner._surface_entries()}["/orders/{id}"]
     assert entry.tested is False and entry.tests == []
+
+
+@pytest.mark.asyncio
+async def test_tested_params_tracks_fuzzed_parameter_names(tmp_path):
+    """Faz 3 / T3: `tested_params` yalnızca GERÇEKTEN koşan injection hipotezinin parametresini
+    taşır; bilinen ama test edilmeyen parametreler `params`'ta kalır, `tested_params`'a girmez."""
+    scanner = Scanner(BASE, _scope(), BudgetConfig(max_rps_per_host=1000), out_dir=str(tmp_path))
+    ep = Endpoint(method="GET", path_template="/rest/search",
+                 params=[Param(name="q", location="query", type="string")])
+    scanner.register_surface([ep], "config")
+
+    store = SessionStore(base_url=BASE, transport=httpx.MockTransport(
+        lambda request: httpx.Response(200, json={})))
+    session = store.create(Actor(name="user_A", auth=AuthState()))
+    try:
+        await scanner.run_hypotheses([session], [
+            Hypothesis(type="injection", endpoint=ep, param="q", param_location="query"),
+        ])
+    finally:
+        await store.aclose_all()
+
+    entries = {e.path_template: e for e in scanner._surface_entries()}
+    entry = entries["/rest/search"]
+    assert "q" in entry.tested_params
+    assert "q" in entry.params

@@ -328,3 +328,88 @@ async def test_traversal_confirmed_on_passwd_signature():
 async def test_traversal_rejected_without_signature():
     f = await _find(lfi_safe, "path_traversal")
     assert f.verdict == base.REJECTED
+
+
+# --- Faz 3 / T3: id-SİZ query parametresi (ör. GET /rest/products/search?q=) ---
+
+SEARCH_ENDPOINT = Endpoint(method="GET", path_template="/rest/products/search")
+
+
+def sqli_vuln_q(request):
+    """q parametresinde error-based SQLi: tek tırnak SQL hata imzası üretir, zararsız değer
+    ("apple" — benign_value'nun string-tipli id-dışı parametre için ürettiği varsayılan) üretmez."""
+    q = str(request.url.params.get("q", ""))
+    if "'" in q:
+        return httpx.Response(500, text='SQLITE_ERROR: near "\'": syntax error')
+    return httpx.Response(200, json={"results": []})
+
+
+def sqli_safe_q(request):
+    return httpx.Response(200, json={"results": []})
+
+
+async def _find_param(handler, param, location, vtype, endpoint=SEARCH_ENDPOINT):
+    scope = Scope(allowed_hosts=["localhost"], allowed_ports=[3000], allowed_path_prefixes=["/"],
+                  allowed_methods=["GET", "HEAD", "POST"], destructive_tests=True)
+    store = SessionStore(base_url=BASE, transport=httpx.MockTransport(handler))
+    s = store.create(Actor(name="user_A", auth=AuthState(headers={"Authorization": "Bearer A"})))
+    oracle = InjectionOracle(Replayer(PolicyEngine(scope)), BASE)
+    fs = await oracle.test_param(endpoint, s, param=param, location=location)
+    await store.aclose_all()
+    return next(f for f in fs if f.type == vtype)
+
+
+@pytest.mark.asyncio
+async def test_idless_query_param_sqli_confirmed_on_vuln_server():
+    """id'siz uçta `q` query parametresi: SQLi imzası dönen sahte sunucuda CONFIRMED."""
+    f = await _find_param(sqli_vuln_q, "q", "query", "sqli")
+    assert f.verdict == base.CONFIRMED
+    assert f.parameter == "q"
+
+
+@pytest.mark.asyncio
+async def test_idless_query_param_sqli_not_confirmed_on_benign_server():
+    """Aynı uç masum (imzasız) sunucuda CONFIRMED DEĞİL — benign baseline değeri ("apple")
+    masum sunucuda hata üretmez, 0-FP korunur."""
+    f = await _find_param(sqli_safe_q, "q", "query", "sqli")
+    assert f.verdict != base.CONFIRMED
+
+
+@pytest.mark.asyncio
+async def test_idless_query_param_does_not_mix_with_with_id_path():
+    """id'siz uç `with_id` yoluna düşmez (SEARCH_ENDPOINT.has_id == False) — URL path'i
+    değişmeden q querysine payload eklenir."""
+    captured = {}
+
+    def handler(request):
+        captured["path"] = request.url.path
+        captured["query"] = str(request.url.params)
+        return httpx.Response(200, json={"results": []})
+
+    f = await _find_param(handler, "q", "query", "sqli")
+    assert f.endpoint == "/rest/products/search"
+    assert captured["path"] == "/rest/products/search"
+    assert "q=" in captured["query"]
+
+
+# --- body parametresi (JSON gövde alanı), id'den bağımsız ---
+
+BODY_ENDPOINT = Endpoint(method="POST", path_template="/api/orders/{id}", id_param="id")
+
+
+def nosql_vuln_body(request):
+    import json as _json
+    body = _json.loads(request.content or b"{}")
+    val = body.get("coupon")
+    if isinstance(val, dict):   # yapısal operatör nesnesi ({"$ne": None}) → motor hata imzası
+        return httpx.Response(500, text="CastError: Cast to ObjectId failed")
+    return httpx.Response(200, json={"ok": True})
+
+
+@pytest.mark.asyncio
+async def test_body_param_injection_targets_json_field_not_id():
+    """id DIŞINDAKİ bir gövde alanı (`coupon`) için NoSQL operatör enjeksiyonu doğru alana
+    gider; path'teki id ('1' ile doldurulur) etkilenmez."""
+    f = await _find_param(nosql_vuln_body, "coupon", "body", "nosqli", endpoint=BODY_ENDPOINT)
+    assert f.verdict == base.CONFIRMED
+    assert f.parameter == "coupon"

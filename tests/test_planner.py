@@ -3,7 +3,7 @@ import pytest
 
 from pentestai.llm import MockLLMClient
 from pentestai.llm.client import _parse_hypotheses
-from pentestai.models import Endpoint, Hypothesis
+from pentestai.models import Endpoint, Hypothesis, Param
 from pentestai.planner import HypothesisGenerator
 
 EPS = [
@@ -111,3 +111,66 @@ async def test_generate_llm_error_falls_back_to_deterministic():
     assert {(h.type, h.endpoint.method, h.endpoint.path_template) for h in hs} == \
            {(h.type, h.endpoint.method, h.endpoint.path_template) for h in det}
     assert all(h.source == "deterministic" for h in hs)
+
+
+# --- Faz 3 / T3: çok-parametreli hipotez üretimi + risk-sınıflı param hipotezleri ---
+
+def test_injection_and_timing_generated_for_every_query_param_id_less_endpoint():
+    """id'siz GET /search?q= ucunda `q` için injection hipotezi üretilir (önceden hiç
+    üretilmiyordu — has_id dalı dışındaki parametreler atlanıyordu)."""
+    ep = Endpoint(method="GET", path_template="/rest/products/search",
+                 params=[Param(name="q", location="query", type="string")])
+    hyps = HypothesisGenerator().deterministic([ep])
+    inj = [h for h in hyps if h.type == "injection" and h.param == "q"]
+    timing = [h for h in hyps if h.type == "timing" and h.param == "q"]
+    assert len(inj) == 1 and inj[0].param_location == "query"
+    assert len(timing) == 1
+
+
+def test_injection_generated_for_body_param_distinct_from_id_param():
+    """id_param'ı ('id', path) KORUYARAK ek bir gövde parametresi ('note') için de ayrı bir
+    injection hipotezi üretilir — ikisi birbirini EZMEZ (dedupe param+location'ı anahtara katar)."""
+    ep = Endpoint(method="PUT", path_template="/api/orders/{id}", id_param="id",
+                 params=[Param(name="note", location="body", type="string")])
+    hyps = HypothesisGenerator().deterministic([ep])
+    inj = [h for h in hyps if h.type == "injection"]
+    params = {(h.param, h.param_location) for h in inj}
+    assert ("id", "path") in params
+    assert ("note", "body") in params
+    assert len(inj) == 2   # ikisi de kaldı, ne biri diğerini ezdi ne de yinelendi
+
+
+def test_url_like_param_gets_ssrf_and_open_redirect_hypotheses_with_param():
+    ep = Endpoint(method="GET", path_template="/rest/image",
+                 params=[Param(name="url", location="query", type="string")])
+    hyps = HypothesisGenerator().deterministic([ep])
+    ssrf = [h for h in hyps if h.type == "ssrf" and h.param == "url"]
+    openr = [h for h in hyps if h.type == "open_redirect" and h.param == "url"]
+    assert len(ssrf) == 1 and ssrf[0].param_location == "query"
+    assert len(openr) == 1
+
+
+def test_file_like_param_gets_path_traversal_hypothesis_with_param():
+    ep = Endpoint(method="GET", path_template="/rest/download",
+                 params=[Param(name="file", location="query", type="string")])
+    hyps = HypothesisGenerator().deterministic([ep])
+    pt = [h for h in hyps if h.type == "path_traversal" and h.param == "file"]
+    assert len(pt) == 1
+
+
+def test_role_like_body_param_adds_mass_assignment_for_idless_destructive_endpoint():
+    """id'siz PUT/PATCH/DELETE ucunda rol/yetki adlı gövde alanı varsa mass_assignment adayı
+    üretilir — önceden bu dal yalnızca has_id altındaydı, id'siz ama destructive uçlar kaçıyordu."""
+    ep = Endpoint(method="PUT", path_template="/rest/profile",
+                 params=[Param(name="role", location="body", type="string")])
+    hyps = HypothesisGenerator().deterministic([ep])
+    assert any(h.type == "mass_assignment" for h in hyps)
+
+
+def test_no_role_like_body_param_no_extra_mass_assignment_for_idless_endpoint():
+    """Rol/yetki adlı alan yoksa id'siz destructive uçta yine mass_assignment üretilmez
+    (0-FP: sinyalsiz aday eklenmez)."""
+    ep = Endpoint(method="PUT", path_template="/rest/profile",
+                 params=[Param(name="nickname", location="body", type="string")])
+    hyps = HypothesisGenerator().deterministic([ep])
+    assert not any(h.type == "mass_assignment" for h in hyps)

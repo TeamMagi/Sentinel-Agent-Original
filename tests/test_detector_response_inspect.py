@@ -138,3 +138,25 @@ async def test_clickjacking_rejected_and_headers_ok_when_protected():
     assert cj.verdict == base.REJECTED
     sh = next(x for x in fs if x.type == "security_headers")
     assert sh.verdict == base.REJECTED
+
+
+# --- Faz 3 / T3: planner'ın keşfedilen parametresi (`param=`) varsayılan ad listesi yerine kullanılır ---
+
+def redirect_vuln_custom_param_only(request):
+    """Yalnızca `customRedirect` adlı parametre işlenir — varsayılan listedeki (`redirect`, `url`,
+    ...) adlardan biri gelirse bile yoksayılır; bu, dedektörün GERÇEKTEN `param=` ile sınırlı
+    çalıştığının kanıtıdır (varsayılan listeye düşseydi de CONFIRMED verirdi, test farkı ölçmez)."""
+    v = request.url.params.get("customRedirect")
+    if v and (v.startswith("http") or v.startswith("//")):
+        return httpx.Response(302, headers={"location": v})
+    return httpx.Response(200, text="ok")
+
+
+@pytest.mark.asyncio
+async def test_open_redirect_uses_discovered_param_instead_of_default_list():
+    store, det, s = _setup(redirect_vuln_custom_param_only, OpenRedirectDetector)
+    fs = await det.run(ENDPOINT, s, param="customRedirect")
+    await store.aclose_all()
+    f = next(x for x in fs if x.type == "open_redirect")
+    assert f.verdict == base.CONFIRMED
+    assert f.parameter == "customRedirect"

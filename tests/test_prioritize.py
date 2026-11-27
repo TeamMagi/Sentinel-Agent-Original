@@ -115,3 +115,48 @@ async def test_low_value_share_defers_low_tier_but_runs_access_control():
     assert low_spent < 20 + 30            # pay + son hipotezin taşması
     assert scanner.deferred_low_value        # kalanlar ertelendi ve raporlanabilir
     await store.aclose_all()
+
+
+# --- Faz 3 / T3: parametre risk sıralaması + uç başına parametre tavanı ---
+
+def test_url_like_param_ranked_before_generic_param_within_same_tier():
+    hyps = [
+        _h("ssrf", "/a"),                         # param=None → orta risk
+        Hypothesis(type="ssrf", endpoint=Endpoint(method="GET", path_template="/b"),
+                  param="url", param_location="query"),      # url-benzeri → yüksek risk
+    ]
+    hyps[0] = Hypothesis(type="ssrf", endpoint=Endpoint(method="GET", path_template="/a"),
+                        param="foo", param_location="query")  # düşük risk
+    ordered = HypothesisPrioritizer().order(hyps)
+    assert ordered[0].param == "url"
+
+
+def test_max_params_per_endpoint_caps_distinct_params_by_risk():
+    # 8 farklı query parametresi aynı uçta; 2'si url-benzeri (yüksek risk), kalanı düz isim.
+    ep = Endpoint(method="GET", path_template="/rest/search")
+    hyps = [Hypothesis(type="injection", endpoint=ep, param="url", param_location="query")]
+    hyps += [Hypothesis(type="injection", endpoint=ep, param="q", param_location="query")]
+    hyps += [Hypothesis(type="injection", endpoint=ep, param=f"z{i}", param_location="query")
+            for i in range(8)]
+    ordered = HypothesisPrioritizer(max_params_per_endpoint=3).order(hyps)
+    kept = {h.param for h in ordered}
+    assert len(kept) == 3
+    assert "url" in kept and "q" in kept           # yüksek risk ikisi de korunur (ilk 2 sırada)
+    assert sum(p.startswith("z") for p in kept) == 1  # kalan tek slot düşük-risk havuzundan
+
+
+def test_max_params_per_endpoint_never_drops_core_id_param():
+    ep = Endpoint(method="GET", path_template="/rest/basket/{id}", id_param="id")
+    hyps = [Hypothesis(type="injection", endpoint=ep, param="id", param_location="path")]
+    hyps += [Hypothesis(type="injection", endpoint=ep, param=f"z{i}", param_location="query")
+            for i in range(10)]
+    ordered = HypothesisPrioritizer(max_params_per_endpoint=2).order(hyps)
+    assert "id" in {h.param for h in ordered}       # çekirdek parametre tavana girmez
+
+
+def test_max_params_per_endpoint_none_means_unlimited():
+    ep = Endpoint(method="GET", path_template="/rest/search")
+    hyps = [Hypothesis(type="injection", endpoint=ep, param=f"z{i}", param_location="query")
+            for i in range(10)]
+    ordered = HypothesisPrioritizer(max_params_per_endpoint=None).order(hyps)
+    assert len(ordered) == 10

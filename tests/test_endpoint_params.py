@@ -72,6 +72,7 @@ def test_surface_params_union_across_sources():
     scanner.surface_sources = {}
     scanner.surface_params = {}
     scanner.surface_tested = {}
+    scanner.surface_tested_params = {}
     scanner.register_surface([first], "config")
     scanner.register_surface([second], "har")
     assert scanner.surface_params[("GET", "/api/items/{id}")] == ["id", "page"]

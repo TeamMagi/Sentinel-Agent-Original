@@ -13,6 +13,15 @@ actors:
       login_url: "http://localhost:8888/identity/api/auth/login"
       credentials: { email: "sentinel_c1@example.com", password: "REDACTED" }
       token_location: { kind: "bearer", from: "json:token" }
+      # Faz 2 / T5b (--browser-crawl): crAPI gerçek SPA login formu. Seçiciler geneldir;
+      # uygulama sürümünde farklıysa tarayıcıda "Inspect" ile doğrulayıp güncelle.
+      # Kimlik bilgileri yukarıdaki credentials'dan okunur; parola ASLA loglanmaz.
+      # browser_login:
+      #   url: "/login"
+      #   username_selector: 'input[type="email"]'
+      #   password_selector: 'input[type="password"]'
+      #   submit_selector: 'button[type="submit"]'
+      #   success_url_contains: "/dashboard"
     own_object_ids: { posts: "<c1-gönderi-postId>" }
 
   - name: sentinel_c2
@@ -22,4 +31,13 @@ actors:
       login_url: "http://localhost:8888/identity/api/auth/login"
       credentials: { email: "sentinel_c2@example.com", password: "REDACTED" }
       token_location: { kind: "bearer", from: "json:token" }
+      # Faz 2 / T5b (--browser-crawl): crAPI gerçek SPA login formu. Seçiciler geneldir;
+      # uygulama sürümünde farklıysa tarayıcıda "Inspect" ile doğrulayıp güncelle.
+      # Kimlik bilgileri yukarıdaki credentials'dan okunur; parola ASLA loglanmaz.
+      # browser_login:
+      #   url: "/login"
+      #   username_selector: 'input[type="email"]'
+      #   password_selector: 'input[type="password"]'
+      #   submit_selector: 'button[type="submit"]'
+      #   success_url_contains: "/dashboard"
     own_object_ids: { posts: "<c2-gönderi-postId>" }

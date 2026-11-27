@@ -21,6 +21,16 @@ actors:
       # {bearer} → BU aktörün Authorization Bearer token'ı, {cookie:ad} → BU aktörün cookie'si.
       # Çözülemeyen yer tutuculu anahtar yazılmaz; aktörler arası değer paylaşımı olmaz.
       # browser_local_storage: { token: "{bearer}", sid: "{cookie:session}" }
+      # Faz 2 / T5b (--browser-crawl): localStorage enjeksiyonu yerine GERÇEK form login.
+      # Kimlik bilgileri YUKARIDAKİ credentials'dan okunur (email/username + password);
+      # parola log'a/rapora/diske ASLA yazılmaz. Verilmezse mevcut cookie/header/LoS kalır.
+      # browser_login:
+      #   url: "/login"                       # göreli URL start_url originsine çözülür
+      #   username_selector: 'input[type="email"]'
+      #   password_selector: 'input[type="password"]'
+      #   submit_selector: 'button[type="submit"]'
+      #   success_url_contains: "/dashboard"  # opsiyonel; verilmezse sayfa yüklenmesini bekler
+      #   timeout_ms: 15000                   # opsiyonel
     # own_object_ids artık opsiyonel: kullanıcı id'si JWT'den, sepet login'den, diğerleri crawl'den
     # çıkarılır. Verilirse daima önceliklidir. basketitem=sepete eklenen BasketItem.id (çıkarılamaz).
     own_object_ids: { basketitem: "1" }

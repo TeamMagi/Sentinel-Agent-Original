@@ -28,6 +28,7 @@ def test_parser_defaults_and_bayraklar():
     args = parser.parse_args(["--scope", "s", "--actors", "a"])
     assert args.browser_crawl is False
     assert (args.crawl_pages, args.crawl_depth) == (40, 3)
+    assert args.crawl_seconds == 180.0
     enabled = parser.parse_args(["--scope", "s", "--actors", "a", "--browser-crawl",
                                  "--crawl-pages", "7", "--crawl-depth", "2"])
     assert enabled.browser_crawl is True
@@ -54,6 +55,23 @@ def test_browser_local_storage_only_for_own_actor():
     assert discovery.local_storage == {"admin": {"token": "{bearer}"}}
     crawler = discovery._factory()   # tarayıcı BAŞLATILMADAN yalnız nesne kurulur
     assert (crawler.max_pages, crawler.max_depth) == (7, 2)
+
+
+def test_browser_login_from_actor_credentials_without_leaking_password():
+    policy = PolicyEngine(Scope(allowed_hosts=["localhost"], allowed_ports=[3000]))
+    actor = Actor(name="a")
+    pairs = [(actor, {
+        "credentials": {"email": "u@example.invalid", "password": "SIR-123"},
+        "browser_login": {"url": "/login", "username_selector": 'input[type="email"]'},
+    })]
+    discovery = _build_browser_discovery(_args(browser_crawl=True), pairs, policy)
+    assert isinstance(discovery, BrowserDiscovery)
+    login = discovery.logins["a"]
+    assert login.url == "/login"
+    assert login.credentials == {"username": "u@example.invalid", "password": "SIR-123"}
+    assert "SIR-123" not in repr(login)
+    crawler = discovery._factory()
+    assert crawler.max_crawl_seconds == 180.0
 
 
 def test_cli_import_does_not_import_discovery_module():

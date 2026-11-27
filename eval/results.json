@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 88,
+    "tp": 89,
     "fp": 0,
     "fn": 0,
-    "tn": 165,
-    "total": 253
+    "tn": 167,
+    "total": 256
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -2034,6 +2034,30 @@
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "INCONCLUSIVE",
+      "passed": true
+    },
+    {
+      "name": "header-bypass-proxy-rewrite:vulnerable",
+      "vuln_type": "header_bypass",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "header-bypass-proxy-rewrite:hardened",
+      "vuln_type": "header_bypass",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "header-bypass-proxy-rewrite:near-miss",
+      "vuln_type": "header_bypass",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "LIKELY",
       "passed": true
     }
   ]

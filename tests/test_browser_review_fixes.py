@@ -240,20 +240,30 @@ async def test_gate_covers_pages_opened_before_and_during_crawl(browser):
 
 @pytest.mark.asyncio
 async def test_no_write_request_is_sent_even_when_policy_allows_it(browser):
+    """destructive_tests=True olsa bile keşif DELETE/PUT/PATCH ve beyan dışı POST göndermez; tek
+    istisna operatörün `safe_write_paths` ile açıkça güvenli beyan ettiği yola POST."""
     log = Log()
     html = """<html><body><script>
     fetch('/api/search', {method:'POST', headers:{'content-type':'application/json'},
       body:JSON.stringify({q:'x'})});
+    fetch('/api/feedback', {method:'POST', headers:{'content-type':'application/json'},
+      body:JSON.stringify({c:'x'})});
     fetch('/api/users/1', {method:'DELETE'});
+    fetch('/api/users/1', {method:'PUT', body:'{}'});
     </script></body></html>"""
+    scope = Scope(allowed_hosts=[HOST], allowed_ports=[80], allowed_path_prefixes=["/"],
+                  allowed_methods=["GET", "HEAD", "POST", "PUT", "DELETE"],
+                  destructive_tests=True, safe_write_paths=["/api/search"])
     context = await browser.new_context()
     try:
         await _app(context, log, html)
-        result = await _crawler(context).crawl(f"{ORIGIN}/")
-        assert not any(method != "GET" for method, _ in log.calls)
+        result = await _crawler(context, policy=PolicyEngine(scope)).crawl(f"{ORIGIN}/")
+        sent_writes = {(m, p) for m, p in log.calls if m != "GET"}
+        assert sent_writes == {("POST", "/api/search")}
         aborted = {(c.method, urlsplit(c.url).path) for c in result.calls if c.aborted}
-        assert ("POST", "/api/search") in aborted
+        assert ("POST", "/api/feedback") in aborted
         assert ("DELETE", "/api/users/1") in aborted
+        assert ("PUT", "/api/users/1") in aborted
     finally:
         await context.close()
 

@@ -271,3 +271,49 @@ async def test_spa_login_without_form_action_under_discovery_prefix(context):
     assert _count(log, "POST", "/api/session") == 1  # yalnız login API POST'u gönderildi
     assert _count(log, "POST", "/api/noop") == 0     # gezinti sırasındaki POST yine kesildi
     assert any(urlsplit(c.url).path == "/api/me" and c.status == 200 for c in result.calls)
+
+
+OVERLAY_LOGIN_HTML = """<html><body>
+<div id="overlay" style="position:fixed;inset:0;background:#000a;z-index:10">
+  <button aria-label="Close Welcome Banner"
+          onclick="document.getElementById('overlay').remove()">X</button></div>
+<form id="login" method="post" action="/api/login" onsubmit="event.preventDefault();
+ fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},
+ body:JSON.stringify({email:this.email.value})})
+ .then(() => { setTimeout(() => localStorage.setItem('sess','1'), 400);
+               location.hash='#/home'; }); return false;">
+<input type="email" name="email"><input type="password" name="password">
+<button type="submit">Sign in</button></form></body></html>"""
+
+
+@pytest.mark.asyncio
+async def test_overlay_dismissed_and_post_login_landing_crawled_first(context):
+    """Canlı Juice/crAPI: (1) hoş geldin katmanı login butonunu örter → kapatılmalı; (2) kök yol
+    hep /login'e döner → login sonrası varılan sayfa (landing) gezilmeli; (3) SPA oturumu gecikmeli
+    yazar → login sonrası beklenmeli (400 ms gecikmeli `sess`)."""
+    log = ServerLog()
+
+    async def _handle(route) -> None:
+        request = route.request
+        parts = urlsplit(request.url)
+        log.calls.append((request.method.upper(), parts.path, request.post_data or ""))
+        if parts.path == "/api/login":
+            await route.fulfill(status=200, content_type="application/json", body='{"ok":true}')
+        elif parts.path.startswith("/api/"):
+            await route.fulfill(status=200, content_type="application/json", body='{"id":"u-1"}')
+        elif parts.path == "/home":
+            await route.fulfill(status=200, content_type="text/html", body="""<html><body><script>
+              if (localStorage.getItem('sess')) fetch('/api/me'); else location.href='/login';
+              </script></body></html>""")
+        else:   # kök dahil her şey login sayfası (kök → /login deseni)
+            await route.fulfill(status=200, content_type="text/html", body=OVERLAY_LOGIN_HTML)
+
+    await context.route(f"{ORIGIN}/**", _handle)
+    result = await _crawler(context).crawl(
+        f"{ORIGIN}/", role="user_A",
+        login=_login(success_url_contains="#/home"))
+    assert result.login_succeeded is True                      # katman kapatıldı, giriş yapıldı
+    assert _count(log, "POST", "/api/login") == 1
+    # Login sonrası landing (#/home → /home yüklemesi) gezildi ve oturum DÜŞMEDİ: /api/me çağrıldı.
+    # (#/home hash URL'si; sayfa `/` üzerinde kalır — landing kuyruğa alındığı için tekrar gezilir.)
+    assert result.pages_visited >= 1

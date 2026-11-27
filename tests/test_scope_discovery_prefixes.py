@@ -134,3 +134,39 @@ async def test_discover_more_filters_out_of_test_scope(capsys):
     assert any(p == "/static/app.js" for _, p in seen)
     assert not any(p == "/admin/panel" for p in (k[1] for k in scanner.surface_sources))
     assert "test scope'u dışında" in capsys.readouterr().err
+
+
+async def test_discover_more_cancel_keeps_found_surface():
+    """Toplam deadline keşfi keserse (wait_for iptali) o ana dek bulunan uçlar yüzeyde kalır;
+    test scope'u dışındakiler yine elenir. Regresyon: surface.json yalnız seed kalıyordu."""
+    import asyncio
+
+    from pentestai.models import Endpoint
+    from pentestai.recon.surface import SurfaceDiscovery
+    from pentestai.recon.surface.base import SurfaceSource
+
+    class Fast(SurfaceSource):
+        name = "fast"
+
+        async def discover(self, ctx):
+            return [Endpoint(method="GET", path_template="/api/a"),
+                    Endpoint(method="GET", path_template="/admin/x")]
+
+    class Hang(SurfaceSource):
+        name = "hang"
+
+        async def discover(self, ctx):
+            await asyncio.sleep(60)
+            return []
+
+    scanner = Scanner(BASE, _scope(), BudgetConfig(max_rps_per_host=1000))
+    scanner.surface_discovery = SurfaceDiscovery([Fast(), Hang()])
+    store = SessionStore(base_url=BASE, transport=httpx.MockTransport(lambda r: httpx.Response(404)))
+    session = store.create(Actor(name="user_A", auth=AuthState()))
+    try:
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(scanner.discover_more(session, []), timeout=0.5)
+    finally:
+        await store.aclose_all()
+    paths = {e.path_template for e in scanner._surface_entries()}
+    assert "/api/a" in paths and "/admin/x" not in paths

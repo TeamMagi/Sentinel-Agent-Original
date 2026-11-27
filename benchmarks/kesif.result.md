@@ -180,3 +180,20 @@ python -m scripts.benchmark --run runs/f1b-<hedef>/run-* --expected benchmarks/<
     --surface benchmarks/<hedef>.surface.yaml --target "<hedef> (URL-only, Faz 1 düzeltme)"
 # crAPI (b): scope kopyasında allowed_path_prefixes: ["/"]; Juice (b): aynı + max_wall_clock_sec: 900
 ```
+
+---
+
+# Dar scope + `discovery_path_prefixes` (2026-11-27)
+
+Gerçek `config/crapi.scope.yaml` (test önekleri `/identity/ /workshop/ /community/` AYNEN) +
+`discovery_path_prefixes: ["/"]` (yalnız keşif GET/HEAD'i köke gidebilir; test istekleri gidemez).
+URL-only, `--mode active --llm none`, yer-gerçeği değiştirilmedi. Çıktı `runs/f1d-crapi/`.
+
+| Koşum | Uç-recall | Yanlış uç | Test kapsamı | Uçtan uca recall | FP |
+|---|---|---|---|---|---|
+| crAPI dar scope (öncesi) | %0 | — | %0 | %0 (0/5) | 0 |
+| crAPI dar scope + discovery_path_prefixes | **%72.7** | %25.6 | %34.1 | **%40** (2/5) | **0** |
+
+Kök önekli kopya scope'la (T10) aynı kazanç, test scope'u genişletilmeden elde edildi. Test
+scope'u dışındaki keşif uçları (ör. `/.well-known/jwks.json`) test yüzeyine alınmaz. Bütçe
+(`max_total_requests=2000`) yine doldu; test kapsamı darboğazı sürüyor (Faz 2/3/6).

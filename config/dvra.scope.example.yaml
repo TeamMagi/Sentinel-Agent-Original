@@ -7,6 +7,8 @@ scope:
   allowed_hosts: ["127.0.0.1", "localhost"]
   allowed_ports: [8091]
   allowed_path_prefixes: ["/"]
+  # Dar önek kullanılırsa keşfi test scope'unu genişletmeden açmak için (yalnız GET/HEAD/OPTIONS):
+  # discovery_path_prefixes: ["/"]
   denied_path_patterns: ["*/reset-password*"]
   allowed_methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"]
   destructive_tests: true          # izole, atılabilir lab konteyneri — canlı sistemde KAPALI tutun

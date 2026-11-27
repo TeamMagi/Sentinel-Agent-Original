@@ -295,6 +295,11 @@ it is 0% / 3.0% / 0%. The remaining bottlenecks (scope prefixes, request budget)
 `kesif.result.md`; discovery is measured against
 `benchmarks/*.surface.yaml` ground truth.
 
+Narrow scopes (e.g. crAPI's `/identity/`, `/workshop/`, `/community/`) used to starve discovery, since the
+root page and JS bundles fall outside them. Set `scope.discovery_path_prefixes: ["/"]` to let discovery
+(GET/HEAD/OPTIONS only) read those paths without widening the test scope: test requests still cannot
+reach them, and endpoints found outside `allowed_path_prefixes` are reported but never tested.
+
 Each target's committed reference run and exact reproduction commands are in
 **[`benchmarks/juiceshop.result.md`](benchmarks/juiceshop.result.md)**,
 **[`benchmarks/vampi.result.md`](benchmarks/vampi.result.md)** and

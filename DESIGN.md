@@ -214,6 +214,8 @@ privacy:
   no_secrets_in_query: true
 ```
 
+`discovery_path_prefixes` (optional) adds read-only prefixes for surface discovery only: `authorize(purpose="discovery")` allows GET/HEAD (OPTIONS if in `allowed_methods`) on `allowed_path_prefixes ∪ discovery_path_prefixes`; test/auth purposes never use it, and discovered endpoints outside the test scope are not added to the test surface.
+
 ### config/actors.example.yaml
 ```yaml
 actors:
@@ -306,6 +308,7 @@ class Hypothesis(BaseModel):
 class Scope(BaseModel):                    # config/scope.yaml → typed counterpart
     allowed_hosts: list[str]; allowed_ports: list[int]
     allowed_path_prefixes: list[str]; denied_path_patterns: list[str] = []
+    discovery_path_prefixes: list[str] = []   # yalnız keşif (GET/HEAD/OPTIONS) için ek önekler; test'e kapalı
     allowed_methods: list[str] = ["GET","HEAD"]
     destructive_tests: bool = False; external_network: bool = False
     max_payload_bytes: int = 1_048_576

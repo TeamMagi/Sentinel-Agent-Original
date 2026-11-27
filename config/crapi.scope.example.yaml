@@ -9,6 +9,9 @@ scope:
   allowed_hosts: ["localhost", "127.0.0.1", "crapi"]
   allowed_ports: [8888]
   allowed_path_prefixes: ["/identity/", "/workshop/", "/community/"]
+  # Yalnız KEŞİF (GET/HEAD/OPTIONS): kök sayfa, JS bundle, robots/spec okunur; test istekleri
+  # bu öneklere GİDEMEZ, test scope'u genişlemez. Keşifte bulunan scope dışı uçlar test edilmez.
+  discovery_path_prefixes: ["/"]
   denied_path_patterns: ["*/reset*"]
   allowed_methods: ["GET", "HEAD", "POST"]   # SSRF/NoSQLi vakaları POST yüzeyinde
   destructive_tests: false

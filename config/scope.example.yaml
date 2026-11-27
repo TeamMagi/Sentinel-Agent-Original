@@ -6,6 +6,8 @@ scope:
   allowed_hosts: ["localhost", "127.0.0.1", "juice-shop"]
   allowed_ports: [3000]
   allowed_path_prefixes: ["/api/", "/rest/", "/"]
+  # Dar allowed_path_prefixes kullanıyorsanız keşfi test scope'unu genişletmeden açın (yalnız GET/HEAD/OPTIONS):
+  # discovery_path_prefixes: ["/"]
   denied_path_patterns: ["*/reset*", "*/admin/db*", "*/export*"]
   allowed_methods: ["GET", "HEAD"]    # yıkıcı method default kapalı (v0 read-only)
   destructive_tests: false

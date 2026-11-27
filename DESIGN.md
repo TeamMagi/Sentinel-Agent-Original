@@ -184,7 +184,9 @@ pentest-ai/
 │   ├── llm/               # client.py, prompts.py, actions.py       (Stage 1)
 │   ├── orchestrator/      # pipeline.py                             (Stage 2)
 │   ├── evidence/          # store.py
-│   └── report/            # render_md.py, render_json.py
+│   ├── inventory/         # models.py, shape.py, store.py, diff.py, profiler.py,
+│   │                      # priority.py, tracker.py (Faz 5 — otomatik envanter + fark)
+│   └── report/            # render_md.py, render_json.py, inventory_section.py
 ├── tests/                 # test_authorize.py, test_oracle_idor.py, test_replay.py
 └── scripts/               # run_scan.py
 ```
@@ -523,6 +525,8 @@ bounds the loop.
 - **report/coverage.py (R-D1, ROADMAP.md Axis D):** `CoverageReporter` — derives the "which actor reached which endpoint" table from Finding.evidence (baseline/attack response status) + `Finding.victim_as`/`found_as`; no new tracking infrastructure needed. `Scanner._tag` (inside `run_hypotheses`/`run_recon_scan`, without touching the oracle classes) tags every Finding with the testing/victim actor → the report shows "found as user_A" + when `sessions` is provided a per-role coverage table is added to the Markdown/HTML report (if `sessions` is not provided, old behaviour — backwards compatible).
 - **report/baseline.py (R-C1, ROADMAP.md Axis C):** `Baseline` — builds a "known" set from a previous run's `findings.json` (SARIF `fingerprint_of`: type+method+endpoint+parameter) + verdict pairs. `apply()` writes `baseline_status` ("known"/"new") onto every Finding; it **removes no finding** from the list (the Snyk/ZAP baseline principle — "no silent drops"). CLI: `--baseline <previous-findings.json>`; `_fail_exit` does not count `baseline_status=="known"` findings at the CI gate (`--fail-on`). Even if the identity matches, if the verdict WORSENED (e.g. REJECTED→CONFIRMED) it counts as "new" — a regression is never silently suppressed.
 - **report/dedup.py (R-D2, ROADMAP.md Axis D; Q4 stretch):** `FindingDeduplicator` — groups by a root-cause signature (`CWE+endpoint+parameter`, not `type` — so synonymous types e.g. idor/bola merge under the same CWE-639). The verdict NEVER changes (§5 rule 2); only if more than one member merges at the SAME verdict (agreement>1) is the representative's `confidence` raised one notch — and that is done on a COPY (`model_copy`), not the original `Finding`. `sources[]` keeps all contributing `Finding.id`s (no trace lost). The MarkdownReporter shows groups with agreement>1 in a "Correlated Findings" summary table; the details of all findings remain in the report UNCHANGED ("no silent drops"). Independent of SARIF's own `partialFingerprints` (type+method+endpoint+parameter) dedup — this is a presentation layer within a single run.
+
+- **inventory/ (Faz 5 — otomatik envanter + fark, 2026-11-27):** `models.py` (Pydantic v2: `EndpointObservation`, `InventoryRecord`, `InventoryChange`, `ChangeCategory`), `shape.py` (`response_shape_fingerprint` — yalnızca alan adı/tip; DEĞER yok), `store.py` (`InventoryStore` — stdlib sqlite3, hedef bazlı, yerelde), `diff.py` (saf `InventoryDiff`: new/changed/auth_changed/shape_changed/missing/returned/stale), `profiler.py` (`AuthProfiler` — yalnız GET, her aktör + anon, tek nokta: `Replayer`→`PolicyEngine`), `priority.py` (delta/full test sırası) ve `tracker.py` (Scanner'a DI ile giren tek cephe). Bağımlılık yönü tek: `inventory → models/net/policy`; `report → inventory` (`report/inventory_section.py` bloğu ve `inventory_diff.json`), asla tersi değil. "Yetki profili değişti" uyarıdır, CONFIRMED bulgu değildir; verdict yalnız oracle'lardan gelir.
 
 **Example report section:**
 ```markdown

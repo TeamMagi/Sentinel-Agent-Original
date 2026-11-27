@@ -205,6 +205,36 @@ python -m scripts.run_scan \
 Installed as a CLI (`pip install .`), the same scan is `sentinel scan ...`, and
 `--scan-mode quick|standard|deep` scales the budget and breadth.
 
+### Envanter + fark (Faz 5)
+
+Aynı hedefi her gece **aynı** SQLite dosyasıyla tarayın: envanter, uçları, rol→status profilini ve
+yanıt şeklini (yalnızca alan adı + tip) koşumlar arasında saklar.
+
+```bash
+python -m scripts.run_scan ... --inventory runs/inv.sqlite           # ilk koşum: tüm uçlar
+python -m scripts.run_scan ... --inventory runs/inv.sqlite --delta   # sonraki koşumlar: fark
+```
+
+`--delta` yalnızca yeni/değişen/bayat uçları test eder (ilk koşumda yine tümü test edilir);
+`--inventory` verilmezse envanter kapalıdır ve mevcut davranış değişmez. Her koşumda
+`report.md` / `report.html` dosyasının **en üstünde** bir envanter bloğu ve ayrı bir
+`inventory_diff.json` artefaktı üretilir — temiz taramada da üretilir.
+
+| Kategori | Anlamı |
+|---|---|
+| `new` | Bu koşumda ilk kez görülen uç |
+| `changed` | Parametre kümesi değişen uç |
+| `auth_changed` | Bir rolün yanıt status kodu değişen uç |
+| `shape_changed` | Yanıt alanları/tipleri değişen uç |
+| `missing` | Bu koşumda görülmeyen uç (3. kez emekli sayılır) |
+| `returned` | Kaybolan/kaldırılan uç yeniden görüldü |
+| `stale` | ≥14 gündür test edilmeyen uç |
+
+> **Yetki değişimi bir UYARIDIR, kanıt değildir.** `auth_changed` satırı raporda açıkça
+> "UYARI, kanıt değil" der; `CONFIRMED` kararını yalnızca deterministik oracle'lar verir.
+> SQLite dosyası yerelde kalır; token, cookie, PII veya ham yanıt **DEĞERİ** yazılmaz — yalnızca
+> şablon yol, alan adları, status kodları ve verdict'ler saklanır.
+
 **Authentication types** (`config/actors.yaml` → `auth.type`):
 
 | Type | When | How |
@@ -226,6 +256,8 @@ producing a silently wrong session.
 | `--openapi <spec>` / `--har <file>` | discover endpoints from an OpenAPI spec or a browser HAR export |
 | `--mode passive\|active` | `passive`: list only · `active`: run the differential test |
 | `--scan-mode quick\|standard\|deep` | scales budget + breadth (`quick`≈40 requests/300s) |
+| `--inventory <db.sqlite>` | Faz 5: kalıcı envanter (ör. her gece aynı `runs/inv.sqlite`) |
+| `--delta` | Faz 5: yalnız yeni/değişen/bayat uçlar (`--inventory` zorunlu) |
 | `--dry-run` | authorize requests but **don't send** them |
 | `--enumerate` | wordlist endpoint enumeration + GraphQL introspection |
 | `--login-url / --register-url / --logout-url` | enables brute-force, weak-password and session-lifecycle checks |
@@ -381,6 +413,7 @@ Each run writes `runs/<run-id>/` in several formats, all redacted:
 | `report.md` · `report.html` | human summary; the HTML is a single self-contained file |
 | `report.sarif` | GitHub code-scanning "Security" tab |
 | `junit.xml` · `report.csv` | CI "Tests" tab · spreadsheets |
+| `inventory_diff.json` | Faz 5: koşumlar arası envanter farkı (`--inventory` açıksa) |
 | `proof/<id>.bundle.json` | **sealed, re-provable** evidence bundle |
 
 ```bash

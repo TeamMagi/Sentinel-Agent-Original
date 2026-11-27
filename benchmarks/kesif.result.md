@@ -197,3 +197,29 @@ URL-only, `--mode active --llm none`, yer-gerçeği değiştirilmedi. Çıktı `
 Kök önekli kopya scope'la (T10) aynı kazanç, test scope'u genişletilmeden elde edildi. Test
 scope'u dışındaki keşif uçları (ör. `/.well-known/jwks.json`) test yüzeyine alınmaz. Bütçe
 (`max_total_requests=2000`) yine doldu; test kapsamı darboğazı sürüyor (Faz 2/3/6).
+
+---
+
+# Faz 5 — çıkış kriteri (2026-11-27)
+
+Kabul: *"test hedefinde bir uç eklenip kaldırıldığında ertesi tarama doğru kategoriyle raporladı"*.
+Ağsız uçtan-uca test dosyası: `tests/test_inventory_e2e.py` — `python -m pytest -q
+tests/test_inventory_e2e.py` → **9 passed** (~1.4 s). Gerçek `Scanner` + `InventoryTracker` +
+`InventoryStore(tmp_path/"inv.sqlite")` + durumlu `httpx.MockTransport`; iki aktör ve anonim.
+Keşif yerine uç listesi doğrudan `run_recon_scan`'e verilir (gerçek senaryoda keşif bulur).
+
+| Test | Doğrulanan kategori / davranış |
+|---|---|
+| `test_first_run_creates_baseline_without_changes` | ilk koşum: değişiklik yok, "İlk envanter koşumu" |
+| `test_new_endpoint_is_reported_and_tested_in_delta` | `new` + delta planı + uç gerçekten test edildi |
+| `test_auth_change_is_warning_only_and_creates_no_confirmed` | `auth_changed` (priority 1), "UYARI, kanıt değil", 0 CONFIRMED |
+| `test_sensitive_field_added_is_shape_changed` | `shape_changed`, "hassas alan eklendi: ssn" |
+| `test_renamed_id_param_is_changed` | `changed` (parametre adı) |
+| `test_untouched_endpoints_become_stale` | `stale` (4 uç, ≥14 gün) |
+| `test_missing_retires_after_three_scans_then_returns` | `missing` (1/2/3. tarama) → emekli → `returned` |
+| `test_artifact_counts_and_sqlite_has_no_raw_values` | `inventory_diff.json` + `report.md` sayıları; sqlite'da ham değer yok |
+| `test_profile_phase_sends_only_get_requests` | profil yalnız GET (POST/PUT/DELETE yok) |
+
+Toplam kapı: `python -m pytest -q` → **2299 passed, 2 skipped** (~100 s). 7 kategorinin tamamı
+uçtan-uca doğrulandı; `CONFIRMED` yalnızca mevcut oracle'lardan geldi, yetki profili farkı tek
+başına bulgu üretmedi.

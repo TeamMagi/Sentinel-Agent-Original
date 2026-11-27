@@ -80,7 +80,7 @@ def test_changed_text_counts_emojis_warning_and_stale_collapse():
             ChangeCategory.NEW, "POST /api/v2/coupons/transfer", "yeni uç nokta", priority=0),
         _change(
             ChangeCategory.AUTH_CHANGED, "GET /api/reports/{id}",
-            "anon: 401 → 200 — dün kimlik istiyordu, bugün açık (UYARI, kanıt değil)",
+            "anonymous: 401 → 200 — dün kimlik istiyordu, bugün açık (UYARI, kanıt değil)",
             priority=1,
         ),
         _change(ChangeCategory.SHAPE_CHANGED, "GET /api/users", "yanıt şekli değişti", priority=3),
@@ -97,7 +97,7 @@ def test_changed_text_counts_emojis_warning_and_stale_collapse():
     order = [md.index(emoji) for emoji in ("🆕", "🔓", "✏️", "🧬", "❌", "⏳")]
     assert order == sorted(order)
     assert "🆕 POST /api/v2/coupons/transfer — yeni uç nokta" in md
-    assert "anon: 401 → 200 — dün kimlik istiyordu, bugün açık (UYARI, kanıt değil)" in md
+    assert "anonymous: 401 → 200 — dün kimlik istiyordu, bugün açık (UYARI, kanıt değil)" in md
     assert "⏳ 1 uç bayat (≥14 gün test edilmedi)" in md
     assert "15 gündür test edilmedi — bayat" not in md   # STALE tek satıra indirgendi
     assert "Test edilemeyenler: PUT /api/settings, GET /api/x" in md
@@ -142,6 +142,24 @@ def test_clean_scan_still_produces_block():
     assert "test edilemedi" not in md
 
 
+def test_profile_truncation_never_claims_clean_inventory():
+    md = Section.render_markdown(
+        DiffResult(), endpoints_total=5, tested=3, untested=[], first_run=False,
+        profile_truncated=True, unprofiled=2,
+    )
+    assert "⚠️ Profil bütçesi doldu: 2 uç profillenmedi — bu uçlarda yetki/şekil " \
+           "değişikliği bilinmiyor" in md
+    assert "Değişiklik yok — dünkü envanterle aynı." not in md
+    assert "Profillenen uçlarda değişiklik yok." in md
+
+    payload = Section.to_json(
+        DiffResult(), endpoints_total=5, tested=3, untested=[], first_run=False,
+        profile_truncated=True, unprofiled=2,
+    )
+    assert payload["profile_truncated"] is True
+    assert payload["unprofiled"] == 2
+
+
 def test_html_is_escaped():
     change = _change(
         ChangeCategory.NEW, "GET /api/<script>alert(1)</script>", "yeni <img src=x> uç",
@@ -167,8 +185,10 @@ def test_to_json_schema():
         untested=["GET /b"], first_run=False,
     )
     assert set(payload) == {
-        "first_run", "summary", "endpoints_total", "tested", "untested", "changes",
+        "first_run", "summary", "endpoints_total", "tested", "untested",
+        "profile_truncated", "unprofiled", "changes",
     }
+    assert payload["profile_truncated"] is False and payload["unprofiled"] == 0
     assert payload["summary"] == summarize(changes)
     assert payload["changes"][0]["category"] == "new"
     assert payload["untested"] == ["GET /b"] and payload["tested"] == 1
@@ -220,3 +240,16 @@ def test_partial_warning_stays_above_inventory_block(tmp_path):
     md = (root / "report.md").read_text(encoding="utf-8")
     assert md.startswith("> UYARI: bütçe doldu — sonuçlar kısmi.")
     assert md.index("> UYARI") < md.index("## Envanter") < md.index("# Sentinel-Agent")
+
+
+def test_scanner_save_surfaces_profile_truncation_in_block_and_json(tmp_path):
+    scanner, tracker = _scanner(tmp_path / "r6", {"GET /api/a", "GET /api/b"})
+    tracker.profile_truncated = True
+    tracker.unprofiled_keys = {"GET /api/b"}
+    _run_id, root = scanner.save([], "active")
+
+    md = (root / "report.md").read_text(encoding="utf-8")
+    assert "⚠️ Profil bütçesi doldu: 1 uç profillenmedi" in md
+    assert "Değişiklik yok — dünkü envanterle aynı." not in md
+    data = json.loads((root / "inventory_diff.json").read_text(encoding="utf-8"))
+    assert data["profile_truncated"] is True and data["unprofiled"] == 1

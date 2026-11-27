@@ -259,10 +259,10 @@ async def test_auth_change_is_warning_only_and_creates_no_confirmed(tmp_path: Pa
         assert [c.category for c in changes] == [ChangeCategory.AUTH_CHANGED]
         change = changes[0]
         assert change.key == "GET /api/reports/{id}" and change.priority == 1
-        assert change.before == {"role": "anon", "status": 401}
-        assert change.after == {"role": "anon", "status": 200}
+        assert change.before == {"role": "anonymous", "status": 401}
+        assert change.after == {"role": "anonymous", "status": 200}
         report = (root / "report.md").read_text(encoding="utf-8")
-        assert "anon: 401 → 200" in report and "UYARI, kanıt değil" in report
+        assert "anonymous: 401 → 200" in report and "UYARI, kanıt değil" in report
         assert all(f.verdict != "CONFIRMED" for f in findings)   # tek başına kanıt DEĞİL
         data = json.loads((root / "inventory_diff.json").read_text(encoding="utf-8"))
         assert data["summary"] == {"auth_changed": 1}

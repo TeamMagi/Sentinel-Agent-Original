@@ -87,7 +87,7 @@ async def test_profile_roles_and_anon_status_without_touching_auth_state():
         await store.aclose_all()
 
     assert len(observations) == 1
-    assert observations[0].auth_profile == {"user_A": 200, "user_B": 200, "anon": 401}
+    assert observations[0].auth_profile == {"user_A": 200, "user_B": 200, "anonymous": 401}
     assert observations[0].sources == ["openapi", "har"]
     assert profiler.requests_used == 3
     assert profiler.truncated is False
@@ -136,7 +136,8 @@ async def test_id_endpoint_uses_each_actors_own_id_and_anon_uses_first_actor():
 
     assert paths == ["/api/orders/101", "/api/orders/202", "/api/orders/101"]
     assert observations[0].params == ["id"]
-    assert observations[0].auth_profile == {"user_A": 200, "user_B": 200, "anon": 200}
+    assert observations[0].auth_profile == {
+        "user_A": 200, "user_B": 200, "anonymous": 200}
 
 
 @pytest.mark.asyncio
@@ -275,9 +276,39 @@ async def test_max_requests_truncates_and_caps_sent_requests():
     assert profiler.truncated is True
     assert profiler.requests_used == 3
     assert len(seen) == 3
-    assert observations[0].auth_profile == {"user_A": 200, "user_B": 200, "anon": 200}
+    assert observations[0].auth_profile == {
+        "user_A": 200, "user_B": 200, "anonymous": 200}
     assert observations[1].auth_profile == {}
     assert observations[1].response_shape is None
+    # Bütçe yüzünden hiç profillenemeyen uç sessizce boş bırakılmaz.
+    assert profiler.unprofiled_keys == {"GET /api/b"}
+
+
+@pytest.mark.asyncio
+async def test_truncation_midway_marks_partial_endpoint_as_unprofiled():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"ok": True})
+
+    store = _store(handler)
+    actor_a = _session(store, "user_A")
+    actor_b = _session(store, "user_B")
+    anon = _session(store, "guest")
+    profiler = AuthProfiler(_replayer(), BASE, max_requests=2)
+    try:
+        observations = await profiler.profile(
+            [Endpoint(method="GET", path_template="/api/a"),
+             Endpoint(method="GET", path_template="/api/b")],
+            [actor_a, actor_b],
+            anon,
+        )
+    finally:
+        await store.aclose_all()
+
+    assert profiler.truncated is True
+    # İlk uç yarıda kesildi (anon denenemedi), ikinci uca hiç gidilmedi.
+    assert observations[0].auth_profile == {"user_A": 200, "user_B": 200}
+    assert observations[1].auth_profile == {}
+    assert profiler.unprofiled_keys == {"GET /api/a", "GET /api/b"}
 
 
 @pytest.mark.asyncio
@@ -297,6 +328,13 @@ async def test_transport_errors_are_skipped_per_role():
 
     assert observations[0].auth_profile == {}
     assert profiler.requests_used == 2
+
+
+def test_anon_role_matches_scanner_anonymous_session_role():
+    """Anonim profil anahtarı Scanner'ın kurduğu anonim oturum rolüyle aynı olmalı."""
+    from pentestai.inventory.profiler import ANON_ROLE
+
+    assert ANON_ROLE == "anonymous"
 
 
 @pytest.mark.asyncio

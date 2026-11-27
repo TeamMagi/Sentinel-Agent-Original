@@ -123,3 +123,70 @@ async def test_observe_without_result_keeps_full_plan_and_turkish_summary(tmp_pa
         assert store.last_run(BASE) is None   # gözlem yoksa yarım koşum kaydı yazılmaz
     finally:
         store.close()
+
+
+@pytest.mark.asyncio
+async def test_profile_truncation_is_exposed_and_unprofiled_enter_delta_plan(tmp_path):
+    store = InventoryStore(tmp_path / "truncated.sqlite")
+    net_store = SessionStore(base_url=BASE, transport=httpx.MockTransport(_handler))
+    replayer = Replayer(PolicyEngine(_scope()), budget=BudgetTracker(100))
+    actor, anon = _sessions(net_store)
+    endpoints = [
+        Endpoint(method="GET", path_template="/api/orders"),
+        Endpoint(method="GET", path_template="/api/settings"),
+    ]
+    try:
+        first = InventoryTracker(store, BASE, mode="delta", clock=lambda: NOW,
+                                 profile_max_requests=50)
+        await first.observe(replayer, endpoints, [actor], anon, sources={})
+        first.finish({("GET", "/api/orders"): set(), ("GET", "/api/settings"): set()}, [])
+
+        # 3 istek: /api/orders (actor + anon) tam, /api/settings yarıda kesilir.
+        second = InventoryTracker(store, BASE, mode="delta", clock=lambda: NOW,
+                                  profile_max_requests=3)
+        result = await second.observe(replayer, endpoints, [actor], anon, sources={})
+
+        assert result.changes == []                       # değişiklik yok gibi görünür
+        assert second.profile_truncated is True
+        assert second.unprofiled_keys == {"GET /api/settings"}
+        # Değişiklik bilinmediği için profillenemeyen uç delta planına girer.
+        assert second.plan(endpoints) == [endpoints[1]]
+    finally:
+        await net_store.aclose_all()
+        store.close()
+
+
+@pytest.mark.asyncio
+async def test_partial_finish_rolls_back_missing_streak_and_marks_line(tmp_path):
+    store = InventoryStore(tmp_path / "partial.sqlite")
+    net_store = SessionStore(base_url=BASE, transport=httpx.MockTransport(_handler))
+    replayer = Replayer(PolicyEngine(_scope()), budget=BudgetTracker(100))
+    actor, anon = _sessions(net_store)
+    endpoints = [
+        Endpoint(method="GET", path_template="/api/orders"),
+        Endpoint(method="GET", path_template="/api/legacy"),
+    ]
+    try:
+        first = InventoryTracker(store, BASE, mode="delta", clock=lambda: NOW)
+        await first.observe(replayer, endpoints, [actor], anon, sources={})
+        first.finish({("GET", "/api/orders"): set(), ("GET", "/api/legacy"): set()}, [])
+
+        # Kısmi koşum: /api/legacy görülmedi ama yokluk kanıt sayılmamalı.
+        partial = InventoryTracker(store, BASE, mode="delta", clock=lambda: NOW)
+        result = await partial.observe(replayer, endpoints[:1], [actor], anon, sources={})
+        assert [c.category for c in result.changes] == [ChangeCategory.MISSING]
+
+        partial.finish({}, [], partial=True)
+        record = store.load(BASE)["GET /api/legacy"]
+        assert record.missing_streak == 0 and record.removed is False
+        assert "(koşum kısmi — sayılmadı)" in partial.result.changes[0].detail
+
+        # Sonraki tam koşumda sayaç normal artar.
+        complete = InventoryTracker(store, BASE, mode="delta", clock=lambda: NOW)
+        complete_result = await complete.observe(replayer, endpoints[:1], [actor], anon, sources={})
+        complete.finish({}, [])
+        assert [c.category for c in complete_result.changes] == [ChangeCategory.MISSING]
+        assert store.load(BASE)["GET /api/legacy"].missing_streak == 1
+    finally:
+        await net_store.aclose_all()
+        store.close()

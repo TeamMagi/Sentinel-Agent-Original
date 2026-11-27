@@ -170,10 +170,11 @@ def test_anon_401_to_200_is_access_opened_warning():
     assert _categories(result.changes) == [ChangeCategory.AUTH_CHANGED]
     change = result.changes[0]
     assert change.priority == 1
-    assert "anon: 401 → 200" in change.detail
+    assert "anonymous: 401 → 200" in change.detail
     assert "UYARI" in change.detail
     assert "kanıt değil" in change.detail
-    assert result.records[KEY].auth_profile["anon"] == 200
+    # Eski "anon" anahtarı kayda "anonymous" olarak normalize edilir.
+    assert result.records[KEY].auth_profile["anonymous"] == 200
 
 
 def test_200_to_403_is_access_closed():
@@ -194,7 +195,7 @@ def test_200_to_201_is_ignored():
     result = InventoryDiff().compare(previous, [observation], NOW)
 
     assert result.changes == []
-    assert result.records[KEY].auth_profile["anon"] == 201
+    assert result.records[KEY].auth_profile["anonymous"] == 201
 
 
 def test_500_to_502_is_ignored():
@@ -213,7 +214,7 @@ def test_role_present_on_one_side_only_is_ignored():
     result = InventoryDiff().compare(previous, [observation], NOW)
 
     assert result.changes == []
-    assert result.records[KEY].auth_profile == {"admin": 200, "anon": 401}
+    assert result.records[KEY].auth_profile == {"admin": 200, "anonymous": 401}
 
 
 def test_other_status_change_has_priority_three():
@@ -234,6 +235,59 @@ def test_404_to_200_is_not_access_opened():
 
     assert _categories(result.changes) == [ChangeCategory.AUTH_CHANGED]
     assert result.changes[0].priority == 3
+
+
+def test_403_to_200_is_access_opened():
+    previous = {KEY: _record(auth_profile={"admin": 403})}
+    observation = _obs(auth_profile={"admin": 200})
+
+    result = InventoryDiff().compare(previous, [observation], NOW)
+
+    assert _categories(result.changes) == [ChangeCategory.AUTH_CHANGED]
+    assert result.changes[0].priority == 1
+
+
+def test_400_to_200_is_other_status_not_access_opened():
+    previous = {KEY: _record(auth_profile={"admin": 400})}
+    observation = _obs(auth_profile={"admin": 200})
+
+    result = InventoryDiff().compare(previous, [observation], NOW)
+
+    assert _categories(result.changes) == [ChangeCategory.AUTH_CHANGED]
+    assert result.changes[0].priority == 3
+
+
+def test_429_involving_changes_are_ignored_as_transient():
+    for old, new in ((429, 200), (200, 429), (429, 401), (401, 429)):
+        previous = {KEY: _record(auth_profile={"admin": old})}
+        observation = _obs(auth_profile={"admin": new})
+
+        result = InventoryDiff().compare(previous, [observation], NOW)
+
+        assert result.changes == [], (old, new)
+
+
+def test_5xx_involving_changes_are_ignored_as_transient():
+    for old, new in ((500, 200), (200, 503), (401, 500), (502, 200)):
+        previous = {KEY: _record(auth_profile={"admin": old})}
+        observation = _obs(auth_profile={"admin": new})
+
+        result = InventoryDiff().compare(previous, [observation], NOW)
+
+        assert result.changes == [], (old, new)
+
+
+def test_legacy_anon_key_is_compared_as_anonymous():
+    # Eski sqlite kaydı "anon" taşır; yeni gözlem "anonymous" kullanır → aynı rol sayılır.
+    previous = {KEY: _record(auth_profile={"admin": 200, "anon": 401})}
+    observation = _obs(auth_profile={"admin": 200, "anonymous": 200})
+
+    result = InventoryDiff().compare(previous, [observation], NOW)
+
+    assert _categories(result.changes) == [ChangeCategory.AUTH_CHANGED]
+    assert result.changes[0].priority == 1
+    assert "anonymous: 401 → 200" in result.changes[0].detail
+    assert result.records[KEY].auth_profile == {"admin": 200, "anonymous": 200}
 
 
 # --- 5. CHANGED (params) -----------------------------------------------------
@@ -339,6 +393,29 @@ def test_missing_record_stays_in_records_for_history():
 
     assert KEY in result.records
     assert result.records[KEY].missing_streak == 1
+
+
+def test_incomplete_run_does_not_produce_missing_or_touch_streak():
+    previous = {KEY: _record(missing_streak=1)}
+
+    result = InventoryDiff().compare(previous, [], NOW, complete=False)
+
+    assert result.changes == []
+    record = result.records[KEY]
+    assert record.missing_streak == 1
+    assert record.removed is False
+    # Girdi kaydı da mutasyona uğramaz (saf motor).
+    assert previous[KEY].missing_streak == 1
+
+
+def test_incomplete_run_still_reports_observed_changes():
+    previous = {KEY: _record()}
+    observation = _obs(auth_profile={"admin": 200, "anon": 200})
+
+    result = InventoryDiff().compare(previous, [observation], NOW, complete=False)
+
+    assert _categories(result.changes) == [ChangeCategory.AUTH_CHANGED]
+    assert result.records[KEY].missing_streak == 0
 
 
 # --- 8. STALE ----------------------------------------------------------------
@@ -478,7 +555,7 @@ def test_observation_without_role_keeps_previous_auth_value():
     result = InventoryDiff().compare(previous, [observation], NOW)
 
     assert result.changes == []
-    assert result.records[KEY].auth_profile == {"admin": 200, "anon": 401}
+    assert result.records[KEY].auth_profile == {"admin": 200, "anonymous": 401}
 
 
 # --- summarize ---------------------------------------------------------------

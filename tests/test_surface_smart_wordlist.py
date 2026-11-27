@@ -165,7 +165,8 @@ async def test_only_safe_methods():
     assert seen and {m for m, _ in seen} <= {"GET", "HEAD", "OPTIONS"}
 
 
-def test_default_sources_smart_wordlist_last():
+def test_default_sources_param_miner_after_smart_wordlist():
     names = [s.name for s in default_sources()]
     assert names.index("versions") < names.index("smart-wordlist")
-    assert names[-1] == "smart-wordlist"
+    assert names.index("smart-wordlist") < names.index("param-miner")
+    assert names[-1] == "param-miner"

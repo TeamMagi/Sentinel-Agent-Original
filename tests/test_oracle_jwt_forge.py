@@ -89,6 +89,19 @@ async def test_horizontal_impersonation_confirmed():
 
 
 @pytest.mark.asyncio
+async def test_public_endpoint_anonymous_ok_not_confirmed():
+    """Token'a bakmayan herkese açık uç: anonim istek de 200 → REJECTED + Türkçe not."""
+    def public(request):
+        return httpx.Response(200, json={"headline": "public feed", "owner": "bob@test.local"})
+    store, oracle, A, B = _setup(public)
+    f = await oracle.run(EP, B, A)
+    assert f.verdict == base.REJECTED
+    assert "token-suz da erişilebilir" in (f.triage_note or "")
+    assert A.actor.auth.headers["Authorization"].startswith("Bearer ")   # eski haline döndü
+    await store.aclose_all()
+
+
+@pytest.mark.asyncio
 async def test_rejected_when_signature_verified():
     store, oracle, A, B = _setup(me_app(verify_sig=True))
     f = await oracle.run(EP, B, A)

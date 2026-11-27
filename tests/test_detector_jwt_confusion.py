@@ -115,6 +115,7 @@ async def test_public_endpoint_rejected_not_confirmed():
     """FP kapanı: auth'suz uç noktada forge kabulü doğrulama atlatma kanıtı değil."""
     fs = await _run(public_endpoint)
     assert fs and all(f.verdict == base.REJECTED for f in fs)
+    assert all("token-suz da erişilebilir" in (f.triage_note or "") for f in fs)
 
 
 @pytest.mark.asyncio

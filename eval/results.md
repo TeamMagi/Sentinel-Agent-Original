@@ -1,6 +1,6 @@
 # Sentinel-Agent — Çalıştırılabilir self-eval (planted TP + FP + near-miss)
 
-**Vaka:** 250 · **TP/FP/FN/TN:** 87/0/0/163
+**Vaka:** 253 · **TP/FP/FN/TN:** 88/0/0/165
 
 - **Precision:** %100.0
 - **Recall:** %100.0
@@ -135,13 +135,16 @@
 | crlf-redirect-header:near-miss | crlf_injection | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | jwt-claim-forge:vulnerable | jwt_privilege_escalation | positive | CONFIRMED | CONFIRMED | ✅ |
 | jwt-claim-forge:hardened | jwt_privilege_escalation | negative | not:CONFIRMED | REJECTED | ✅ |
-| jwt-claim-forge:near-miss | jwt_privilege_escalation | near_miss | not:CONFIRMED | INCONCLUSIVE | ✅ |
+| jwt-claim-forge:near-miss | jwt_privilege_escalation | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | jwt-kid-injection:vulnerable | jwt_algorithm_confusion | positive | CONFIRMED | CONFIRMED | ✅ |
 | jwt-kid-injection:hardened | jwt_algorithm_confusion | negative | not:CONFIRMED | REJECTED | ✅ |
 | jwt-kid-injection:near-miss | jwt_algorithm_confusion | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | jwt-alg-confusion:vulnerable | jwt_algorithm_confusion | positive | CONFIRMED | CONFIRMED | ✅ |
 | jwt-alg-confusion:hardened | jwt_algorithm_confusion | negative | not:CONFIRMED | REJECTED | ✅ |
 | jwt-alg-confusion:near-miss | jwt_algorithm_confusion | near_miss | not:CONFIRMED | REJECTED | ✅ |
+| jwt-signature-none:vulnerable | jwt | positive | CONFIRMED | CONFIRMED | ✅ |
+| jwt-signature-none:hardened | jwt | negative | not:CONFIRMED | REJECTED | ✅ |
+| jwt-signature-none:near-miss | jwt | near_miss | not:CONFIRMED | REJECTED | ✅ |
 | oauth-redirect-uri:vulnerable | oauth_misconfig | positive | CONFIRMED | CONFIRMED | ✅ |
 | oauth-redirect-uri:hardened | oauth_misconfig | negative | not:CONFIRMED | REJECTED | ✅ |
 | oauth-redirect-uri:near-miss | oauth_misconfig | near_miss | not:CONFIRMED | REJECTED | ✅ |

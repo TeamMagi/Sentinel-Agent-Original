@@ -1,10 +1,10 @@
 {
   "counts": {
-    "tp": 87,
+    "tp": 88,
     "fp": 0,
     "fn": 0,
-    "tn": 163,
-    "total": 250
+    "tn": 165,
+    "total": 253
   },
   "precision": 1.0,
   "recall": 1.0,
@@ -1025,7 +1025,7 @@
       "vuln_type": "jwt_privilege_escalation",
       "category": "near_miss",
       "expected": "not:CONFIRMED",
-      "verdict": "INCONCLUSIVE",
+      "verdict": "REJECTED",
       "passed": true
     },
     {
@@ -1071,6 +1071,30 @@
     {
       "name": "jwt-alg-confusion:near-miss",
       "vuln_type": "jwt_algorithm_confusion",
+      "category": "near_miss",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "jwt-signature-none:vulnerable",
+      "vuln_type": "jwt",
+      "category": "positive",
+      "expected": "CONFIRMED",
+      "verdict": "CONFIRMED",
+      "passed": true
+    },
+    {
+      "name": "jwt-signature-none:hardened",
+      "vuln_type": "jwt",
+      "category": "negative",
+      "expected": "not:CONFIRMED",
+      "verdict": "REJECTED",
+      "passed": true
+    },
+    {
+      "name": "jwt-signature-none:near-miss",
+      "vuln_type": "jwt",
       "category": "near_miss",
       "expected": "not:CONFIRMED",
       "verdict": "REJECTED",

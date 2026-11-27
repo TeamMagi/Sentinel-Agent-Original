@@ -84,6 +84,34 @@ async def test_jwt_confirmed_when_signature_not_verified():
     assert verdicts["weak-secret"] == base.CONFIRMED
 
 
+def jwt_public(request):
+    """Token'a hiç bakmayan herkese açık uç (/healthcheck): token'sız istek de 200."""
+    return httpx.Response(200, json={"status": "ok"})
+
+
+@pytest.mark.asyncio
+async def test_jwt_public_endpoint_not_confirmed():
+    token = _make_jwt({"sub": "user_A", "role": "user"}, STRONG_SECRET)
+    store, det, s = _setup(jwt_public, token)
+    fs = await det.run(PROTECTED, s)
+    await store.aclose_all()
+    assert {f.parameter for f in fs} == {"alg=none", "signature", "weak-secret"}
+    assert all(f.verdict == base.REJECTED for f in fs)
+    assert all("token-suz da erişilebilir" in (f.triage_note or "") for f in fs)
+    # aktörün token'ı anonim kontrolden sonra yerinde kalmalı
+    assert s.actor.auth.headers["Authorization"] == f"Bearer {token}"
+
+
+@pytest.mark.asyncio
+async def test_jwt_protected_endpoint_still_confirmed_alg_none():
+    """Korumalı uç (anonim=401) imzayı doğrulamıyorsa CONFIRMED davranışı korunur."""
+    token = _make_jwt({"sub": "user_A", "role": "user"}, STRONG_SECRET)
+    store, det, s = _setup(jwt_vuln, token)
+    fs = await det.run(PROTECTED, s)
+    await store.aclose_all()
+    assert next(f for f in fs if f.parameter == "alg=none").verdict == base.CONFIRMED
+
+
 @pytest.mark.asyncio
 async def test_jwt_rejected_when_properly_verified():
     token = _make_jwt({"sub": "user_A", "role": "user"}, STRONG_SECRET)
@@ -170,3 +198,45 @@ async def test_user_enum_confirmed_on_differential():
 async def test_user_enum_rejected_when_identical():
     f = await _run_enum(enum_safe)
     assert f.verdict == base.REJECTED
+
+
+@pytest.mark.asyncio
+async def test_jwt_public_endpoint_lowercase_authorization_header():
+    """Başlık adı küçük harfli (`authorization`) olsa da anonim kontrol onu kaldırmalı → REJECTED."""
+    token = _make_jwt({"sub": "user_A", "role": "user"}, STRONG_SECRET)
+    seen: list[bool] = []
+
+    def handler(request):
+        seen.append("authorization" in request.headers)
+        return httpx.Response(200, json={"status": "ok"})
+    store2, det2, s2 = _setup(handler, token)
+    s2.actor.auth.headers.clear()
+    s2.actor.auth.headers["authorization"] = f"Bearer {token}"
+    fs = await det2.run(PROTECTED, s2)
+    await store2.aclose_all()
+    assert all(f.verdict == base.REJECTED for f in fs)
+    assert False in seen                       # anonim istekte başlık gerçekten yoktu
+    assert s2.actor.auth.headers == {"authorization": f"Bearer {token}"}
+
+
+@pytest.mark.asyncio
+async def test_jwt_anonymous_scope_error_does_not_confirm():
+    """Anonim istek ScopeError verirse negatif kontrol yok sayılır; aktör header'ı bozulmaz."""
+    token = _make_jwt({"sub": "user_A", "role": "user"}, STRONG_SECRET)
+    store, det, s = _setup(jwt_public, token)
+
+    class _Raising:
+        def __init__(self, inner):
+            self.inner, self.n = inner, 0
+
+        async def replay(self, req, session):
+            self.n += 1
+            if self.n == 2:                      # 1: baseline, 2: anonim kontrol
+                from pentestai.net.replay import ScopeError
+                raise ScopeError("kapsam dışı")
+            return await self.inner.replay(req, session)
+    det.replayer = _Raising(det.replayer)
+    fs = await det.run(PROTECTED, s)
+    await store.aclose_all()
+    assert fs                                    # çökmedi
+    assert s.actor.auth.headers == {"Authorization": f"Bearer {token}"}
